@@ -1,0 +1,85 @@
+import 'package:intl/intl.dart';
+
+class AppFormatters {
+  AppFormatters._();
+
+  static final _currencyFormat = NumberFormat.currency(
+    symbol: '₹',
+    decimalDigits: 2,
+  );
+
+  static final _compactCurrencyFormat = NumberFormat.compactCurrency(
+    symbol: '₹',
+    decimalDigits: 0,
+  );
+
+  static final _percentFormat = NumberFormat.percentPattern();
+
+  static final _dateFormat = DateFormat('dd MMM yyyy');
+  static final _shortDateFormat = DateFormat('dd/MM/yyyy');
+  static final _timeFormat = DateFormat('hh:mm a');
+  static final _dateTimeFormat = DateFormat('dd MMM yyyy, hh:mm a');
+
+  static String formatCurrency(double amount) {
+    return _currencyFormat.format(amount);
+  }
+
+  static String formatCompactCurrency(double amount) {
+    return _compactCurrencyFormat.format(amount);
+  }
+
+  static String formatPercent(double value) {
+    return _percentFormat.format(value);
+  }
+
+  static String formatDate(DateTime date) {
+    return _dateFormat.format(date);
+  }
+
+  static String formatShortDate(DateTime date) {
+    return _shortDateFormat.format(date);
+  }
+
+  static String formatTime(DateTime time) {
+    return _timeFormat.format(time);
+  }
+
+  static String formatDateTime(DateTime dateTime) {
+    return _dateTimeFormat.format(dateTime);
+  }
+
+  static String formatPhone(String phone) {
+    final cleaned = phone.replaceAll(RegExp(r'\D'), '');
+    if (cleaned.length == 10) {
+      return '+91 $cleaned';
+    }
+    return phone;
+  }
+
+  static String formatLoanId(String id) {
+    return 'LF${id.substring(0, 8).toUpperCase()}';
+  }
+
+  static String formatMemberId(String id) {
+    return 'MB${id.substring(0, 8).toUpperCase()}';
+  }
+
+  static String formatDaysRemaining(int days) {
+    if (days <= 0) return 'Overdue';
+    if (days == 1) return '1 day left';
+    if (days < 7) return '$days days left';
+    if (days < 30) return '${(days / 7).floor()} weeks left';
+    return '${(days / 30).floor()} months left';
+  }
+
+  static String formatRelativeTime(DateTime dateTime) {
+    final now = DateTime.now();
+    final diff = now.difference(dateTime);
+
+    if (diff.inSeconds < 60) return 'Just now';
+    if (diff.inMinutes < 60) return '${diff.inMinutes}m ago';
+    if (diff.inHours < 24) return '${diff.inHours}h ago';
+    if (diff.inDays < 7) return '${diff.inDays}d ago';
+    return formatDate(dateTime);
+  }
+}

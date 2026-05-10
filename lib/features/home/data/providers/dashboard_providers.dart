@@ -1,0 +1,70 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../providers/supabase_provider.dart';
+import '../../../loans/data/repositories/loans_repository.dart';
+import '../../../loans/data/models/loan_model.dart';
+import '../../../savings/data/repositories/savings_repository.dart';
+import '../../../savings/data/models/savings_model.dart';
+import '../../../transactions/data/repositories/transactions_repository.dart';
+import '../../../transactions/data/models/transaction_model.dart';
+
+final loansRepositoryProvider = Provider<LoansRepository>((ref) {
+  return LoansRepository(ref.watch(supabaseClientProvider));
+});
+
+final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
+  return SavingsRepository(ref.watch(supabaseClientProvider));
+});
+
+final transactionsRepositoryProvider = Provider<TransactionsRepository>((ref) {
+  return TransactionsRepository(ref.watch(supabaseClientProvider));
+});
+
+final activeLoansProvider = FutureProvider<List<LoanModel>>((ref) async {
+  final repository = ref.watch(loansRepositoryProvider);
+  return repository.getActiveLoans(limit: 10);
+});
+
+final loanSummaryProvider = FutureProvider<LoanSummary>((ref) async {
+  final repository = ref.watch(loansRepositoryProvider);
+  return repository.getLoanSummary();
+});
+
+final activeSavingsProvider = FutureProvider<List<SavingsModel>>((ref) async {
+  final repository = ref.watch(savingsRepositoryProvider);
+  return repository.getActiveSavingsPlans(limit: 20);
+});
+
+final savingsSummaryProvider = FutureProvider<SavingsSummary>((ref) async {
+  final repository = ref.watch(savingsRepositoryProvider);
+  return repository.getSavingsSummary();
+});
+
+final pendingDepositsProvider = FutureProvider<List<SavingsModel>>((ref) async {
+  final repository = ref.watch(savingsRepositoryProvider);
+  return repository.getPendingDeposits(limit: 10);
+});
+
+final recentTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+  final repository = ref.watch(transactionsRepositoryProvider);
+  return repository.getRecentTransactions(limit: 10);
+});
+
+final todayStatsProvider = FutureProvider<Map<String, dynamic>>((ref) async {
+  final repository = ref.watch(transactionsRepositoryProvider);
+  return repository.getTodayStats();
+});
+
+final dashboardLoansProvider = FutureProvider<List<LoanModel>>((ref) async {
+  final repository = ref.watch(loansRepositoryProvider);
+  return repository.getActiveLoans(limit: 5);
+});
+
+final dashboardSavingsProvider = FutureProvider<List<SavingsModel>>((ref) async {
+  final repository = ref.watch(savingsRepositoryProvider);
+  return repository.getActiveSavingsPlans(limit: 4);
+});
+
+final dashboardTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+  final repository = ref.watch(transactionsRepositoryProvider);
+  return repository.getRecentTransactions(limit: 3);
+});

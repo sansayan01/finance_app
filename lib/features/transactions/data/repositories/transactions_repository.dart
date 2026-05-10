@@ -1,0 +1,90 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/transaction_model.dart';
+
+class TransactionsRepository {
+  final SupabaseClient _client;
+
+  TransactionsRepository(this._client);
+
+  Future<List<TransactionModel>> getRecentTransactions({int limit = 10}) async {
+    try {
+      final response = await _client
+          .from('transactions')
+          .select()
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => TransactionModel.fromJson(json))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
+  Future<List<TransactionModel>> getTransactionsByDate(
+    DateTime date, {
+    int limit = 100,
+  }) async {
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+
+    final response = await _client
+        .from('transactions')
+        .select()
+        .gte('created_at', startOfDay.toIso8601String())
+        .lt('created_at', endOfDay.toIso8601String())
+        .order('created_at', ascending: false)
+        .limit(limit);
+
+    return (response as List)
+        .map((json) => TransactionModel.fromJson(json))
+        .toList();
+  }
+
+  Future<Map<String, dynamic>> getTodayStats() async {
+    try {
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await _client
+          .from('transactions')
+          .select()
+          .gte('created_at', startOfDay.toIso8601String())
+          .lt('created_at', endOfDay.toIso8601String());
+
+      final transactions = response as List;
+
+      double collected = 0;
+      double disbursed = 0;
+      int collectionCount = 0;
+      int totalDue = 0;
+
+      for (final t in transactions) {
+        final type = t['type'] as String;
+        final amount = (t['amount'] as num).toDouble();
+        if (type == 'emiCollection' || type == 'savingsDeposit') {
+          collected += amount;
+          collectionCount++;
+        } else if (type == 'loanDisbursement') {
+          disbursed += amount;
+        }
+      }
+
+      return {
+        'collected': collected,
+        'disbursed': disbursed,
+        'collectionCount': collectionCount,
+        'totalDue': totalDue,
+      };
+    } catch (e) {
+      return {
+        'collected': 0.0,
+        'disbursed': 0.0,
+        'collectionCount': 0,
+        'totalDue': 0,
+      };
+    }
+  }
+}
