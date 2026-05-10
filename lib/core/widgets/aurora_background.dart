@@ -1,123 +1,53 @@
-import 'dart:math' as math;
+import 'dart:math';
 import 'package:flutter/material.dart';
 
 class AuroraBackground extends StatefulWidget {
   final Widget child;
-  final bool animate;
-
-  const AuroraBackground({
-    super.key,
-    required this.child,
-    this.animate = true,
-  });
+  const AuroraBackground({super.key, required this.child});
 
   @override
   State<AuroraBackground> createState() => _AuroraBackgroundState();
 }
 
-class _AuroraBackgroundState extends State<AuroraBackground>
-    with TickerProviderStateMixin {
-  late AnimationController _primaryController;
-  late AnimationController _secondaryController;
-  late Animation<double> _primaryAnimation;
-  late Animation<double> _secondaryAnimation;
+class _AuroraBackgroundState extends State<AuroraBackground> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-
-    _primaryController = AnimationController(
-      duration: const Duration(seconds: 10),
+    _controller = AnimationController(
       vsync: this,
+      duration: const Duration(seconds: 20),
     )..repeat();
-
-    _secondaryController = AnimationController(
-      duration: const Duration(seconds: 15),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _primaryAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
-      CurvedAnimation(parent: _primaryController, curve: Curves.linear),
-    );
-
-    _secondaryAnimation = Tween<double>(begin: 0, end: 2 * math.pi).animate(
-      CurvedAnimation(parent: _secondaryController, curve: Curves.easeInOut),
-    );
   }
 
   @override
   void dispose() {
-    _primaryController.dispose();
-    _secondaryController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final secondary = theme.colorScheme.secondary;
-
-    final bgColor = theme.scaffoldBackgroundColor;
-    final bgSlate = theme.colorScheme.surface;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+    final secondary = Theme.of(context).colorScheme.secondary;
 
     return Stack(
       children: [
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                bgColor, 
-                bgSlate, 
-                isDark ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5) : const Color(0xFFD1D1D6)
-              ],
-            ),
-          ),
-        ),
-        if (widget.animate) ...[
-          AnimatedBuilder(
-            animation: Listenable.merge([_primaryAnimation, _secondaryAnimation]),
-            builder: (context, child) {
-              return CustomPaint(
-                painter: AuroraPainter(
-                  primaryAngle: _primaryAnimation.value,
-                  secondaryAngle: _secondaryAnimation.value,
-                  primaryColor: primary,
-                  secondaryColor: secondary,
-                  accentColor: isDark ? theme.colorScheme.secondary.withValues(alpha: 0.5) : const Color(0xFF5AC8FA),
-                ),
-                size: Size.infinite,
-              );
-            },
-          ),
-        ] else ...[
-          CustomPaint(
-            painter: AuroraPainter(
-              primaryAngle: 0,
-              secondaryAngle: math.pi,
-              primaryColor: primary,
-              secondaryColor: secondary,
-              accentColor: isDark ? theme.colorScheme.secondary.withValues(alpha: 0.5) : const Color(0xFF5AC8FA),
-            ),
-            size: Size.infinite,
-          ),
-        ],
-        Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                bgColor.withValues(alpha: 0.3),
-                bgColor.withValues(alpha: 0.8),
-                bgColor,
-              ],
-              stops: const [0.0, 0.5, 1.0],
-            ),
-          ),
+        AnimatedBuilder(
+          animation: _controller,
+          builder: (context, child) {
+            return CustomPaint(
+              painter: _AuroraPainter(
+                progress: _controller.value,
+                primaryColor: primary.withValues(alpha: isDark ? 0.08 : 0.05),
+                secondaryColor: secondary.withValues(alpha: isDark ? 0.06 : 0.03),
+                isDark: isDark,
+              ),
+              size: Size.infinite,
+            );
+          },
         ),
         widget.child,
       ],
@@ -125,147 +55,38 @@ class _AuroraBackgroundState extends State<AuroraBackground>
   }
 }
 
-class AuroraPainter extends CustomPainter {
-  final double primaryAngle;
-  final double secondaryAngle;
+class _AuroraPainter extends CustomPainter {
+  final double progress;
   final Color primaryColor;
   final Color secondaryColor;
-  final Color accentColor;
+  final bool isDark;
 
-  AuroraPainter({
-    required this.primaryAngle,
-    required this.secondaryAngle,
+  _AuroraPainter({
+    required this.progress,
     required this.primaryColor,
     required this.secondaryColor,
-    required this.accentColor,
+    required this.isDark,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 3);
+    final paint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
 
-    final paint1 = Paint()
-      ..shader = RadialGradient(
-        center: Alignment(
-          math.cos(primaryAngle) * 0.5,
-          math.sin(primaryAngle) * 0.5,
-        ),
-        radius: 1.2,
-        colors: [
-          primaryColor.withValues(alpha: 0.4),
-          secondaryColor.withValues(alpha: 0.2),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromCircle(center: center, radius: size.width * 0.8));
+    // Dynamic blobs
+    _drawBlob(canvas, size, 0.2 + 0.1 * sin(progress * 2 * pi), 0.3 + 0.1 * cos(progress * 2 * pi), 150, primaryColor, paint);
+    _drawBlob(canvas, size, 0.8 - 0.1 * cos(progress * 2 * pi), 0.2 + 0.1 * sin(progress * 2 * pi), 180, secondaryColor, paint);
+    _drawBlob(canvas, size, 0.5 + 0.1 * sin(progress * pi), 0.7 - 0.1 * cos(progress * 2 * pi), 200, primaryColor.withValues(alpha: 0.03), paint);
+  }
 
+  void _drawBlob(Canvas canvas, Size size, double xFactor, double yFactor, double radius, Color color, Paint paint) {
+    paint.color = color;
     canvas.drawCircle(
-      center + Offset(math.cos(primaryAngle) * 100, math.sin(primaryAngle) * 50),
-      size.width * 0.6,
-      paint1,
-    );
-
-    final paint2 = Paint()
-      ..shader = RadialGradient(
-        center: Alignment(
-          math.cos(secondaryAngle) * 0.3,
-          math.sin(secondaryAngle) * 0.3,
-        ),
-        radius: 1.0,
-        colors: [
-          secondaryColor.withValues(alpha: 0.3),
-          primaryColor.withValues(alpha: 0.15),
-          Colors.transparent,
-        ],
-        stops: const [0.0, 0.6, 1.0],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.7, size.height * 0.4),
-        radius: size.width * 0.5,
-      ));
-
-    canvas.drawCircle(
-      Offset(size.width * 0.7, size.height * 0.4) +
-          Offset(math.cos(secondaryAngle) * 80, math.sin(secondaryAngle) * 40),
-      size.width * 0.45,
-      paint2,
-    );
-
-    final paint3 = Paint()
-      ..shader = RadialGradient(
-        colors: [
-          accentColor.withValues(alpha: 0.2),
-          Colors.transparent,
-        ],
-      ).createShader(Rect.fromCircle(
-        center: Offset(size.width * 0.2, size.height * 0.6),
-        radius: size.width * 0.4,
-      ));
-
-    canvas.drawCircle(
-      Offset(size.width * 0.2, size.height * 0.6),
-      size.width * 0.35,
-      paint3,
+      Offset(size.width * xFactor, size.height * yFactor),
+      radius,
+      paint,
     );
   }
 
   @override
-  bool shouldRepaint(AuroraPainter oldDelegate) =>
-      primaryAngle != oldDelegate.primaryAngle ||
-      secondaryAngle != oldDelegate.secondaryAngle;
-}
-
-class MeshGradientBackground extends StatelessWidget {
-  final Widget child;
-
-  const MeshGradientBackground({super.key, required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
-    final secondary = theme.colorScheme.secondary;
-
-    return Container(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: isDark
-              ? [theme.scaffoldBackgroundColor, theme.colorScheme.surface, theme.colorScheme.surfaceContainerHighest, theme.colorScheme.surface]
-              : const [Color(0xFFF8F9FA), Color(0xFFF2F2F7), Color(0xFFE5E5EA), Color(0xFFF2F2F7)],
-          stops: const [0.0, 0.3, 0.7, 1.0],
-        ),
-      ),
-      child: Stack(
-        children: [
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [secondary.withValues(alpha: 0.15), Colors.transparent]),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -150,
-            left: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(colors: [primary.withValues(alpha: 0.1), Colors.transparent]),
-              ),
-            ),
-          ),
-          child,
-        ],
-      ),
-    );
-  }
+  bool shouldRepaint(covariant _AuroraPainter oldDelegate) => oldDelegate.progress != progress;
 }

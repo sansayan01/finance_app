@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/theme/theme_provider.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -90,6 +91,21 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       : const Text('Apply Changes', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, letterSpacing: -0.3)),
                 ),
               ).animate().fadeIn(delay: 400.ms),
+              const SizedBox(height: 24),
+
+              _SectionCard(
+                title: 'Danger Zone',
+                icon: Icons.warning_amber_rounded,
+                children: [
+                  _ActionRow(
+                    title: 'Sign Out',
+                    subtitle: 'Exit your current session safely',
+                    icon: Icons.logout_rounded,
+                    color: Colors.red,
+                    onTap: () => _handleSignOut(context, ref),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 500.ms),
             ],
           ),
         ),
@@ -112,6 +128,26 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
     ));
+  }
+
+  void _handleSignOut(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to exit your session?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ref.read(authProvider.notifier).signOut();
+            },
+            child: const Text('Sign Out', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 }
 
@@ -225,6 +261,57 @@ class _SliderRow extends StatelessWidget {
           const SizedBox(height: 8),
           Slider(value: value, min: min, max: max, onChanged: onChanged),
         ],
+      ),
+    );
+  }
+}
+class _ActionRow extends StatelessWidget {
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionRow({
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(icon, size: 20, color: color),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: color)),
+                  const SizedBox(height: 2),
+                  Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
+                ],
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, size: 20, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.3)),
+          ],
+        ),
       ),
     );
   }

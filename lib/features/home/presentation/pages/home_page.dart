@@ -8,6 +8,8 @@ import '../../../../core/widgets/progress_gauge.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/aurora_background.dart';
+import '../../../../core/widgets/sparkline_chart.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../loans/data/models/loan_model.dart';
 import '../../../savings/data/models/savings_model.dart';
@@ -29,23 +31,40 @@ class HomePage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _buildHeader(context, ref),
-          const SizedBox(height: 28),
-          _buildHeroCard(context, ref),
-          const SizedBox(height: 28),
-          _buildQuickActions(context),
-          const SizedBox(height: 28),
-          _buildActiveLoansSection(context, ref),
-          const SizedBox(height: 28),
-          _buildSavingsSection(context, ref),
-          const SizedBox(height: 28),
-          _buildRecentTransactions(context, ref),
-        ],
+    return Scaffold(
+      backgroundColor: Colors.transparent,
+      body: AuroraBackground(
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(loanSummaryProvider);
+            ref.invalidate(dashboardLoansProvider);
+            ref.invalidate(dashboardSavingsProvider);
+            ref.invalidate(dashboardTransactionsProvider);
+            ref.invalidate(todayStatsProvider);
+          },
+          displacement: 20,
+          color: Theme.of(context).colorScheme.primary,
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildHeader(context, ref),
+                const SizedBox(height: 28),
+                _buildHeroCard(context, ref),
+                const SizedBox(height: 28),
+                _buildQuickActions(context),
+                const SizedBox(height: 28),
+                _buildActiveLoansSection(context, ref),
+                const SizedBox(height: 28),
+                _buildSavingsSection(context, ref),
+                const SizedBox(height: 28),
+                _buildRecentTransactions(context, ref),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -57,14 +76,20 @@ class HomePage extends ConsumerWidget {
     // Dynamic greeting based on time
     final hour = DateTime.now().hour;
     final String greeting;
+    final IconData greetingIcon;
+
     if (hour >= 5 && hour < 12) {
       greeting = 'Good Morning';
+      greetingIcon = Icons.wb_sunny_rounded;
     } else if (hour >= 12 && hour < 17) {
       greeting = 'Good Afternoon';
+      greetingIcon = Icons.wb_cloudy_rounded;
     } else if (hour >= 17 && hour < 21) {
       greeting = 'Good Evening';
+      greetingIcon = Icons.dark_mode_rounded;
     } else {
       greeting = 'Good Night';
+      greetingIcon = Icons.nights_stay_rounded;
     }
 
     // Get first name
@@ -79,12 +104,18 @@ class HomePage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                greeting,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textTertiaryLight,
-                  fontWeight: FontWeight.w500,
-                ),
+              Row(
+                children: [
+                  Text(
+                    greeting,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Icon(greetingIcon, size: 14, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+                ],
               ),
               const SizedBox(height: 4),
               Text(
@@ -133,30 +164,7 @@ class HomePage extends ConsumerWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 8, height: 8,
-                          decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          'Live Portfolio',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: theme.colorScheme.primary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+                  const Spacer(),
                   PopupMenuButton<String>(
                     icon: Icon(Icons.more_horiz, color: theme.textTheme.bodySmall?.color, size: 24),
                     padding: EdgeInsets.zero,
@@ -216,7 +224,7 @@ class HomePage extends ConsumerWidget {
                       value: summary.activeLoans.toString(),
                       icon: Icons.people_rounded,
                       color: isDark ? AppColors.accentDark : AppColors.accentLight,
-                      onTap: () => context.push('/members'),
+                      onTap: () => context.push('/users'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -258,7 +266,6 @@ class HomePage extends ConsumerWidget {
   Widget _buildQuickActions(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final primary = theme.colorScheme.primary;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,39 +279,37 @@ class HomePage extends ConsumerWidget {
           children: [
             Expanded(
               child: _QuickActionBtn(
-                icon: Icons.person_add_alt_1_rounded,
-                label: 'Member',
-                color: primary,
-                onTap: onQuickAction,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionBtn(
                 icon: Icons.request_quote_rounded,
-                label: 'Loan',
-                color: theme.colorScheme.secondary,
-                onTap: () {
-                  try { GoRouter.of(context).push('/loans/new'); } catch (_) { onQuickAction(); }
-                },
+                label: 'New Loan',
+                color: theme.colorScheme.primary,
+                onTap: () => context.push('/loans/new'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionBtn(
                 icon: Icons.savings_rounded,
-                label: 'Deposit',
-                color: isDark ? AppColors.successDark : AppColors.success,
-                onTap: onQuickAction,
+                label: 'Savings',
+                color: theme.colorScheme.secondary,
+                onTap: () => context.push('/savings/new'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionBtn(
-                icon: Icons.qr_code_scanner_rounded,
-                label: 'Scan',
-                color: AppColors.orange,
-                onTap: onQuickAction,
+                icon: Icons.person_add_alt_1_rounded,
+                label: 'Add User',
+                color: isDark ? AppColors.accentDark : AppColors.accentLight,
+                onTap: () => context.push('/users/new'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickActionBtn(
+                icon: Icons.history_rounded,
+                label: 'Timeline',
+                color: isDark ? AppColors.orange.withValues(alpha: 0.8) : AppColors.orange,
+                onTap: () => context.push('/transactions'),
               ),
             ),
           ],
@@ -453,9 +458,31 @@ class HomePage extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'Recent Transactions',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Recent Transactions',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            GestureDetector(
+              onTap: () => context.push('/transactions'),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.orange.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: Text(
+                  'View All',
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    color: AppColors.orange,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
         const SizedBox(height: 16),
         transactionsAsync.when(
@@ -624,6 +651,11 @@ class _HeroStat extends StatelessWidget {
             Text(value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color)),
             const SizedBox(height: 2),
             Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10)),
+            const SizedBox(height: 8),
+            SparklineChart(
+              data: const [10, 15, 8, 22, 18, 25, 20], // Mock trend data
+              color: color,
+            ),
           ],
         ),
       ),

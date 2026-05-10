@@ -16,10 +16,10 @@ import '../features/loans/presentation/pages/new_loan_page.dart';
 import '../features/savings/presentation/pages/new_recurring_saving_page.dart';
 import '../features/users/presentation/pages/users_page.dart';
 import '../features/users/presentation/pages/new_user_page.dart';
-import '../features/members/presentation/pages/members_page.dart';
 import '../features/analytics/presentation/pages/analytics_page.dart';
 import '../features/home/presentation/pages/search_page.dart';
 import '../features/home/presentation/pages/notifications_page.dart';
+import '../features/transactions/presentation/pages/transactions_page.dart';
 
 class AuthRedirectListener extends ChangeNotifier {
   final Ref ref;
@@ -45,7 +45,18 @@ final routerProvider = Provider<GoRouter>((ref) {
     initialLocation: '/loans',
     refreshListenable: authListener,
     redirect: (context, state) {
-      // Temporarily bypass auth for rapid UI testing
+      final authStatus = ref.read(authProvider).status;
+      final isAuthenticated = authStatus == AuthStatus.authenticated;
+      final isAuthPath = state.matchedLocation.startsWith('/auth');
+
+      if (!isAuthenticated && !isAuthPath) {
+        return '/auth';
+      }
+
+      if (isAuthenticated && isAuthPath) {
+        return '/';
+      }
+
       return null;
     },
 
@@ -107,12 +118,12 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NotificationsPage(),
           ),
           GoRoute(
-            path: '/members',
-            builder: (context, state) => const MembersPage(),
-          ),
-          GoRoute(
             path: '/analytics',
             builder: (context, state) => const AnalyticsPage(),
+          ),
+          GoRoute(
+            path: '/transactions',
+            builder: (context, state) => const TransactionsPage(),
           ),
         ],
       ),
@@ -342,8 +353,8 @@ class HomePageContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return HomePage(
-      onViewAllLoans: () {},
-      onViewAllSavings: () {},
+      onViewAllLoans: () => context.go('/loans'),
+      onViewAllSavings: () => context.go('/savings'),
       onQuickAction: () {},
     );
   }
