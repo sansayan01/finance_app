@@ -7,6 +7,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
+import '../../../../core/widgets/glass_button.dart';
 import '../../data/models/savings_model.dart';
 import '../../data/providers/savings_providers.dart';
 
@@ -42,36 +43,42 @@ class _SavingsPageState extends ConsumerState<SavingsPage> with SingleTickerProv
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/savings/new'),
-        backgroundColor: AppColors.success,
-        foregroundColor: Colors.white,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(Icons.add_rounded, size: 22),
-        label: const Text('New Plan', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, letterSpacing: -0.3)),
-      ),
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              child: Column(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Savings',
-                    style: theme.textTheme.headlineLarge?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -0.8,
-                      fontSize: 32,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Savings',
+                        style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -0.8,
+                          fontSize: 32,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Track recurring savings plans',
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Track recurring savings plans',
-                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
+                  GlassButton(
+                    label: 'NEW',
+                    width: 80,
+                    height: 44,
+                    fontSize: 12,
+                    icon: Icons.add_rounded,
+                    color: AppColors.success,
+                    onTap: () => context.push('/savings/new'),
                   ),
                 ],
               ),

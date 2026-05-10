@@ -7,9 +7,15 @@ final loansRepositoryProvider = Provider<LoansRepository>((ref) {
   return LoansRepository(ref.watch(supabaseClientProvider));
 });
 
+// Providers for loan metrics and lists
 final allLoansProvider = FutureProvider<List<LoanModel>>((ref) async {
   final repository = ref.watch(loansRepositoryProvider);
   return repository.getAllLoans();
+});
+
+final loanSummaryProvider = FutureProvider<LoanSummary>((ref) async {
+  final repository = ref.watch(loansRepositoryProvider);
+  return repository.getLoanSummary();
 });
 
 // Alias for backward compatibility
