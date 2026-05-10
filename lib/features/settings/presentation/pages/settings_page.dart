@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
+import '../../../auth/data/models/user_model.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -109,6 +110,60 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               const SizedBox(height: 24),
 
               _SectionCard(
+                title: 'Data & Privacy',
+                icon: Icons.lock_outline_rounded,
+                children: [
+                  _ActionRow(
+                    title: 'Export Data',
+                    subtitle: 'Download transaction history (PDF/CSV)',
+                    icon: Icons.file_download_outlined,
+                    color: Colors.blue,
+                    onTap: () => _handleExport(context),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 450.ms),
+              const SizedBox(height: 16),
+
+              _SectionCard(
+                title: 'Support & Feedback',
+                icon: Icons.help_outline_rounded,
+                children: [
+                  _ActionRow(
+                    title: 'Help Center',
+                    subtitle: 'FAQs and user guides',
+                    icon: Icons.library_books_outlined,
+                    color: Colors.teal,
+                    onTap: () {},
+                  ),
+                  _ActionRow(
+                    title: 'Report an Issue',
+                    subtitle: 'Technical support and bug reports',
+                    icon: Icons.bug_report_outlined,
+                    color: Colors.orange,
+                    onTap: () {},
+                  ),
+                ],
+              ).animate().fadeIn(delay: 500.ms),
+              const SizedBox(height: 16),
+
+              if (ref.watch(currentUserProvider)?.role == UserRole.executiveAdmin) ...[
+                _SectionCard(
+                  title: 'Administration',
+                  icon: Icons.admin_panel_settings_outlined,
+                  children: [
+                    _ActionRow(
+                      title: 'Activity Logs',
+                      subtitle: 'Monitor system changes and user actions',
+                      icon: Icons.history_rounded,
+                      color: AppColors.primary,
+                      onTap: () {},
+                    ),
+                  ],
+                ).animate().fadeIn(delay: 550.ms),
+                const SizedBox(height: 16),
+              ],
+
+              _SectionCard(
                 title: 'Danger Zone',
                 icon: Icons.warning_amber_rounded,
                 children: [
@@ -120,10 +175,47 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     onTap: () => _handleSignOut(context, ref),
                   ),
                 ],
-              ).animate().fadeIn(delay: 500.ms),
+              ).animate().fadeIn(delay: 600.ms),
+
+              const SizedBox(height: 40),
+              
+              Center(
+                child: Column(
+                  children: [
+                    Text(
+                      'MicroFlow Pro v1.0.4-stable',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        _FooterLink(label: 'Terms of Service', onTap: () {}),
+                        const SizedBox(width: 12),
+                        Container(width: 4, height: 4, decoration: BoxDecoration(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.2), shape: BoxShape.circle)),
+                        const SizedBox(width: 12),
+                        _FooterLink(label: 'Privacy Policy', onTap: () {}),
+                      ],
+                    ),
+                  ],
+                ),
+              ).animate().fadeIn(delay: 700.ms),
+              const SizedBox(height: 120),
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  void _handleExport(BuildContext context) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Preparing your data for export...'),
+        backgroundColor: Colors.blue,
       ),
     );
   }
@@ -326,6 +418,33 @@ class _ActionRow extends StatelessWidget {
             ),
             Icon(Icons.chevron_right_rounded, size: 20, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.3)),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FooterLink extends StatelessWidget {
+  final String label;
+  final VoidCallback onTap;
+  const _FooterLink({required this.label, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(4),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+        child: Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(
+            color: AppColors.primary,
+            fontWeight: FontWeight.w700,
+            decoration: TextDecoration.underline,
+            decorationColor: AppColors.primary.withValues(alpha: 0.3),
+          ),
         ),
       ),
     );
