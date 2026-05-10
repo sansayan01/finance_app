@@ -41,7 +41,7 @@ class AuthRepository {
       // Fallback to default/email override
     }
 
-    return UserModel(
+    final userModel = UserModel(
       id: user.id,
       email: user.email ?? '',
       fullName: user.userMetadata?['full_name'] as String? ?? '',
@@ -49,6 +49,21 @@ class AuthRepository {
       role: role,
       createdAt: parsedDate ?? DateTime.now(),
     );
+
+    // Audit the login action (Fail-safe)
+    try {
+      await _logRepo?.log(
+        action: 'Admin Login',
+        details: 'Admin user ${userModel.email} successfully authenticated and accessed the dashboard.',
+        type: ActivityType.authAction,
+        userId: userModel.id,
+        userName: userModel.fullName,
+      );
+    } catch (e) {
+      // Never block login because of logging failure
+    }
+
+    return userModel;
   }
 
   Future<UserModel> signUpWithEmail({

@@ -188,8 +188,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   String _getErrorMessage(dynamic error) {
+    if (error is AuthException) {
+      return error.message;
+    }
+    
     final message = error.toString().toLowerCase();
-    if (message.contains('invalid credentials')) {
+    if (message.contains('invalid credentials') || message.contains('invalid login credentials')) {
       return 'Invalid email or password';
     }
     if (message.contains('user already registered')) {
@@ -198,7 +202,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (message.contains('email not confirmed')) {
       return 'Please confirm your email address';
     }
-    return 'An error occurred. Please try again.';
+    if (message.contains('network') || message.contains('connection')) {
+      return 'Network error. Please check your internet connection.';
+    }
+    
+    // Return the actual error message if possible to help debugging
+    if (error is Exception) {
+      final str = error.toString();
+      if (str.startsWith('Exception: ')) {
+        return str.substring(11);
+      }
+      return str;
+    }
+    
+    return 'An error occurred: ${error.toString()}';
   }
 }
 

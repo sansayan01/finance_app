@@ -126,6 +126,10 @@ class _LogItem extends StatelessWidget {
         typeColor = Colors.orange;
         typeIcon = Icons.person_outline_rounded;
         break;
+      case ActivityType.authAction:
+        typeColor = Colors.purple;
+        typeIcon = Icons.vpn_key_rounded;
+        break;
     }
 
     return IntrinsicHeight(

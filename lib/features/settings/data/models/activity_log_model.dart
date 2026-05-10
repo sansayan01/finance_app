@@ -3,6 +3,7 @@ enum ActivityType {
   systemUpdate,
   securityAlert,
   financialTransaction,
+  authAction,
 }
 
 class ActivityLogModel {
