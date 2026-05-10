@@ -204,26 +204,37 @@ class _PremiumBottomBar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
           child: Container(
             height: 68,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF1A1D29).withValues(alpha: 0.92)
-                  : Colors.white.withValues(alpha: 0.92),
+                  ? const Color(0xFF3E3E4A).withValues(alpha: 0.85)
+                  : Colors.white.withValues(alpha: 0.9),
               borderRadius: BorderRadius.circular(28),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                  Colors.transparent,
+                ],
+              ),
               border: Border.all(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.05),
+                color: isDark ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.5),
                 width: 0.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
-                  blurRadius: 24,
-                  offset: const Offset(0, 8),
-                  spreadRadius: -4,
+                  color: Colors.black.withValues(alpha: isDark ? 0.6 : 0.1),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),

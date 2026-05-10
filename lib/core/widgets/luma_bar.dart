@@ -24,22 +24,36 @@ class LumaBar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
           child: Container(
             height: 64,
             decoration: BoxDecoration(
               color: isDark
-                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.92)
-                  : Colors.white.withValues(alpha: 0.92),
+                  ? const Color(0xFF3E3E4A).withValues(alpha: 0.85) // Visibly lighter steel grey
+                  : Colors.white.withValues(alpha: 0.9),  // Pure white
               borderRadius: BorderRadius.circular(22),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                  Colors.transparent,
+                ],
+              ),
               border: Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
+                color: isDark ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.5),
                 width: 0.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
-                  blurRadius: 16,
+                  color: Colors.black.withValues(alpha: isDark ? 0.6 : 0.1),
+                  blurRadius: 30,
+                  offset: const Offset(0, 10),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
+                  blurRadius: 10,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -124,12 +138,20 @@ class PremiumBottomNav extends StatelessWidget {
         child: Container(
           decoration: BoxDecoration(
             color: isDark 
-                ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.92) 
-                : Colors.white.withValues(alpha: 0.92),
+                ? const Color(0xFF3E3E4A).withValues(alpha: 0.85) 
+                : Colors.white.withValues(alpha: 0.9),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.white.withValues(alpha: isDark ? 0.15 : 0.4),
+                Colors.transparent,
+              ],
+            ),
             border: Border(
               top: BorderSide(
-                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
-                width: 0.33,
+                color: isDark ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.5),
+                width: 0.5,
               ),
             ),
           ),
