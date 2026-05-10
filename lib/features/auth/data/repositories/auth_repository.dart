@@ -134,6 +134,47 @@ class AuthRepository {
     );
   }
 
+  Future<void> updateProfile({
+    required String fullName,
+    String? phone,
+    String? email,
+  }) async {
+    final attributes = UserAttributes(
+      email: email,
+      data: {
+        'full_name': fullName,
+        'phone': phone,
+      },
+    );
+    await _client.auth.updateUser(attributes);
+    
+    // Update profiles table if it exists
+    try {
+      await _client.from('profiles').update({
+        'full_name': fullName,
+        'phone': phone,
+      }).eq('user_id', _client.auth.currentUser!.id);
+    } catch (e) {
+      // Ignore if table doesn't exist
+    }
+  }
+
+  Future<void> verifyPassword(String currentPassword) async {
+    final email = _client.auth.currentUser?.email;
+    if (email == null) throw Exception('User not logged in');
+    
+    await _client.auth.signInWithPassword(
+      email: email,
+      password: currentPassword,
+    );
+  }
+
+  Future<void> updatePassword(String newPassword) async {
+    await _client.auth.updateUser(
+      UserAttributes(password: newPassword),
+    );
+  }
+
   Stream<User?> authStateChanges() {
     return _client.auth.onAuthStateChange.map((event) => event.session?.user);
   }

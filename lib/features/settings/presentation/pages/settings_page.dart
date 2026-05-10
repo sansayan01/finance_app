@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/theme/theme_provider.dart';
@@ -22,6 +23,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final settings = ref.watch(settingsProvider);
     final notifier = ref.read(settingsProvider.notifier);
     final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -44,7 +46,20 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 'Customize your experience',
                 style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
               ).animate().fadeIn(delay: 50.ms),
-              const SizedBox(height: 32),
+              _SectionCard(
+                title: 'Account & Profile',
+                icon: Icons.person_outline_rounded,
+                children: [
+                  _ActionRow(
+                    title: 'Edit Profile',
+                    subtitle: 'Change name, phone, email or password',
+                    icon: Icons.badge_outlined,
+                    color: primary,
+                    onTap: () => context.push('/settings/profile'),
+                  ),
+                ],
+              ).animate().fadeIn(delay: 50.ms).slideY(begin: 0.04, end: 0),
+              const SizedBox(height: 16),
 
               _SectionCard(
                 title: 'Appearance',

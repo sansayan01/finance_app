@@ -152,6 +152,39 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  Future<bool> updateProfile({
+    required String fullName,
+    String? phone,
+    String? email,
+  }) async {
+    if (_repository == null) return false;
+    try {
+      await _repository.updateProfile(fullName: fullName, phone: phone, email: email);
+      await _checkSession(); // Refresh local user state
+      return true;
+    } catch (e) {
+      state = state.copyWith(status: AuthStatus.error, errorMessage: _getErrorMessage(e));
+      return false;
+    }
+  }
+
+  Future<bool> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    if (_repository == null) return false;
+    try {
+      // Verify current password first
+      await _repository.verifyPassword(currentPassword);
+      // Update to new password
+      await _repository.updatePassword(newPassword);
+      return true;
+    } catch (e) {
+      state = state.copyWith(status: AuthStatus.error, errorMessage: _getErrorMessage(e));
+      return false;
+    }
+  }
+
   String _getErrorMessage(dynamic error) {
     final message = error.toString().toLowerCase();
     if (message.contains('invalid credentials')) {

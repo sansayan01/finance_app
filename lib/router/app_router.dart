@@ -10,6 +10,7 @@ import '../features/home/presentation/pages/home_page.dart';
 import '../features/loans/presentation/pages/loans_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
+import '../features/settings/presentation/pages/profile_page.dart';
 import '../core/widgets/hud_navigation.dart';
 import '../features/loans/presentation/pages/loan_detail_page.dart';
 import '../features/loans/presentation/pages/new_loan_page.dart';
@@ -108,6 +109,12 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsPage(),
+            routes: [
+              GoRoute(
+                path: 'profile',
+                builder: (context, state) => const ProfilePage(),
+              ),
+            ],
           ),
           GoRoute(
             path: '/search',
