@@ -156,7 +156,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       subtitle: 'Monitor system changes and user actions',
                       icon: Icons.history_rounded,
                       color: AppColors.primary,
-                      onTap: () {},
+                      onTap: () => context.push('/settings/logs'),
                     ),
                   ],
                 ).animate().fadeIn(delay: 550.ms),

@@ -11,6 +11,7 @@ import '../features/loans/presentation/pages/loans_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
 import '../features/settings/presentation/pages/profile_page.dart';
+import '../features/settings/presentation/pages/activity_logs_page.dart';
 import '../core/widgets/hud_navigation.dart';
 import '../features/loans/presentation/pages/loan_detail_page.dart';
 import '../features/loans/presentation/pages/new_loan_page.dart';
@@ -113,6 +114,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: 'profile',
                 builder: (context, state) => const ProfilePage(),
+              ),
+              GoRoute(
+                path: 'logs',
+                builder: (context, state) => const ActivityLogsPage(),
               ),
             ],
           ),
