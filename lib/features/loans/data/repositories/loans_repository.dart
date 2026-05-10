@@ -1,11 +1,14 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../settings/data/repositories/activity_log_repository.dart';
+import '../../../settings/data/models/activity_log_model.dart';
 import '../models/loan_model.dart';
 import '../../../../core/constants/enums.dart';
 
 class LoansRepository {
   final SupabaseClient _client;
+  final ActivityLogRepository? _logRepo;
 
-  LoansRepository(this._client);
+  LoansRepository(this._client, [this._logRepo]);
 
   Future<List<LoanModel>> getAllLoans({int limit = 100}) async {
     try {
@@ -87,7 +90,15 @@ class LoansRepository {
           .maybeSingle();
 
       if (response == null) return null;
-      return LoanModel.fromJson(response);
+      final createdLoan = LoanModel.fromJson(response);
+      
+      await _logRepo?.log(
+        action: 'Loan Disbursed',
+        details: 'Amount: ₹${createdLoan.amount}, Customer ID: ${createdLoan.customerId}',
+        type: ActivityType.financialTransaction,
+      );
+      
+      return createdLoan;
     } catch (e) {
       return null;
     }

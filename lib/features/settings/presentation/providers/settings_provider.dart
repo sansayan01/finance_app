@@ -1,4 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../data/providers/activity_log_repository_provider.dart';
+import '../../data/models/activity_log_model.dart';
 
 class SystemSettings {
   final double defaultLoanInterest;
@@ -37,16 +39,36 @@ class SystemSettings {
 }
 
 class SystemSettingsNotifier extends StateNotifier<SystemSettings> {
-  SystemSettingsNotifier() : super(SystemSettings());
+  final Ref _ref;
+  SystemSettingsNotifier(this._ref) : super(SystemSettings());
 
-  void updateLoanInterest(double value) => state = state.copyWith(defaultLoanInterest: value);
-  void updateSavingsYield(double value) => state = state.copyWith(defaultSavingsYield: value);
-  void updatePenalty(double value) => state = state.copyWith(latePenaltyPercentage: value);
+  void updateLoanInterest(double value) {
+    _log('Loan Interest', '${state.defaultLoanInterest}%', '$value%');
+    state = state.copyWith(defaultLoanInterest: value);
+  }
+
+  void updateSavingsYield(double value) {
+    _log('Savings Yield', '${state.defaultSavingsYield}%', '$value%');
+    state = state.copyWith(defaultSavingsYield: value);
+  }
+
+  void updatePenalty(double value) {
+    _log('Late Penalty', '${state.latePenaltyPercentage}%', '$value%');
+    state = state.copyWith(latePenaltyPercentage: value);
+  }
+
   void toggleNotifications(bool value) => state = state.copyWith(enableNotifications: value);
   void toggleBiometric(bool value) => state = state.copyWith(biometricAuth: value);
-  void updateCurrency(String value) => state = state.copyWith(currency: value);
+  
+  void _log(String param, String oldVal, String newVal) {
+    _ref.read(activityLogRepositoryProvider).log(
+      action: 'System Parameter Updated',
+      details: 'Changed $param from $oldVal to $newVal',
+      type: ActivityType.systemUpdate,
+    );
+  }
 }
 
 final settingsProvider = StateNotifierProvider<SystemSettingsNotifier, SystemSettings>((ref) {
-  return SystemSettingsNotifier();
+  return SystemSettingsNotifier(ref);
 });

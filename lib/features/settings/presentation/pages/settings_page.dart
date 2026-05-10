@@ -7,6 +7,7 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/theme/theme_provider.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../data/providers/brand_provider.dart';
 import '../providers/settings_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
@@ -152,6 +153,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   icon: Icons.admin_panel_settings_outlined,
                   children: [
                     _ActionRow(
+                      title: 'Branding',
+                      subtitle: 'Change system-wide name and logo',
+                      icon: Icons.auto_awesome_rounded,
+                      color: Colors.purple,
+                      onTap: () => _showBrandingDialog(context, ref),
+                    ),
+                    _ActionRow(
                       title: 'Activity Logs',
                       subtitle: 'Monitor system changes and user actions',
                       icon: Icons.history_rounded,
@@ -183,7 +191,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 child: Column(
                   children: [
                     Text(
-                      'MicroFlow Pro v1.0.4-stable',
+                      '${ref.watch(brandProvider).name} v1.0.4-stable',
                       style: theme.textTheme.labelSmall?.copyWith(
                         color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                         fontWeight: FontWeight.w600,
@@ -216,6 +224,46 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       const SnackBar(
         content: Text('Preparing your data for export...'),
         backgroundColor: Colors.blue,
+      ),
+    );
+  }
+
+  void _showBrandingDialog(BuildContext context, WidgetRef ref) {
+    final brand = ref.read(brandProvider);
+    final nameController = TextEditingController(text: brand.name);
+    final logoController = TextEditingController(text: brand.logoUrl);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Branding Settings'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: 'Brand Name'),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: logoController,
+              decoration: const InputDecoration(labelText: 'Logo URL (Network Image)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              ref.read(brandProvider.notifier).updateBrand(
+                    name: nameController.text.trim(),
+                    logoUrl: logoController.text.trim(),
+                  );
+              Navigator.pop(ctx);
+            },
+            child: const Text('Apply System-Wide'),
+          ),
+        ],
       ),
     );
   }

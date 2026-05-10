@@ -2,11 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../data/models/user_model.dart';
+import '../../../settings/data/providers/activity_log_repository_provider.dart';
 
 final authRepositoryProvider = Provider<AuthRepository?>((ref) {
   try {
     final client = Supabase.instance.client;
-    return AuthRepository(client);
+    final logRepo = ref.read(activityLogRepositoryProvider);
+    return AuthRepository(client, logRepo);
   } catch (e) {
     // Return null if Supabase not initialized - demo mode
     return null;

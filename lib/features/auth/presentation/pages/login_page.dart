@@ -8,6 +8,8 @@ import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
 
+import '../../../settings/data/providers/brand_provider.dart';
+
 class LoginPage extends ConsumerStatefulWidget {
   final VoidCallback onSignUpTap;
   const LoginPage({super.key, required this.onSignUpTap});
@@ -61,6 +63,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
+    final brand = ref.watch(brandProvider);
 
     return Scaffold(
       backgroundColor: isDark ? const Color(0xFF0A0A0B) : const Color(0xFFFBFBFE),
@@ -80,13 +83,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       // Sophisticated Logo Entry
-                      _buildLogo(primary),
+                      _buildLogo(primary, ref),
                       
                       const SizedBox(height: 32),
                       
                       // Modern Header
                       Text(
-                        'Secure Entry',
+                        brand.name,
                         style: theme.textTheme.headlineMedium?.copyWith(
                           fontWeight: FontWeight.w900,
                           letterSpacing: -1.0,
@@ -133,13 +136,18 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     );
   }
 
-  Widget _buildLogo(Color primary) {
+  Widget _buildLogo(Color primary, WidgetRef ref) {
+    final brand = ref.watch(brandProvider);
+    
     return Container(
       width: 64,
       height: 64,
       decoration: BoxDecoration(
-        color: primary,
+        color: brand.logoUrl != null ? Colors.transparent : primary,
         borderRadius: BorderRadius.circular(20),
+        image: brand.logoUrl != null 
+          ? DecorationImage(image: NetworkImage(brand.logoUrl!), fit: BoxFit.contain)
+          : null,
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.4),
@@ -148,7 +156,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ],
       ),
-      child: const Icon(Icons.shield_moon_rounded, color: Colors.white, size: 32),
+      child: brand.logoUrl == null 
+        ? const Icon(Icons.account_balance_rounded, color: Colors.white, size: 32)
+        : null,
     ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack);
   }
 

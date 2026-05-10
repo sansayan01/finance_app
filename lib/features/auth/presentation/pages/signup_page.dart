@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_provider.dart' as auth;
+import '../../../settings/data/providers/brand_provider.dart';
 
 class SignUpPage extends ConsumerStatefulWidget {
   final VoidCallback onSignInTap;
@@ -78,6 +79,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
 
+    final brand = ref.watch(brandProvider);
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
@@ -91,7 +94,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                   const SizedBox(height: 24),
                   _buildLogo(primary),
                   const SizedBox(height: 28),
-                  _buildWelcomeText(theme),
+                  _buildWelcomeText(theme, brand.name),
                   const SizedBox(height: 32),
                   _buildForm(isLoading, theme, isDark, primary),
                   const SizedBox(height: 16),
@@ -124,7 +127,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.8, 0.8));
   }
 
-  Widget _buildWelcomeText(ThemeData theme) {
+  Widget _buildWelcomeText(ThemeData theme, String brandName) {
     return Column(
       children: [
         Text(
@@ -137,7 +140,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
         ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.3, end: 0),
         const SizedBox(height: 6),
         Text(
-          'Join MicroFlow Pro today',
+          'Join $brandName today',
           style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
         ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3, end: 0),
       ],

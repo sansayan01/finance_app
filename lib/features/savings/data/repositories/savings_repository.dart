@@ -1,10 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../settings/data/repositories/activity_log_repository.dart';
+import '../../../settings/data/models/activity_log_model.dart';
 import '../models/savings_model.dart';
 
 class SavingsRepository {
   final SupabaseClient _client;
+  final ActivityLogRepository? _logRepo;
 
-  SavingsRepository(this._client);
+  SavingsRepository(this._client, [this._logRepo]);
 
   Future<List<SavingsModel>> getActiveSavingsPlans({int limit = 20}) async {
     try {
@@ -74,5 +77,27 @@ class SavingsRepository {
 
     if (response == null) return null;
     return SavingsModel.fromJson(response);
+  }
+
+  Future<SavingsModel?> createSavingsPlan(SavingsModel plan) async {
+    try {
+      final response = await _client
+          .from('savings')
+          .insert(plan.toJson())
+          .select()
+          .single();
+
+      final createdPlan = SavingsModel.fromJson(response);
+      
+      await _logRepo?.log(
+        action: 'New Savings Plan',
+        details: 'Amount: ₹${createdPlan.targetAmount}/mo, Member ID: ${createdPlan.memberId}',
+        type: ActivityType.financialTransaction,
+      );
+      
+      return createdPlan;
+    } catch (e) {
+      return null;
+    }
   }
 }

@@ -1,10 +1,13 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../../../settings/data/repositories/activity_log_repository.dart';
+import '../../../settings/data/models/activity_log_model.dart';
 import '../models/user_model.dart';
 
 class AuthRepository {
   final SupabaseClient _client;
+  final ActivityLogRepository? _logRepo;
 
-  AuthRepository(this._client);
+  AuthRepository(this._client, [this._logRepo]);
 
   Future<UserModel> signInWithEmail({
     required String email,
@@ -154,6 +157,12 @@ class AuthRepository {
         'full_name': fullName,
         'phone': phone,
       }).eq('user_id', _client.auth.currentUser!.id);
+
+      await _logRepo?.log(
+        action: 'Profile Updated',
+        details: 'User updated their personal information (Name/Phone)',
+        type: ActivityType.userAction,
+      );
     } catch (e) {
       // Ignore if table doesn't exist
     }
@@ -172,6 +181,12 @@ class AuthRepository {
   Future<void> updatePassword(String newPassword) async {
     await _client.auth.updateUser(
       UserAttributes(password: newPassword),
+    );
+
+    await _logRepo?.log(
+      action: 'Password Changed',
+      details: 'User successfully updated their account password',
+      type: ActivityType.securityAlert,
     );
   }
 
