@@ -18,11 +18,11 @@ class UsersPage extends StatelessWidget {
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/users/new'),
         backgroundColor: primary,
-        foregroundColor: Colors.white,
+        foregroundColor: isDark ? Colors.black : Colors.white,
         elevation: 2,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: const Icon(Icons.person_add_alt_1_rounded, size: 22),
-        label: const Text('Add User', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 15, letterSpacing: -0.3)),
+        icon: Icon(Icons.person_add_alt_1_rounded, size: 22, color: isDark ? Colors.black : Colors.white),
+        label: Text('Add User', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.3, color: isDark ? Colors.black : Colors.white)),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
@@ -49,11 +49,11 @@ class UsersPage extends StatelessWidget {
                 children: [
                   Expanded(child: _StatCard(label: 'Total', value: '0', icon: Icons.people_rounded, color: primary)),
                   const SizedBox(width: 12),
-                  Expanded(child: _StatCard(label: 'Admins', value: '0', icon: Icons.shield_rounded, color: AppColors.accent)),
+                  Expanded(child: _StatCard(label: 'Admins', value: '0', icon: Icons.shield_rounded, color: isDark ? AppColors.accentDark : AppColors.accent)),
                   const SizedBox(width: 12),
-                  Expanded(child: _StatCard(label: 'Agents', value: '0', icon: Icons.support_agent_rounded, color: AppColors.orange)),
+                  Expanded(child: _StatCard(label: 'Agents', value: '0', icon: Icons.support_agent_rounded, color: isDark ? AppColors.warningDark : AppColors.orange)),
                   const SizedBox(width: 12),
-                  Expanded(child: _StatCard(label: 'Members', value: '0', icon: Icons.groups_rounded, color: AppColors.success)),
+                  Expanded(child: _StatCard(label: 'Members', value: '0', icon: Icons.groups_rounded, color: isDark ? AppColors.successDark : AppColors.success)),
                 ],
               ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.04, end: 0),
 
@@ -61,7 +61,7 @@ class UsersPage extends StatelessWidget {
 
               Container(
                 decoration: BoxDecoration(
-                  color: isDark ? AppColors.fillDark : AppColors.fillLight,
+                  color: theme.colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: TextField(

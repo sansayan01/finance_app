@@ -37,18 +37,25 @@ class AppColors {
   static const Color groupedBgLight = Color(0xFFF8F9FB);
   static const Color secondaryFillLight = Color(0xFFEDF2F7);
 
-  // ─── Dark Theme — Deep charcoal, not pure black ───
-  static const Color backgroundDark = Color(0xFF0F1117);
-  static const Color surfaceDark = Color(0xFF1A1D29);
-  static const Color cardDark = Color(0xFF1E2230);
-  static const Color elevatedDark = Color(0xFF252A3A);
-  static const Color textPrimaryDark = Color(0xFFF8FAFC);
-  static const Color textSecondaryDark = Color(0xFFCBD5E1);
-  static const Color textTertiaryDark = Color(0xFF64748B);
-  static const Color separatorDark = Color(0xFF2A3042);
-  static const Color fillDark = Color(0xFF1E2433);
-  static const Color groupedBgDark = Color(0xFF0F1117);
-  static const Color secondaryFillDark = Color(0xFF1A2030);
+  // ─── Dark Theme — Smooth Obsidian & Slate ───
+  static const Color backgroundDark = Color(0xFF0F1115); // Deeper, more neutral obsidian
+  static const Color surfaceDark = Color(0xFF181C24);    // Refined surface depth
+  static const Color cardDark = Color(0xFF222731);       // Subtly lighter for cards
+  static const Color elevatedDark = Color(0xFF2A313D);   // Elevated surfaces
+  static const Color textPrimaryDark = Color(0xFFE2E8F0); // Dimmed slate for smoothness
+  static const Color textSecondaryDark = Color(0xFF94A3B8); // Slate 400
+  static const Color textTertiaryDark = Color(0xFF64748B);  // Slate 500
+  static const Color separatorDark = Color(0xFF2E3544);     // Muted separator
+  static const Color fillDark = Color(0xFF1F2532);          // Input/Fill color
+  static const Color groupedBgDark = Color(0xFF0F1115);
+  static const Color secondaryFillDark = Color(0xFF262B35);
+
+  // ─── Dark Mode Specific Accents (Muted & Desaturated for premium smoothness) ───
+  static const Color primaryDark = Color(0xFF7E89F1); // Soft Indigo
+  static const Color accentDark = Color(0xFF9B87F5);  // Soft Violet
+  static const Color successDark = Color(0xFF52D1A4); // Muted Mint
+  static const Color warningDark = Color(0xFFF4C45E); // Muted Amber
+  static const Color errorDark = Color(0xFFF28B8B);   // Soft Coral/Red
 
   // ─── Legacy aliases (backward compatibility) ───
   static const Color primaryTeal = primary;
@@ -98,8 +105,8 @@ class AppColors {
   ];
 
   static const List<Color> cardGradient = [
-    Color(0x1A7C3AED),
-    Color(0x0D4F46E5),
+    Color(0x14818CF8),
+    Color(0x0A6366F1),
   ];
 
   static LinearGradient get primaryGradient => const LinearGradient(

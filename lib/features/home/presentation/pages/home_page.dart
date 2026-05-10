@@ -102,7 +102,6 @@ class HomePage extends ConsumerWidget {
         final collected = todayStatsAsync.valueOrNull?['collected'] as double? ?? 0.0;
         return GlassCard(
           elevated: true,
-          backgroundColor: isDark ? const Color(0xFF1E2230) : null,
           padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -127,7 +126,7 @@ class HomePage extends ConsumerWidget {
                         Text(
                           'Live Portfolio',
                           style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.primary,
+                            color: theme.colorScheme.primary,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -159,7 +158,7 @@ class HomePage extends ConsumerWidget {
                       label: 'Active Members',
                       value: summary.activeLoans.toString(),
                       icon: Icons.people_rounded,
-                      color: AppColors.accentLight,
+                      color: isDark ? AppColors.accentDark : AppColors.accentLight,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -168,7 +167,7 @@ class HomePage extends ConsumerWidget {
                       label: "Today's Collection",
                       value: AppFormatters.formatCompactCurrency(collected),
                       icon: Icons.payments_rounded,
-                      color: AppColors.success,
+                      color: isDark ? AppColors.successDark : AppColors.success,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -177,7 +176,7 @@ class HomePage extends ConsumerWidget {
                       label: 'PAR Rate',
                       value: '${summary.parPercentage.toStringAsFixed(1)}%',
                       icon: Icons.trending_down_rounded,
-                      color: summary.parPercentage > 5 ? AppColors.error : AppColors.warning,
+                      color: summary.parPercentage > 5 ? (isDark ? AppColors.errorDark : AppColors.error) : (isDark ? AppColors.warningDark : AppColors.warning),
                     ),
                   ),
                 ],
@@ -198,6 +197,7 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildQuickActions(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
 
     return Column(
@@ -223,7 +223,7 @@ class HomePage extends ConsumerWidget {
               child: _QuickActionBtn(
                 icon: Icons.request_quote_rounded,
                 label: 'Loan',
-                color: AppColors.accent,
+                color: theme.colorScheme.secondary,
                 onTap: () {
                   try { GoRouter.of(context).push('/loans/new'); } catch (_) { onQuickAction(); }
                 },
@@ -234,7 +234,7 @@ class HomePage extends ConsumerWidget {
               child: _QuickActionBtn(
                 icon: Icons.savings_rounded,
                 label: 'Deposit',
-                color: AppColors.success,
+                color: isDark ? AppColors.successDark : AppColors.success,
                 onTap: onQuickAction,
               ),
             ),
@@ -340,13 +340,13 @@ class HomePage extends ConsumerWidget {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.08),
+                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   'View All',
                   style: theme.textTheme.labelSmall?.copyWith(
-                    color: AppColors.primary,
+                    color: theme.colorScheme.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -442,9 +442,10 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildTransactionItem(BuildContext context, TransactionModel transaction) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final isDeposit = transaction.type == TransactionType.emiPayment || transaction.type == TransactionType.savingsDeposit;
     final icon = isDeposit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
-    final iconColor = isDeposit ? AppColors.success : AppColors.error;
+    final iconColor = isDeposit ? (isDark ? AppColors.successDark : AppColors.success) : (isDark ? AppColors.errorDark : AppColors.error);
 
     String title;
     switch (transaction.type) {
@@ -723,6 +724,8 @@ class _SavingsCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final successColor = isDark ? AppColors.successDark : AppColors.success;
     final progress = saving.currentAmount / saving.targetAmount;
     return GlassCard(
       padding: const EdgeInsets.all(20),
@@ -738,13 +741,13 @@ class _SavingsCard extends StatelessWidget {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      AppColors.success.withValues(alpha: 0.15),
-                      AppColors.success.withValues(alpha: 0.05),
+                      successColor.withValues(alpha: 0.15),
+                      successColor.withValues(alpha: 0.05),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Icon(Icons.savings_rounded, color: AppColors.success, size: 20),
+                child: Icon(Icons.savings_rounded, color: successColor, size: 20),
               ),
               const SizedBox(width: 12),
               Expanded(
@@ -780,8 +783,8 @@ class _SavingsCard extends StatelessWidget {
           Center(
             child: Text(
               AppFormatters.formatCurrency(saving.currentAmount),
-              style: const TextStyle(
-                color: AppColors.success,
+              style: TextStyle(
+                color: successColor,
                 fontSize: 18,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.5,

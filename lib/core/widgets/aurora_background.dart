@@ -59,8 +59,8 @@ class _AuroraBackgroundState extends State<AuroraBackground>
     final primary = theme.colorScheme.primary;
     final secondary = theme.colorScheme.secondary;
 
-    final bgColor = isDark ? const Color(0xFF0A0F1A) : const Color(0xFFF2F2F7);
-    final bgSlate = isDark ? const Color(0xFF0F172A) : const Color(0xFFE5E5EA);
+    final bgColor = theme.scaffoldBackgroundColor;
+    final bgSlate = theme.colorScheme.surface;
 
     return Stack(
       children: [
@@ -69,7 +69,11 @@ class _AuroraBackgroundState extends State<AuroraBackground>
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [bgColor, bgSlate, isDark ? const Color(0xFF0F1729) : const Color(0xFFD1D1D6)],
+              colors: [
+                bgColor, 
+                bgSlate, 
+                isDark ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5) : const Color(0xFFD1D1D6)
+              ],
             ),
           ),
         ),
@@ -83,7 +87,7 @@ class _AuroraBackgroundState extends State<AuroraBackground>
                   secondaryAngle: _secondaryAnimation.value,
                   primaryColor: primary,
                   secondaryColor: secondary,
-                  accentColor: isDark ? const Color(0xFF00D1FF) : const Color(0xFF5AC8FA),
+                  accentColor: isDark ? theme.colorScheme.secondary.withValues(alpha: 0.5) : const Color(0xFF5AC8FA),
                 ),
                 size: Size.infinite,
               );
@@ -96,7 +100,7 @@ class _AuroraBackgroundState extends State<AuroraBackground>
               secondaryAngle: math.pi,
               primaryColor: primary,
               secondaryColor: secondary,
-              accentColor: isDark ? const Color(0xFF00D1FF) : const Color(0xFF5AC8FA),
+              accentColor: isDark ? theme.colorScheme.secondary.withValues(alpha: 0.5) : const Color(0xFF5AC8FA),
             ),
             size: Size.infinite,
           ),
@@ -228,7 +232,7 @@ class MeshGradientBackground extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: isDark
-              ? const [Color(0xFF0A0F1A), Color(0xFF0F172A), Color(0xFF111827), Color(0xFF0F172A)]
+              ? [theme.scaffoldBackgroundColor, theme.colorScheme.surface, theme.colorScheme.surfaceContainerHighest, theme.colorScheme.surface]
               : const [Color(0xFFF8F9FA), Color(0xFFF2F2F7), Color(0xFFE5E5EA), Color(0xFFF2F2F7)],
           stops: const [0.0, 0.3, 0.7, 1.0],
         ),

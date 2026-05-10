@@ -29,7 +29,7 @@ class LumaBar extends StatelessWidget {
             height: 64,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF1C1C1E).withValues(alpha: 0.92)
+                  ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.92)
                   : Colors.white.withValues(alpha: 0.92),
               borderRadius: BorderRadius.circular(22),
               border: Border.all(
@@ -123,7 +123,9 @@ class PremiumBottomNav extends StatelessWidget {
         filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1C1C1E).withValues(alpha: 0.92) : Colors.white.withValues(alpha: 0.92),
+            color: isDark 
+                ? Theme.of(context).colorScheme.surface.withValues(alpha: 0.92) 
+                : Colors.white.withValues(alpha: 0.92),
             border: Border(
               top: BorderSide(
                 color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),

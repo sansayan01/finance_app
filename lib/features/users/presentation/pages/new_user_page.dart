@@ -4,7 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../providers/new_user_provider.dart';
 
@@ -26,7 +26,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   final TextEditingController _panController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
-  
+
   TextInputType _panKeyboardType = TextInputType.text;
   final FocusNode _panFocusNode = FocusNode();
 
@@ -45,7 +45,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       _panController.text = state.panNumber;
       _passwordController.text = state.password;
     });
-    
+
     _panFocusNode.addListener(() {
       if (_panFocusNode.hasFocus) {
         _updatePanKeyboard(_panController.text);
@@ -74,12 +74,15 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isNarrow = screenWidth < 600;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        scrolledUnderElevation: 0,
         leading: IconButton(
           icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
@@ -87,87 +90,175 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
             context.pop();
           },
         ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'New User Profile',
-              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-            ),
-            Text(
-              'Configure system access and administrative roles',
-              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
-            ),
-          ],
+        title: Text(
+          'New User',
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isDesktop = constraints.maxWidth > 800;
-            if (isDesktop) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 2, child: _buildFormDetails(state, theme, isDark, primary)),
-                  const SizedBox(width: AppSpacing.lg),
-                  Expanded(flex: 1, child: _buildSummary(state, theme, isDark, primary)),
-                ],
-              );
-            } else {
-              return Column(
-                children: [
-                  _buildSummary(state, theme, isDark, primary),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildFormDetails(state, theme, isDark, primary),
-                ],
-              );
-            }
-          },
-        ),
+      body: Column(
+        children: [
+          // ── Scrollable form body ──
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.fromLTRB(isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final isDesktop = constraints.maxWidth > 900;
+                  if (isDesktop) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(flex: 3, child: _buildFormDetails(state, theme, isDark, primary, false)),
+                        const SizedBox(width: 24),
+                        Expanded(flex: 2, child: _buildSummary(state, theme, isDark, primary)),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        _buildSummary(state, theme, isDark, primary),
+                        const SizedBox(height: 20),
+                        _buildFormDetails(state, theme, isDark, primary, isNarrow),
+                      ],
+                    );
+                  }
+                },
+              ),
+            ),
+          ),
+          // ── Fixed bottom action bar ──
+          _buildBottomBar(theme, isDark, primary),
+        ],
       ),
     );
   }
 
-  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark, Color primary) {
-    return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.xl),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  // ═══════════════════════════════════════════════════
+  //  BOTTOM ACTION BAR
+  // ═══════════════════════════════════════════════════
+  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary) {
+    return Container(
+      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+      decoration: BoxDecoration(
+        color: isDark ? AppColors.elevatedDark : Colors.white,
+        border: Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
+            blurRadius: 20,
+            offset: const Offset(0, -4),
+          ),
+        ],
+      ),
+      child: Row(
         children: [
-          _buildSectionHeader('ACCOUNT DETAILS', Icons.person_outline, theme, primary),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
+          Expanded(
+            child: OutlinedButton(
+              onPressed: () {
+                ref.read(newUserProvider.notifier).reset();
+                context.pop();
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              onPressed: () {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Text('Creating User Profile...'),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.person_add_rounded, size: 18),
+              label: const Text('Create Profile', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                elevation: 0,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  SECTION HEADER
+  // ═══════════════════════════════════════════════════
+  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme, Color accent) {
+    return Row(
+      children: [
+        Container(
+          width: 38, height: 38,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [accent.withValues(alpha: 0.18), accent.withValues(alpha: 0.06)],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(icon, size: 20, color: accent),
+        ),
+        const SizedBox(width: 12),
+        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+      ],
+    );
+  }
+
+  // ═══════════════════════════════════════════════════
+  //  FORM DETAILS
+  // ═══════════════════════════════════════════════════
+  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark, Color primary, bool isNarrow) {
+    return Column(
+      children: [
+        // ── Account Details Card ──
+        GlassCard(
+          padding: EdgeInsets.all(isNarrow ? 18 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildInputField(
-                  label: 'FULL NAME *',
+              _buildSectionHeader('Account Details', Icons.person_outline_rounded, theme, primary),
+              const SizedBox(height: 28),
+
+              _buildTwoColumn(
+                isNarrow: isNarrow,
+                first: _buildInputField(
+                  label: 'FULL NAME',
                   hint: 'Enter legal name',
                   controller: _fullNameController,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateFullName(val),
                   theme: theme, isDark: isDark,
                 ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: _buildInputField(
-                  label: 'EMAIL ADDRESS *',
+                second: _buildInputField(
+                  label: 'EMAIL ADDRESS',
                   hint: 'staff@microflow.pro',
-                  icon: Icons.mail_outline,
+                  icon: Icons.mail_outline_rounded,
                   controller: _emailController,
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateEmail(val),
                   theme: theme, isDark: isDark,
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
-            children: [
-              Expanded(
-                child: _buildInputField(
+
+              const SizedBox(height: 20),
+
+              _buildTwoColumn(
+                isNarrow: isNarrow,
+                first: _buildInputField(
                   label: 'MOBILE NUMBER',
                   hint: 'Contact number',
                   icon: Icons.phone_android_outlined,
@@ -177,14 +268,11 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateMobileNumber(val),
                   theme: theme, isDark: isDark,
                 ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
+                second: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('SYSTEM ROLE *', theme),
-                    const SizedBox(height: 8),
+                    _buildLabel('SYSTEM ROLE', theme),
+                    const SizedBox(height: 10),
                     _buildDropdown(
                       value: state.role.name,
                       hint: 'Select role',
@@ -202,37 +290,42 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   ],
                 ),
               ),
+
+              const SizedBox(height: 20),
+
+              _buildInputField(
+                label: 'RESIDENTIAL ADDRESS',
+                hint: 'Enter complete home address',
+                icon: Icons.home_outlined,
+                controller: _addressController,
+                textCapitalization: TextCapitalization.words,
+                onChanged: (val) {},
+                theme: theme, isDark: isDark,
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          _buildInputField(
-            label: 'RESIDENTIAL ADDRESS',
-            hint: 'Enter complete home address',
-            icon: Icons.home_outlined,
-            controller: _addressController,
-            textCapitalization: TextCapitalization.words,
-            onChanged: (val) {}, 
-            theme: theme, isDark: isDark,
-          ),
-          
-          if (state.role != SystemRole.retailMember) ...[
-            const SizedBox(height: AppSpacing.xxl),
-            _buildSectionHeader('FIELD OPERATIONS', Icons.corporate_fare_outlined, theme, primary),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
+        ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.04, end: 0),
+
+        // ── Field Operations Card (conditional) ──
+        if (state.role != SystemRole.retailMember) ...[
+          const SizedBox(height: 20),
+          GlassCard(
+            padding: EdgeInsets.all(isNarrow ? 18 : 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(
-                  child: _buildInputField(
+                _buildSectionHeader('Field Operations', Icons.corporate_fare_outlined, theme, isDark ? AppColors.warningDark : AppColors.orange),
+                const SizedBox(height: 28),
+                _buildTwoColumn(
+                  isNarrow: isNarrow,
+                  first: _buildInputField(
                     label: 'EMPLOYEE ID',
                     hint: 'Internal reference #',
                     controller: _employeeIdController,
                     onChanged: (val) => ref.read(newUserProvider.notifier).updateEmployeeId(val),
                     theme: theme, isDark: isDark,
                   ),
-                ),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(
-                  child: _buildInputField(
+                  second: _buildInputField(
                     label: 'ASSIGNED ZONE / AREA',
                     hint: 'e.g. North Sector',
                     icon: Icons.location_on_outlined,
@@ -243,16 +336,22 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                 ),
               ],
             ),
-          ],
-          
-          const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('IDENTITY DETAILS', Icons.badge_outlined, theme, primary),
-          const SizedBox(height: AppSpacing.lg),
-          Row(
+          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.04, end: 0),
+        ],
+
+        // ── Identity Details Card ──
+        const SizedBox(height: 20),
+        GlassCard(
+          padding: EdgeInsets.all(isNarrow ? 18 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: _buildInputField(
-                  label: 'AADHAR CARD NUMBER *',
+              _buildSectionHeader('Identity Verification', Icons.badge_outlined, theme, isDark ? AppColors.successDark : AppColors.success),
+              const SizedBox(height: 28),
+              _buildTwoColumn(
+                isNarrow: isNarrow,
+                first: _buildInputField(
+                  label: 'AADHAR NUMBER',
                   hint: '12-digit UID number',
                   icon: Icons.fingerprint_outlined,
                   controller: _aadharController,
@@ -261,11 +360,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateAadharNumber(val),
                   theme: theme, isDark: isDark,
                 ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: _buildInputField(
-                  label: 'PAN CARD NUMBER *',
+                second: _buildInputField(
+                  label: 'PAN NUMBER',
                   hint: 'ABCDE 1234 F',
                   icon: Icons.credit_card_outlined,
                   controller: _panController,
@@ -285,85 +381,60 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               ),
             ],
           ),
-          
-          const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('SECURITY CREDENTIALS', Icons.key_outlined, theme, primary),
-          const SizedBox(height: AppSpacing.lg),
-          
-          SizedBox(
-            width: 400,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLabel('INITIAL PASSWORD *', theme),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _passwordController,
-                  obscureText: _obscurePassword,
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updatePassword(val),
-                  decoration: InputDecoration(
-                    hintText: 'Minimum 8 characters',
-                    filled: true,
-                    fillColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
+        ).animate().fadeIn(delay: 150.ms).slideY(begin: 0.04, end: 0),
+
+        // ── Security Credentials Card ──
+        const SizedBox(height: 20),
+        GlassCard(
+          padding: EdgeInsets.all(isNarrow ? 18 : 24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSectionHeader('Security Credentials', Icons.key_rounded, theme, theme.colorScheme.error),
+              const SizedBox(height: 28),
+              _buildLabel('INITIAL PASSWORD', theme),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _passwordController,
+                obscureText: _obscurePassword,
+                onChanged: (val) => ref.read(newUserProvider.notifier).updatePassword(val),
+                decoration: InputDecoration(
+                  hintText: 'Minimum 8 characters',
+                  filled: true,
+                  fillColor: isDark ? AppColors.fillDark : AppColors.fillLight,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 1.5)),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      color: theme.textTheme.bodySmall?.color,
+                      size: 20,
                     ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: primary, width: 2),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: theme.textTheme.bodySmall?.color,
-                      ),
-                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  ),
+                ),
+                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'User will be prompted to change password on first login.',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontStyle: FontStyle.italic),
                     ),
                   ),
-                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'The user will be prompted to change their password upon their first successful login.',
-                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontStyle: FontStyle.italic),
-                ),
-              ],
-            ),
-          ),
-          
-          const SizedBox(height: 40),
-          
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              TextButton(
-                onPressed: () {
-                  ref.read(newUserProvider.notifier).reset();
-                  context.pop();
-                },
-                child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
-              ),
-              const SizedBox(width: 24),
-              ElevatedButton.icon(
-                onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Creating Profile...')),
-                  );
-                },
-                icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Create Profile', style: TextStyle(fontWeight: FontWeight.w600)),
+                ],
               ),
             ],
           ),
-        ],
-      ),
-    ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
+        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.04, end: 0),
+      ],
+    );
   }
 
   void _updatePanKeyboard(String val) {
@@ -387,78 +458,115 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     }
   }
 
+  // ═══════════════════════════════════════════════════
+  //  SUMMARY SIDEBAR
+  // ═══════════════════════════════════════════════════
   Widget _buildSummary(NewUserState state, ThemeData theme, bool isDark, Color primary) {
-    String roleDisplay = _getRoleDisplayName(state.role);
-    String roleDescription = _getRoleDescription(state.role);
+    final roleDisplay = _getRoleDisplayName(state.role);
+    final roleDescription = _getRoleDescription(state.role);
 
     return Column(
       children: [
         GlassCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
+          padding: const EdgeInsets.all(24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Icon(Icons.shield_outlined, color: primary, size: 20),
-                  const SizedBox(width: 8),
-                  Text('Permission Matrix', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.xl),
-              
-              _buildLabel('SELECTED ROLE', theme),
-              const SizedBox(height: 4),
-              Text(
-                roleDisplay,
-                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+              _buildSectionHeader('Permission Matrix', Icons.shield_outlined, theme, primary),
+              const SizedBox(height: 24),
+
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [primary.withValues(alpha: 0.14), primary.withValues(alpha: 0.04)],
+                  ),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('SELECTED ROLE', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, color: primary.withValues(alpha: 0.7))),
+                    const SizedBox(height: 8),
+                    Text(
+                      roleDisplay,
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, fontSize: 18),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
               Text(
                 roleDescription,
-                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.6),
               ),
             ],
           ),
-        ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.1, end: 0),
-        
-        const SizedBox(height: AppSpacing.lg),
-        
+        ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.08, end: 0),
+
+        const SizedBox(height: 16),
+
         GlassCard(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
+          padding: const EdgeInsets.all(20),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                'AUDIT LOG',
-                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primary, letterSpacing: 1),
+              Container(
+                width: 36, height: 36,
+                decoration: BoxDecoration(
+                color: isDark ? AppColors.successDark.withValues(alpha: 0.12) : AppColors.success.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(Icons.history_outlined, size: 18, color: isDark ? AppColors.successDark : AppColors.success),
               ),
-              const SizedBox(height: 12),
-              Text(
-                'All user creation events are logged in the system timeline with the performing administrator\'s timestamp.',
-                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Audit Log', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 4),
+                    Text(
+                      'All user creation events are logged with the administrator\'s timestamp.',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
-        ).animate().fadeIn(delay: 300.ms).slideX(begin: 0.1, end: 0),
+        ).animate().fadeIn(delay: 250.ms).slideX(begin: 0.08, end: 0),
       ],
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme, Color primary) {
-    return Row(
-      children: [
-        Icon(icon, color: primary, size: 20),
-        const SizedBox(width: 8),
-        Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900)),
-      ],
-    );
-  }
-
+  // ═══════════════════════════════════════════════════
+  //  REUSABLE COMPONENTS
+  // ═══════════════════════════════════════════════════
   Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1),
+      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
+    );
+  }
+
+  Widget _buildTwoColumn({required bool isNarrow, required Widget first, required Widget second}) {
+    if (isNarrow) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [first, const SizedBox(height: 20), second],
+      );
+    }
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(child: first),
+        const SizedBox(width: 16),
+        Expanded(child: second),
+      ],
     );
   }
 
@@ -479,7 +587,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildLabel(label, theme),
-        const SizedBox(height: 8),
+        const SizedBox(height: 10),
         TextField(
           controller: controller,
           onChanged: onChanged,
@@ -491,19 +599,10 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
             hintText: hint,
             prefixIcon: icon != null ? Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20) : null,
             filled: true,
-            fillColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
-            ),
+            fillColor: isDark ? AppColors.fillDark : AppColors.fillLight,
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5)),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
           style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
@@ -522,19 +621,19 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     required bool isDark,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
+        color: isDark ? AppColors.fillDark : AppColors.fillLight,
+        borderRadius: BorderRadius.circular(14),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: items.contains(value) ? value : null,
           hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down, color: theme.textTheme.bodySmall?.color),
-          dropdownColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
+          icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.textTheme.bodySmall?.color, size: 22),
+          dropdownColor: isDark ? AppColors.elevatedDark : Colors.white,
+          borderRadius: BorderRadius.circular(14),
           items: items.map((String item) {
             SystemRole role = SystemRole.values.firstWhere((e) => e.name == item);
             return DropdownMenuItem<String>(
@@ -558,7 +657,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       ),
     );
   }
-  
+
   String _getRoleDisplayName(SystemRole role) {
     switch (role) {
       case SystemRole.administrator:
