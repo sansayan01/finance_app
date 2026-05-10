@@ -146,12 +146,12 @@ class FloatingHUD extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 800;
+    final useHudNav = MediaQuery.of(context).size.width >= 600;
 
     return Stack(
       children: [
         child,
-        if (showNav && isDesktop && navItems != null && onNavTap != null)
+        if (showNav && useHudNav && navItems != null && onNavTap != null)
           Positioned(
             left: 0,
             right: 0,

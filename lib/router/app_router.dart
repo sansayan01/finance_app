@@ -150,7 +150,7 @@ class MainShell extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width > 800;
+    final useHudNav = MediaQuery.of(context).size.width >= 600;
     final currentIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
@@ -159,7 +159,7 @@ class MainShell extends StatelessWidget {
       body: Stack(
         children: [
           child,
-          if (isDesktop)
+          if (useHudNav)
             Positioned(
               left: 0, right: 0, top: 0,
               child: Center(
@@ -178,11 +178,12 @@ class MainShell extends StatelessWidget {
             ),
         ],
       ),
-      bottomNavigationBar: isDesktop
+      bottomNavigationBar: useHudNav
           ? null
           : _PremiumBottomBar(
               currentIndex: currentIndex,
               onTap: (index) => _onItemTapped(index, context),
+
             ),
     );
   }
