@@ -24,7 +24,7 @@ class LumaBar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(22),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: Container(
             height: 64,
             decoration: BoxDecoration(
@@ -134,7 +134,7 @@ class PremiumBottomNav extends StatelessWidget {
 
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
         child: Container(
           decoration: BoxDecoration(
             color: isDark 

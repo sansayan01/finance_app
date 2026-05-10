@@ -54,6 +54,24 @@ class HomePage extends ConsumerWidget {
     final user = ref.watch(currentUserProvider);
     final theme = Theme.of(context);
 
+    // Dynamic greeting based on time
+    final hour = DateTime.now().hour;
+    final String greeting;
+    if (hour >= 5 && hour < 12) {
+      greeting = 'Good Morning';
+    } else if (hour >= 12 && hour < 17) {
+      greeting = 'Good Afternoon';
+    } else if (hour >= 17 && hour < 21) {
+      greeting = 'Good Evening';
+    } else {
+      greeting = 'Good Night';
+    }
+
+    // Get first name
+    final firstName = user != null && user.fullName.trim().isNotEmpty
+        ? user.fullName.trim().split(RegExp(r'\s+')).first
+        : 'Sayan'; // Default for development/bypass mode
+
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -62,7 +80,7 @@ class HomePage extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Good Morning',
+                greeting,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textTertiaryLight,
                   fontWeight: FontWeight.w500,
@@ -70,7 +88,7 @@ class HomePage extends ConsumerWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                user?.fullName ?? 'User',
+                firstName,
                 style: theme.textTheme.headlineMedium?.copyWith(
                   fontWeight: FontWeight.w800,
                   letterSpacing: -0.8,
@@ -82,9 +100,15 @@ class HomePage extends ConsumerWidget {
         ),
         Row(
           children: [
-            _HeaderIconBtn(icon: Icons.notifications_outlined, onTap: () {}),
+            _HeaderIconBtn(
+              icon: Icons.notifications_outlined,
+              onTap: () => context.push('/notifications'),
+            ),
             const SizedBox(width: 12),
-            _HeaderIconBtn(icon: Icons.search_rounded, onTap: () {}),
+            _HeaderIconBtn(
+              icon: Icons.search_rounded,
+              onTap: () => context.push('/search'),
+            ),
           ],
         ),
       ],
@@ -133,7 +157,40 @@ class HomePage extends ConsumerWidget {
                       ],
                     ),
                   ),
-                  Icon(Icons.more_horiz, color: theme.textTheme.bodySmall?.color, size: 24),
+                  PopupMenuButton<String>(
+                    icon: Icon(Icons.more_horiz, color: theme.textTheme.bodySmall?.color, size: 24),
+                    padding: EdgeInsets.zero,
+                    onSelected: (value) {
+                      if (value == 'refresh') {
+                        ref.invalidate(loanSummaryProvider);
+                        ref.invalidate(todayStatsProvider);
+                      } else if (value == 'analytics') {
+                        context.push('/analytics');
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      const PopupMenuItem(
+                        value: 'refresh',
+                        child: Row(
+                          children: [
+                            Icon(Icons.refresh_rounded, size: 20),
+                            SizedBox(width: 12),
+                            Text('Refresh Dashboard'),
+                          ],
+                        ),
+                      ),
+                      const PopupMenuItem(
+                        value: 'analytics',
+                        child: Row(
+                          children: [
+                            Icon(Icons.analytics_outlined, size: 20),
+                            SizedBox(width: 12),
+                            Text('View Analytics'),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
               const SizedBox(height: 20),
@@ -159,6 +216,7 @@ class HomePage extends ConsumerWidget {
                       value: summary.activeLoans.toString(),
                       icon: Icons.people_rounded,
                       color: isDark ? AppColors.accentDark : AppColors.accentLight,
+                      onTap: () => context.push('/members'),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -168,6 +226,7 @@ class HomePage extends ConsumerWidget {
                       value: AppFormatters.formatCompactCurrency(collected),
                       icon: Icons.payments_rounded,
                       color: isDark ? AppColors.successDark : AppColors.success,
+                      onTap: () {}, // Transactions page coming soon
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -177,6 +236,7 @@ class HomePage extends ConsumerWidget {
                       value: '${summary.parPercentage.toStringAsFixed(1)}%',
                       icon: Icons.trending_down_rounded,
                       color: summary.parPercentage > 5 ? (isDark ? AppColors.errorDark : AppColors.error) : (isDark ? AppColors.warningDark : AppColors.warning),
+                      onTap: () => context.push('/analytics'),
                     ),
                   ),
                 ],
@@ -534,27 +594,38 @@ class _HeroStat extends StatelessWidget {
   final String value;
   final IconData icon;
   final Color color;
-  const _HeroStat({required this.label, required this.value, required this.icon, required this.color});
+  final VoidCallback? onTap;
+
+  const _HeroStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.08), width: 0.5),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 10),
-          Text(value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color)),
-          const SizedBox(height: 2),
-          Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10)),
-        ],
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.06),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withValues(alpha: 0.08), width: 0.5),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(icon, color: color, size: 20),
+            const SizedBox(height: 10),
+            Text(value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color)),
+            const SizedBox(height: 2),
+            Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10)),
+          ],
+        ),
       ),
     );
   }

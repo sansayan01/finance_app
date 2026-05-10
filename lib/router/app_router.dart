@@ -16,6 +16,10 @@ import '../features/loans/presentation/pages/new_loan_page.dart';
 import '../features/savings/presentation/pages/new_recurring_saving_page.dart';
 import '../features/users/presentation/pages/users_page.dart';
 import '../features/users/presentation/pages/new_user_page.dart';
+import '../features/members/presentation/pages/members_page.dart';
+import '../features/analytics/presentation/pages/analytics_page.dart';
+import '../features/home/presentation/pages/search_page.dart';
+import '../features/home/presentation/pages/notifications_page.dart';
 
 class AuthRedirectListener extends ChangeNotifier {
   final Ref ref;
@@ -93,6 +97,22 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/settings',
             builder: (context, state) => const SettingsPage(),
+          ),
+          GoRoute(
+            path: '/search',
+            builder: (context, state) => const SearchPage(),
+          ),
+          GoRoute(
+            path: '/notifications',
+            builder: (context, state) => const NotificationsPage(),
+          ),
+          GoRoute(
+            path: '/members',
+            builder: (context, state) => const MembersPage(),
+          ),
+          GoRoute(
+            path: '/analytics',
+            builder: (context, state) => const AnalyticsPage(),
           ),
         ],
       ),
@@ -205,7 +225,7 @@ class _PremiumBottomBar extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(28),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: Container(
             height: 68,
             decoration: BoxDecoration(

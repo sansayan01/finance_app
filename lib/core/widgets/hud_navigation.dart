@@ -25,7 +25,7 @@ class HUDNavigation extends StatelessWidget {
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
+          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
