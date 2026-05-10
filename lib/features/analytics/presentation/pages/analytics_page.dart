@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../../core/constants/app_spacing.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
@@ -17,23 +17,23 @@ class AnalyticsPage extends ConsumerWidget {
     final theme = Theme.of(context);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(theme),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 24),
           _buildPeriodSelector(theme),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 24),
           analyticsAsync.when(
             data: (stats) => Column(
               children: [
                 _buildPortfolioOverview(stats, theme),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 24),
                 _buildDisbursementVsCollection(stats, theme),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 24),
                 _buildPortfolioTrend(stats, theme),
-                const SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: 24),
                 _buildDelinquencyAnalysis(stats, theme),
               ],
             ),
@@ -41,8 +41,8 @@ class AnalyticsPage extends ConsumerWidget {
               children: List.generate(
                 4,
                 (index) => const Padding(
-                  padding: EdgeInsets.only(bottom: AppSpacing.lg),
-                  child: ShimmerCard(height: 200),
+                  padding: EdgeInsets.only(bottom: 24),
+                  child: ShimmerCard(height: 220),
                 ),
               ),
             ),
@@ -53,7 +53,6 @@ class AnalyticsPage extends ConsumerWidget {
               ),
             ),
           ),
-          const SizedBox(height: 100),
         ],
       ),
     );
@@ -65,12 +64,16 @@ class AnalyticsPage extends ConsumerWidget {
       children: [
         Text(
           'Analytics',
-          style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+          style: theme.textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.8,
+            fontSize: 32,
+          ),
         ),
-        const SizedBox(height: 2),
+        const SizedBox(height: 4),
         Text(
           'Portfolio insights and performance metrics',
-          style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
         ),
       ],
     ).animate().fadeIn(duration: 400.ms);
@@ -85,11 +88,11 @@ class AnalyticsPage extends ConsumerWidget {
       child: Row(
         children: [
           _PeriodChip(label: 'This Month', isSelected: true, primary: primary, isDark: isDark, theme: theme),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: 10),
           _PeriodChip(label: 'Last Quarter', primary: primary, isDark: isDark, theme: theme),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: 10),
           _PeriodChip(label: 'YTD', primary: primary, isDark: isDark, theme: theme),
-          const SizedBox(width: AppSpacing.sm),
+          const SizedBox(width: 10),
           _PeriodChip(label: 'All Time', primary: primary, isDark: isDark, theme: theme),
         ],
       ),
@@ -109,7 +112,7 @@ class AnalyticsPage extends ConsumerWidget {
             theme: theme,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: 12),
         Expanded(
           child: _OverviewCard(
             title: 'Total Collection',
@@ -130,15 +133,15 @@ class AnalyticsPage extends ConsumerWidget {
     final secondary = theme.colorScheme.secondary;
 
     return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Disbursement vs Collection',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 24),
           if (!hasData)
             SizedBox(
               height: 200,
@@ -177,12 +180,12 @@ class AnalyticsPage extends ConsumerWidget {
                 ),
               ),
             ),
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _LegendItem(color: primary, label: 'Disbursement', theme: theme),
-              const SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: 24),
               _LegendItem(color: secondary, label: 'Collection', theme: theme),
             ],
           ),
@@ -203,18 +206,18 @@ class AnalyticsPage extends ConsumerWidget {
 
   Widget _buildPortfolioTrend(PortfolioStats stats, ThemeData theme) {
     final hasData = stats.monthlyCollections.isNotEmpty;
-    const trendColor = Color(0xFF34C759);
+    const trendColor = AppColors.success;
 
     return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Savings Growth Trend',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 24),
           if (!hasData)
             SizedBox(
               height: 180,
@@ -281,23 +284,23 @@ class AnalyticsPage extends ConsumerWidget {
   }
 
   Widget _buildDelinquencyAnalysis(PortfolioStats stats, ThemeData theme) {
-    const successColor = Color(0xFF34C759);
-    const errorColor = Color(0xFFFF3B30);
+    const successColor = AppColors.success;
+    const errorColor = AppColors.error;
 
     return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             'Delinquency Analysis',
-            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
           ),
-          const SizedBox(height: AppSpacing.lg),
+          const SizedBox(height: 24),
           Row(
             children: [
               Expanded(child: _DelinquencyChart(parPercentage: stats.parPercentage, theme: theme)),
-              const SizedBox(width: AppSpacing.lg),
+              const SizedBox(width: 24),
               Expanded(
                 child: Column(
                   children: [
@@ -308,7 +311,7 @@ class AnalyticsPage extends ConsumerWidget {
                       color: successColor,
                       theme: theme,
                     ),
-                    const SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: 12),
                     _DelinquencyItem(
                       label: 'PAR (Overdue)',
                       amount: stats.totalDisbursed * stats.parPercentage / 100,
@@ -341,21 +344,22 @@ class _PeriodChip extends StatelessWidget {
     return GestureDetector(
       onTap: () {},
       child: AnimatedContainer(
-        duration: AppSpacing.animationFast,
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
           color: isSelected
-              ? primary.withValues(alpha: 0.15)
+              ? primary.withValues(alpha: 0.12)
               : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04)),
-          borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(color: isSelected ? primary : theme.dividerColor.withValues(alpha: 0.2)),
         ),
         child: Text(
           label,
           style: TextStyle(
             color: isSelected ? primary : theme.textTheme.bodySmall?.color,
-            fontSize: 12,
+            fontSize: 13,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            letterSpacing: -0.2,
           ),
         ),
       ),
@@ -382,11 +386,11 @@ class _OverviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final trendColor = isPositive ? const Color(0xFF34C759) : const Color(0xFFFF3B30);
+    final trendColor = isPositive ? AppColors.success : AppColors.error;
     final primary = theme.colorScheme.primary;
 
     return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -395,27 +399,27 @@ class _OverviewCard extends StatelessWidget {
             children: [
               Text(title, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: trendColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
+                  color: trendColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(999),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(isPositive ? Icons.trending_up : Icons.trending_down, color: trendColor, size: 10),
-                    const SizedBox(width: 2),
-                    Text(change, style: TextStyle(color: trendColor, fontSize: 10, fontWeight: FontWeight.w600)),
+                    Icon(isPositive ? Icons.trending_up : Icons.trending_down, color: trendColor, size: 12),
+                    const SizedBox(width: 4),
+                    Text(change, style: TextStyle(color: trendColor, fontSize: 11, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.xs),
-          Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: 8),
+          Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w800, fontSize: 22)),
+          const SizedBox(height: 16),
           SizedBox(
-            height: 30,
+            height: 32,
             child: chartData.isEmpty
                 ? const SizedBox.shrink()
                 : Row(
@@ -425,10 +429,10 @@ class _OverviewCard extends StatelessWidget {
                       return Expanded(
                         child: Container(
                           margin: const EdgeInsets.symmetric(horizontal: 1),
-                          height: (entry.value / maxVal) * 30,
+                          height: (entry.value / maxVal) * 32,
                           decoration: BoxDecoration(
                             color: primary.withValues(alpha: 0.3 + (entry.key / chartData.length) * 0.5),
-                            borderRadius: BorderRadius.circular(2),
+                            borderRadius: BorderRadius.circular(3),
                           ),
                         ),
                       );
@@ -452,9 +456,9 @@ class _LegendItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
-        const SizedBox(width: AppSpacing.xs),
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
+        const SizedBox(width: 6),
+        Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
       ],
     );
   }
@@ -468,8 +472,8 @@ class _DelinquencyChart extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const successColor = Color(0xFF34C759);
-    const errorColor = Color(0xFFFF3B30);
+    const successColor = AppColors.success;
+    const errorColor = AppColors.error;
 
     return SizedBox(
       height: 150,
@@ -491,9 +495,9 @@ class _DelinquencyChart extends StatelessWidget {
             children: [
               Text(
                 '${parPercentage.toStringAsFixed(1)}%',
-                style: const TextStyle(color: errorColor, fontSize: 20, fontWeight: FontWeight.w700),
+                style: const TextStyle(color: errorColor, fontSize: 22, fontWeight: FontWeight.w800, letterSpacing: -0.5),
               ),
-              Text('PAR', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
+              Text('PAR', style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
             ],
           ),
         ],
@@ -521,18 +525,18 @@ class _DelinquencyItem extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
-        const SizedBox(width: AppSpacing.sm),
+        Container(width: 10, height: 10, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 10),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
-              Text(AppFormatters.formatCompactCurrency(amount), style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600)),
+              Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+              Text(AppFormatters.formatCompactCurrency(amount), style: theme.textTheme.bodyMedium?.copyWith(fontSize: 14, fontWeight: FontWeight.w700)),
             ],
           ),
         ),
-        Text('$percentage%', style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
+        Text('$percentage%', style: TextStyle(color: color, fontSize: 14, fontWeight: FontWeight.w700)),
       ],
     );
   }

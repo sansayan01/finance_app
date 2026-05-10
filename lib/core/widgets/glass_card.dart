@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Premium card widget with iOS 18-style surface depth.
-///
-/// Replaces the old glassmorphism-based card with a cleaner, platform-native
-/// appearance that uses proper surface colors and subtle shadows for depth.
+/// Ultra-premium card widget with iOS-style surface depth and multi-layer shadows.
 class GlassCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
@@ -11,88 +8,125 @@ class GlassCard extends StatefulWidget {
   final double borderRadius;
   final bool elevated;
   final Color? backgroundColor;
+  final bool enableScale;
 
   const GlassCard({
     super.key,
     required this.child,
     this.padding,
     this.onTap,
-    this.borderRadius = 16,
+    this.borderRadius = 24,
     this.elevated = false,
     this.backgroundColor,
+    this.enableScale = true,
   });
 
   @override
   State<GlassCard> createState() => _GlassCardState();
 }
 
-class _GlassCardState extends State<GlassCard> {
+class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMixin {
   bool _isPressed = false;
+  late final AnimationController _pressController;
+  late final Animation<double> _pressAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _pressController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _pressAnimation = CurvedAnimation(parent: _pressController, curve: Curves.easeOutCubic);
+  }
+
+  @override
+  void dispose() {
+    _pressController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
     final bgColor = widget.backgroundColor ?? theme.colorScheme.surface;
+
+    final shadowColor = isDark ? Colors.black : const Color(0xFF0F172A);
+    final shadows = widget.elevated
+        ? [
+            BoxShadow(
+              color: shadowColor.withValues(alpha: isDark ? 0.5 : 0.06),
+              blurRadius: 32,
+              offset: const Offset(0, 8),
+              spreadRadius: -6,
+            ),
+            BoxShadow(
+              color: shadowColor.withValues(alpha: isDark ? 0.3 : 0.04),
+              blurRadius: 12,
+              offset: const Offset(0, 3),
+              spreadRadius: -2,
+            ),
+          ]
+        : [
+            BoxShadow(
+              color: shadowColor.withValues(alpha: isDark ? 0.4 : 0.04),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+              spreadRadius: -4,
+            ),
+            BoxShadow(
+              color: shadowColor.withValues(alpha: isDark ? 0.2 : 0.02),
+              blurRadius: 6,
+              offset: const Offset(0, 1),
+            ),
+          ];
+
+    final child = AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      padding: widget.padding,
+      decoration: BoxDecoration(
+        color: _isPressed
+            ? (isDark ? bgColor.withValues(alpha: 0.9) : bgColor.withValues(alpha: 0.95))
+            : bgColor,
+        borderRadius: BorderRadius.circular(widget.borderRadius),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.03),
+          width: 0.5,
+        ),
+        boxShadow: shadows,
+      ),
+      child: widget.child,
+    );
+
+    if (widget.onTap == null) return child;
 
     return GestureDetector(
       onTap: widget.onTap,
-      onTapDown: widget.onTap != null ? (_) => setState(() => _isPressed = true) : null,
-      onTapUp: widget.onTap != null ? (_) => setState(() => _isPressed = false) : null,
-      onTapCancel: widget.onTap != null ? () => setState(() => _isPressed = false) : null,
-      child: AnimatedScale(
-        scale: _isPressed ? 0.98 : 1.0,
-        duration: const Duration(milliseconds: 120),
-        curve: Curves.easeOut,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 120),
-          curve: Curves.easeOut,
-          padding: widget.padding,
-          decoration: BoxDecoration(
-            color: _isPressed
-                ? (isDark
-                    ? bgColor.withValues(alpha: 0.85)
-                    : bgColor.withValues(alpha: 0.9))
-                : bgColor,
-            borderRadius: BorderRadius.circular(widget.borderRadius),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.04),
-              width: 0.5,
-            ),
-            boxShadow: widget.elevated
-                ? [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.4)
-                          : Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 20,
-                      offset: const Offset(0, 6),
-                      spreadRadius: -4,
-                    ),
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.2)
-                          : Colors.black.withValues(alpha: 0.02),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: isDark
-                          ? Colors.black.withValues(alpha: 0.3)
-                          : Colors.black.withValues(alpha: 0.04),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                      spreadRadius: -2,
-                    ),
-                  ],
-          ),
-          child: widget.child,
-        ),
+      onTapDown: (_) {
+        if (widget.enableScale) _pressController.forward();
+        setState(() => _isPressed = true);
+      },
+      onTapUp: (_) {
+        if (widget.enableScale) _pressController.reverse();
+        setState(() => _isPressed = false);
+      },
+      onTapCancel: () {
+        if (widget.enableScale) _pressController.reverse();
+        setState(() => _isPressed = false);
+      },
+      child: AnimatedBuilder(
+        animation: _pressAnimation,
+        builder: (context, child) {
+          final scale = widget.enableScale
+              ? 1.0 - (_pressAnimation.value * 0.02)
+              : 1.0;
+          return Transform.scale(scale: scale, child: child);
+        },
+        child: child,
       ),
     );
   }

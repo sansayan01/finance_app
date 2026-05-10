@@ -1,6 +1,5 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 
 /// iOS-style floating bottom navigation bar for mobile devices.
 class LumaBar extends StatelessWidget {

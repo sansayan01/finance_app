@@ -140,21 +140,11 @@ class MainShell extends StatelessWidget {
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
-      case 0:
-        context.go('/');
-        break;
-      case 1:
-        context.go('/loans');
-        break;
-      case 2:
-        context.go('/savings');
-        break;
-      case 3:
-        context.go('/users');
-        break;
-      case 4:
-        context.go('/settings');
-        break;
+      case 0: context.go('/'); break;
+      case 1: context.go('/loans'); break;
+      case 2: context.go('/savings'); break;
+      case 3: context.go('/users'); break;
+      case 4: context.go('/settings'); break;
     }
   }
 
@@ -162,155 +152,91 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 800;
     final currentIndex = _calculateSelectedIndex(context);
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      extendBody: true,
       body: Stack(
         children: [
           child,
-          // Desktop: top HUD navigation
           if (isDesktop)
             Positioned(
-              left: 0,
-              right: 0,
-              top: 0,
+              left: 0, right: 0, top: 0,
               child: Center(
                 child: HUDNavigation(
                   currentIndex: currentIndex,
                   onTap: (index) => _onItemTapped(index, context),
                   items: const [
-                    HUDNavItem(
-                      label: 'Dashboard',
-                      icon: Icons.grid_view_outlined,
-                      activeIcon: Icons.grid_view_rounded,
-                    ),
-                    HUDNavItem(
-                      label: 'Loans',
-                      icon: Icons.account_balance_outlined,
-                      activeIcon: Icons.account_balance_rounded,
-                    ),
-                    HUDNavItem(
-                      label: 'Savings',
-                      icon: Icons.account_balance_wallet_outlined,
-                      activeIcon: Icons.account_balance_wallet_rounded,
-                    ),
-                    HUDNavItem(
-                      label: 'Users',
-                      icon: Icons.manage_accounts_outlined,
-                      activeIcon: Icons.manage_accounts_rounded,
-                    ),
-                    HUDNavItem(
-                      label: 'Settings',
-                      icon: Icons.settings_outlined,
-                      activeIcon: Icons.settings_rounded,
-                    ),
+                    HUDNavItem(label: 'Dashboard', icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded),
+                    HUDNavItem(label: 'Loans', icon: Icons.account_balance_outlined, activeIcon: Icons.account_balance_rounded),
+                    HUDNavItem(label: 'Savings', icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet_rounded),
+                    HUDNavItem(label: 'Users', icon: Icons.manage_accounts_outlined, activeIcon: Icons.manage_accounts_rounded),
+                    HUDNavItem(label: 'Settings', icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded),
                   ],
                 ),
               ),
             ),
         ],
       ),
-      // Mobile: premium iOS-style frosted bottom tab bar
       bottomNavigationBar: isDesktop
           ? null
-          : _IOSBottomTabBar(
+          : _PremiumBottomBar(
               currentIndex: currentIndex,
               onTap: (index) => _onItemTapped(index, context),
-              isDark: isDark,
             ),
     );
   }
 }
 
-/// Premium iOS-style bottom tab bar with frosted glass blur.
-class _IOSBottomTabBar extends StatelessWidget {
+class _PremiumBottomBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
-  final bool isDark;
 
-  const _IOSBottomTabBar({
-    required this.currentIndex,
-    required this.onTap,
-    required this.isDark,
-  });
+  const _PremiumBottomBar({required this.currentIndex, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).colorScheme.primary;
-    final inactiveColor = isDark
-        ? Colors.white.withValues(alpha: 0.35)
-        : Colors.black.withValues(alpha: 0.3);
 
-    return ClipRRect(
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isDark
-                ? const Color(0xFF1C1C1E).withValues(alpha: 0.88)
-                : Colors.white.withValues(alpha: 0.88),
-            border: Border(
-              top: BorderSide(
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(28),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+          child: Container(
+            height: 68,
+            decoration: BoxDecoration(
+              color: isDark
+                  ? const Color(0xFF1A1D29).withValues(alpha: 0.92)
+                  : Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(28),
+              border: Border.all(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.06)
-                    : Colors.black.withValues(alpha: 0.06),
-                width: 0.33,
+                    : Colors.black.withValues(alpha: 0.05),
+                width: 0.5,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.12),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                  spreadRadius: -4,
+                ),
+              ],
             ),
-          ),
-          child: SafeArea(
-            top: false,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
+            child: SafeArea(
+              top: false,
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _TabItem(
-                    icon: Icons.grid_view_outlined,
-                    activeIcon: Icons.grid_view_rounded,
-                    label: 'Home',
-                    isSelected: currentIndex == 0,
-                    selectedColor: primary,
-                    inactiveColor: inactiveColor,
-                    onTap: () => onTap(0),
-                  ),
-                  _TabItem(
-                    icon: Icons.account_balance_outlined,
-                    activeIcon: Icons.account_balance_rounded,
-                    label: 'Loans',
-                    isSelected: currentIndex == 1,
-                    selectedColor: primary,
-                    inactiveColor: inactiveColor,
-                    onTap: () => onTap(1),
-                  ),
-                  _TabItem(
-                    icon: Icons.account_balance_wallet_outlined,
-                    activeIcon: Icons.account_balance_wallet_rounded,
-                    label: 'Savings',
-                    isSelected: currentIndex == 2,
-                    selectedColor: primary,
-                    inactiveColor: inactiveColor,
-                    onTap: () => onTap(2),
-                  ),
-                  _TabItem(
-                    icon: Icons.manage_accounts_outlined,
-                    activeIcon: Icons.manage_accounts_rounded,
-                    label: 'Users',
-                    isSelected: currentIndex == 3,
-                    selectedColor: primary,
-                    inactiveColor: inactiveColor,
-                    onTap: () => onTap(3),
-                  ),
-                  _TabItem(
-                    icon: Icons.settings_outlined,
-                    activeIcon: Icons.settings_rounded,
-                    label: 'Settings',
-                    isSelected: currentIndex == 4,
-                    selectedColor: primary,
-                    inactiveColor: inactiveColor,
-                    onTap: () => onTap(4),
-                  ),
+                  _NavItem(index: 0, icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded, label: 'Home', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
+                  _NavItem(index: 1, icon: Icons.account_balance_outlined, activeIcon: Icons.account_balance_rounded, label: 'Loans', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
+                  _NavItem(index: 2, icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet_rounded, label: 'Savings', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
+                  _NavItem(index: 3, icon: Icons.manage_accounts_outlined, activeIcon: Icons.manage_accounts_rounded, label: 'Users', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
+                  _NavItem(index: 4, icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Settings', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
                 ],
               ),
             ),
@@ -321,51 +247,53 @@ class _IOSBottomTabBar extends StatelessWidget {
   }
 }
 
-class _TabItem extends StatelessWidget {
+class _NavItem extends StatelessWidget {
+  final int index;
   final IconData icon;
   final IconData activeIcon;
   final String label;
-  final bool isSelected;
-  final Color selectedColor;
-  final Color inactiveColor;
-  final VoidCallback onTap;
+  final int currentIndex;
+  final Color primary;
+  final bool isDark;
+  final ValueChanged<int> onTap;
 
-  const _TabItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isSelected,
-    required this.selectedColor,
-    required this.inactiveColor,
-    required this.onTap,
-  });
+  const _NavItem({required this.index, required this.icon, required this.activeIcon, required this.label, required this.currentIndex, required this.primary, required this.isDark, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
+    final isSelected = currentIndex == index;
+    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.28);
+
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: isSelected ? primary.withValues(alpha: isDark ? 0.15 : 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(16),
+        ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedSwitcher(
+            AnimatedScale(
               duration: const Duration(milliseconds: 200),
+              scale: isSelected ? 1.1 : 1.0,
               child: Icon(
                 isSelected ? activeIcon : icon,
-                key: ValueKey(isSelected),
-                color: isSelected ? selectedColor : inactiveColor,
-                size: 24,
+                color: isSelected ? primary : inactiveColor,
+                size: 22,
               ),
             ),
             const SizedBox(height: 2),
             Text(
               label,
               style: TextStyle(
-                color: isSelected ? selectedColor : inactiveColor,
+                color: isSelected ? primary : inactiveColor,
                 fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                 letterSpacing: -0.2,
               ),
             ),

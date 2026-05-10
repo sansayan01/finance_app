@@ -1,8 +1,8 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_provider.dart' as auth;
@@ -77,31 +77,30 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
-    final secondary = theme.colorScheme.secondary;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(28),
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 420),
               child: Column(
                 children: [
-                  const SizedBox(height: AppSpacing.xl),
-                  _buildLogo(theme, primary, secondary),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: 24),
+                  _buildLogo(primary),
+                  const SizedBox(height: 28),
                   _buildWelcomeText(theme),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: 32),
                   _buildForm(isLoading, theme, isDark, primary),
-                  const SizedBox(height: AppSpacing.md),
-                  _buildTermsCheckbox(theme, primary, secondary),
-                  const SizedBox(height: AppSpacing.lg),
-                  _buildSignUpButton(isLoading, primary, secondary),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: 16),
+                  _buildTermsCheckbox(theme, primary),
+                  const SizedBox(height: 24),
+                  _buildSignUpButton(isLoading, primary),
+                  const SizedBox(height: 24),
                   _buildSignInLink(theme, primary),
-                  const SizedBox(height: AppSpacing.xl),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),
@@ -111,22 +110,17 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     );
   }
 
-  Widget _buildLogo(ThemeData theme, Color primary, Color secondary) {
+  Widget _buildLogo(Color primary) {
     return Container(
-      width: 80,
-      height: 80,
+      width: 88, height: 88,
       decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [primary, secondary],
-        ),
+        gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
-          BoxShadow(color: primary.withValues(alpha: 0.4), blurRadius: 30, spreadRadius: 0),
+          BoxShadow(color: primary.withValues(alpha: 0.35), blurRadius: 28, offset: const Offset(0, 10), spreadRadius: -4),
         ],
       ),
-      child: const Icon(Icons.app_registration, size: 36, color: Colors.white),
+      child: const Icon(Icons.app_registration, size: 40, color: Colors.white),
     ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.8, 0.8));
   }
 
@@ -135,12 +129,16 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       children: [
         Text(
           'Create Account',
-          style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
+          style: theme.textTheme.headlineMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.8,
+            fontSize: 28,
+          ),
         ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.3, end: 0),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: 6),
         Text(
           'Join MicroFlow Pro today',
-          style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
         ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3, end: 0),
       ],
     );
@@ -148,11 +146,18 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   Widget _buildForm(bool isLoading, ThemeData theme, bool isDark, Color primary) {
     return Container(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06), blurRadius: 16, offset: const Offset(0, 4))],
+        color: isDark ? AppColors.cardDark : Colors.white,
+        borderRadius: BorderRadius.circular(28),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.06),
+            blurRadius: 32,
+            offset: const Offset(0, 8),
+            spreadRadius: -6,
+          ),
+        ],
       ),
       child: Form(
         key: _formKey,
@@ -162,20 +167,20 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
               controller: _nameController,
               decoration: const InputDecoration(
                 labelText: 'Full Name',
-                prefixIcon: Icon(Icons.person_outlined, size: 20),
+                prefixIcon: Icon(Icons.person_outlined, size: 22),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) return 'Name is required';
                 return null;
               },
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _emailController,
               keyboardType: TextInputType.emailAddress,
               decoration: const InputDecoration(
                 labelText: 'Email',
-                prefixIcon: Icon(Icons.email_outlined, size: 20),
+                prefixIcon: Icon(Icons.email_outlined, size: 22),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) return 'Email is required';
@@ -183,13 +188,13 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 return null;
               },
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _phoneController,
               keyboardType: TextInputType.phone,
               decoration: const InputDecoration(
                 labelText: 'Phone',
-                prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                prefixIcon: Icon(Icons.phone_outlined, size: 22),
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) return 'Phone is required';
@@ -197,15 +202,15 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 return null;
               },
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _passwordController,
               obscureText: _obscurePassword,
               decoration: InputDecoration(
                 labelText: 'Password',
-                prefixIcon: const Icon(Icons.lock_outlined, size: 20),
+                prefixIcon: const Icon(Icons.lock_outlined, size: 22),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 22),
                   onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
@@ -215,15 +220,15 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 return null;
               },
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _confirmPasswordController,
               obscureText: _obscureConfirmPassword,
               decoration: InputDecoration(
                 labelText: 'Confirm Password',
-                prefixIcon: const Icon(Icons.lock_outlined, size: 20),
+                prefixIcon: const Icon(Icons.lock_outlined, size: 22),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 20),
+                  icon: Icon(_obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 22),
                   onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
                 ),
               ),
@@ -239,46 +244,45 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.2, end: 0);
   }
 
-  Widget _buildTermsCheckbox(ThemeData theme, Color primary, Color secondary) {
+  Widget _buildTermsCheckbox(ThemeData theme, Color primary) {
     return Row(
       children: [
         GestureDetector(
           onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
           child: AnimatedContainer(
             duration: AppSpacing.animationFast,
-            width: 24,
-            height: 24,
+            width: 24, height: 24,
             decoration: BoxDecoration(
-              color: _agreedToTerms ? secondary : Colors.transparent,
-              borderRadius: BorderRadius.circular(6),
+              color: _agreedToTerms ? primary : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _agreedToTerms ? secondary : (theme.textTheme.bodySmall?.color ?? Colors.grey),
+                color: _agreedToTerms ? primary : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                 width: 1.5,
               ),
             ),
             child: _agreedToTerms ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
           ),
         ),
-        const SizedBox(width: AppSpacing.sm),
+        const SizedBox(width: 12),
         Expanded(
           child: Text(
             'I agree to the Terms of Service and Privacy Policy',
-            style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+            style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildSignUpButton(bool isLoading, Color primary, Color secondary) {
+  Widget _buildSignUpButton(bool isLoading, Color primary) {
     return SizedBox(
       width: double.infinity,
-      height: 50,
+      height: 56,
       child: ElevatedButton(
         onPressed: isLoading ? null : _handleSignUp,
         child: isLoading
-            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : const Text('Create Account', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16)),
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+            : const Text('Create Account', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, letterSpacing: -0.3)),
       ),
     );
   }
@@ -290,7 +294,7 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
         Text('Already have an account?', style: theme.textTheme.bodyMedium),
         TextButton(
           onPressed: widget.onSignInTap,
-          child: Text('Sign In', style: TextStyle(color: primary, fontWeight: FontWeight.w600)),
+          child: Text('Sign In', style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 15)),
         ),
       ],
     );
