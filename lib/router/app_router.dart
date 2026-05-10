@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,8 +9,7 @@ import '../features/auth/presentation/providers/auth_provider.dart';
 import '../features/home/presentation/pages/home_page.dart';
 import '../features/loans/presentation/pages/loans_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
-import '../features/members/presentation/pages/members_page.dart';
-import '../features/analytics/presentation/pages/analytics_page.dart';
+import '../features/settings/presentation/pages/settings_page.dart';
 import '../core/widgets/hud_navigation.dart';
 import '../features/loans/presentation/pages/loan_detail_page.dart';
 import '../features/loans/presentation/pages/new_loan_page.dart';
@@ -83,10 +83,6 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NewRecurringSavingPage(),
           ),
           GoRoute(
-            path: '/members',
-            builder: (context, state) => const MembersPage(),
-          ),
-          GoRoute(
             path: '/users',
             builder: (context, state) => const UsersPage(),
           ),
@@ -95,8 +91,8 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const NewUserPage(),
           ),
           GoRoute(
-            path: '/analytics',
-            builder: (context, state) => const AnalyticsPage(),
+            path: '/settings',
+            builder: (context, state) => const SettingsPage(),
           ),
         ],
       ),
@@ -135,11 +131,10 @@ class MainShell extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/loans')) return 2;
-    if (location.startsWith('/savings')) return 3;
-    if (location.startsWith('/members')) return 4;
-    if (location.startsWith('/users')) return 5;
-    if (location.startsWith('/analytics')) return 1;
+    if (location.startsWith('/loans')) return 1;
+    if (location.startsWith('/savings')) return 2;
+    if (location.startsWith('/users')) return 3;
+    if (location.startsWith('/settings')) return 4;
     return 0;
   }
 
@@ -149,19 +144,16 @@ class MainShell extends StatelessWidget {
         context.go('/');
         break;
       case 1:
-        context.go('/analytics');
-        break;
-      case 2:
         context.go('/loans');
         break;
-      case 3:
+      case 2:
         context.go('/savings');
         break;
-      case 4:
-        context.go('/members');
-        break;
-      case 5:
+      case 3:
         context.go('/users');
+        break;
+      case 4:
+        context.go('/settings');
         break;
     }
   }
@@ -170,12 +162,14 @@ class MainShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDesktop = MediaQuery.of(context).size.width > 800;
     final currentIndex = _calculateSelectedIndex(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           child,
+          // Desktop: top HUD navigation
           if (isDesktop)
             Positioned(
               left: 0,
@@ -192,11 +186,6 @@ class MainShell extends StatelessWidget {
                       activeIcon: Icons.grid_view_rounded,
                     ),
                     HUDNavItem(
-                      label: 'Analytics',
-                      icon: Icons.history_outlined,
-                      activeIcon: Icons.history_rounded,
-                    ),
-                    HUDNavItem(
                       label: 'Loans',
                       icon: Icons.account_balance_outlined,
                       activeIcon: Icons.account_balance_rounded,
@@ -205,11 +194,6 @@ class MainShell extends StatelessWidget {
                       label: 'Savings',
                       icon: Icons.account_balance_wallet_outlined,
                       activeIcon: Icons.account_balance_wallet_rounded,
-                    ),
-                    HUDNavItem(
-                      label: 'Members',
-                      icon: Icons.people_outline_rounded,
-                      activeIcon: Icons.people_rounded,
                     ),
                     HUDNavItem(
                       label: 'Users',
@@ -221,27 +205,172 @@ class MainShell extends StatelessWidget {
                       icon: Icons.settings_outlined,
                       activeIcon: Icons.settings_rounded,
                     ),
-                    HUDNavItem(
-                      label: 'Theme',
-                      icon: Icons.dark_mode_outlined,
-                      activeIcon: Icons.dark_mode_rounded,
-                    ),
-                    HUDNavItem(
-                      label: 'Logout',
-                      icon: Icons.logout_rounded,
-                      activeIcon: Icons.logout_rounded,
-                    ),
                   ],
                 ),
               ),
             ),
         ],
       ),
-      bottomNavigationBar: null,
+      // Mobile: iOS-style bottom tab bar
+      bottomNavigationBar: isDesktop
+          ? null
+          : _IOSBottomTabBar(
+              currentIndex: currentIndex,
+              onTap: (index) => _onItemTapped(index, context),
+              isDark: isDark,
+            ),
     );
   }
 }
 
+/// iOS-style bottom tab bar with frosted glass effect.
+class _IOSBottomTabBar extends StatelessWidget {
+  final int currentIndex;
+  final ValueChanged<int> onTap;
+  final bool isDark;
+
+  const _IOSBottomTabBar({
+    required this.currentIndex,
+    required this.onTap,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.4)
+        : Colors.black.withValues(alpha: 0.35);
+
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark
+                ? const Color(0xFF1C1C1E).withValues(alpha: 0.92)
+                : Colors.white.withValues(alpha: 0.92),
+            border: Border(
+              top: BorderSide(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.08),
+                width: 0.33,
+              ),
+            ),
+          ),
+          child: SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _TabItem(
+                    icon: Icons.grid_view_outlined,
+                    activeIcon: Icons.grid_view_rounded,
+                    label: 'Home',
+                    isSelected: currentIndex == 0,
+                    selectedColor: primary,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(0),
+                  ),
+                  _TabItem(
+                    icon: Icons.account_balance_outlined,
+                    activeIcon: Icons.account_balance_rounded,
+                    label: 'Loans',
+                    isSelected: currentIndex == 1,
+                    selectedColor: primary,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(1),
+                  ),
+                  _TabItem(
+                    icon: Icons.account_balance_wallet_outlined,
+                    activeIcon: Icons.account_balance_wallet_rounded,
+                    label: 'Savings',
+                    isSelected: currentIndex == 2,
+                    selectedColor: primary,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(2),
+                  ),
+                  _TabItem(
+                    icon: Icons.manage_accounts_outlined,
+                    activeIcon: Icons.manage_accounts_rounded,
+                    label: 'Users',
+                    isSelected: currentIndex == 3,
+                    selectedColor: primary,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(3),
+                  ),
+                  _TabItem(
+                    icon: Icons.settings_outlined,
+                    activeIcon: Icons.settings_rounded,
+                    label: 'Settings',
+                    isSelected: currentIndex == 4,
+                    selectedColor: primary,
+                    inactiveColor: inactiveColor,
+                    onTap: () => onTap(4),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _TabItem extends StatelessWidget {
+  final IconData icon;
+  final IconData activeIcon;
+  final String label;
+  final bool isSelected;
+  final Color selectedColor;
+  final Color inactiveColor;
+  final VoidCallback onTap;
+
+  const _TabItem({
+    required this.icon,
+    required this.activeIcon,
+    required this.label,
+    required this.isSelected,
+    required this.selectedColor,
+    required this.inactiveColor,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      behavior: HitTestBehavior.opaque,
+      child: SizedBox(
+        width: 64,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? activeIcon : icon,
+              color: isSelected ? selectedColor : inactiveColor,
+              size: 24,
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: TextStyle(
+                color: isSelected ? selectedColor : inactiveColor,
+                fontSize: 10,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                letterSpacing: -0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -21,8 +22,15 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   final TextEditingController _mobileController = TextEditingController();
   final TextEditingController _employeeIdController = TextEditingController();
   final TextEditingController _zoneController = TextEditingController();
+  final TextEditingController _addressController = TextEditingController();
+  final TextEditingController _aadharController = TextEditingController();
+  final TextEditingController _panController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
+  
+  // PAN Keyboard switching state
+  TextInputType _panKeyboardType = TextInputType.text;
+  final FocusNode _panFocusNode = FocusNode();
 
   @override
   void initState() {
@@ -34,7 +42,16 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       _mobileController.text = state.mobileNumber;
       _employeeIdController.text = state.employeeId;
       _zoneController.text = state.assignedZone;
+      _addressController.text = ""; // Initial empty
+      _aadharController.text = state.aadharNumber;
+      _panController.text = state.panNumber;
       _passwordController.text = state.password;
+    });
+    
+    _panFocusNode.addListener(() {
+      if (_panFocusNode.hasFocus) {
+        _updatePanKeyboard(_panController.text);
+      }
     });
   }
 
@@ -45,7 +62,11 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     _mobileController.dispose();
     _employeeIdController.dispose();
     _zoneController.dispose();
+    _addressController.dispose();
+    _aadharController.dispose();
+    _panController.dispose();
     _passwordController.dispose();
+    _panFocusNode.dispose();
     super.dispose();
   }
 
@@ -54,9 +75,9 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     final state = ref.watch(newUserProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FB),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: const Color(0xFFF8F9FB),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
@@ -130,6 +151,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   label: 'FULL NAME *',
                   hint: 'Enter legal name',
                   controller: _fullNameController,
+                  textCapitalization: TextCapitalization.words,
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateFullName(val),
                 ),
               ),
@@ -154,6 +176,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   hint: 'Contact number',
                   icon: Icons.phone_android_outlined,
                   controller: _mobileController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateMobileNumber(val),
                 ),
               ),
@@ -182,29 +206,78 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               ),
             ],
           ),
+          const SizedBox(height: AppSpacing.lg),
+          _buildInputField(
+            label: 'RESIDENTIAL ADDRESS',
+            hint: 'Enter complete home address',
+            icon: Icons.home_outlined,
+            controller: _addressController,
+            textCapitalization: TextCapitalization.words,
+            onChanged: (val) {}, 
+          ),
+          
+          if (state.role != SystemRole.retailMember) ...[
+            const SizedBox(height: AppSpacing.xxl),
+            _buildSectionHeader('FIELD OPERATIONS', Icons.corporate_fare_outlined),
+            const SizedBox(height: AppSpacing.lg),
+            Row(
+              children: [
+                Expanded(
+                  child: _buildInputField(
+                    label: 'EMPLOYEE ID',
+                    hint: 'Internal reference #',
+                    controller: _employeeIdController,
+                    onChanged: (val) => ref.read(newUserProvider.notifier).updateEmployeeId(val),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: _buildInputField(
+                    label: 'ASSIGNED ZONE / AREA',
+                    hint: 'e.g. North Sector',
+                    icon: Icons.location_on_outlined,
+                    controller: _zoneController,
+                    onChanged: (val) => ref.read(newUserProvider.notifier).updateAssignedZone(val),
+                  ),
+                ),
+              ],
+            ),
+          ],
           
           const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('FIELD OPERATIONS', Icons.corporate_fare_outlined),
+          _buildSectionHeader('IDENTITY DETAILS', Icons.badge_outlined),
           const SizedBox(height: AppSpacing.lg),
-          
           Row(
             children: [
               Expanded(
                 child: _buildInputField(
-                  label: 'EMPLOYEE ID',
-                  hint: 'Internal reference #',
-                  controller: _employeeIdController,
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateEmployeeId(val),
+                  label: 'AADHAR CARD NUMBER *',
+                  hint: '12-digit UID number',
+                  icon: Icons.fingerprint_outlined,
+                  controller: _aadharController,
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  onChanged: (val) => ref.read(newUserProvider.notifier).updateAadharNumber(val),
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: _buildInputField(
-                  label: 'ASSIGNED ZONE / AREA',
-                  hint: 'e.g. North Sector',
-                  icon: Icons.location_on_outlined,
-                  controller: _zoneController,
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateAssignedZone(val),
+                  label: 'PAN CARD NUMBER *',
+                  hint: 'ABCDE 1234 F',
+                  icon: Icons.credit_card_outlined,
+                  controller: _panController,
+                  focusNode: _panFocusNode,
+                  keyboardType: _panKeyboardType,
+                  textCapitalization: TextCapitalization.characters,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(10),
+                    _PanFormatter(),
+                  ],
+                  onChanged: (val) {
+                    ref.read(newUserProvider.notifier).updatePanNumber(val);
+                    _updatePanKeyboard(val);
+                  },
                 ),
               ),
             ],
@@ -301,6 +374,28 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
+  void _updatePanKeyboard(String val) {
+    TextInputType newType;
+    if (val.length >= 5 && val.length < 9) {
+      newType = TextInputType.number;
+    } else {
+      newType = TextInputType.text;
+    }
+
+    if (newType != _panKeyboardType) {
+      setState(() {
+        _panKeyboardType = newType;
+      });
+      // Force keyboard refresh by refocussing
+      if (_panFocusNode.hasFocus) {
+        _panFocusNode.unfocus();
+        Future.delayed(const Duration(milliseconds: 50), () {
+          _panFocusNode.requestFocus();
+        });
+      }
+    }
+  }
+
   Widget _buildSummary(NewUserState state) {
     String roleDisplay = _getRoleDisplayName(state.role);
     String roleDescription = _getRoleDescription(state.role);
@@ -395,6 +490,10 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     required String label,
     required String hint,
     IconData? icon,
+    FocusNode? focusNode,
+    TextInputType? keyboardType,
+    TextCapitalization textCapitalization = TextCapitalization.none,
+    List<TextInputFormatter>? inputFormatters,
     required TextEditingController controller,
     required Function(String) onChanged,
   }) {
@@ -406,6 +505,10 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
         TextField(
           controller: controller,
           onChanged: onChanged,
+          focusNode: focusNode,
+          keyboardType: keyboardType,
+          textCapitalization: textCapitalization,
+          inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: const TextStyle(color: AppColors.textMutedLight, fontWeight: FontWeight.normal),
@@ -500,5 +603,32 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       case SystemRole.retailMember:
         return 'Retail Members can only view their personal savings, loans, and transaction history.';
     }
+  }
+}
+
+class _PanFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String text = newValue.text.toUpperCase();
+    String formatted = '';
+
+    for (int i = 0; i < text.length; i++) {
+      String char = text[i];
+      if (i < 5) {
+        // First 5 letters
+        if (RegExp(r'[A-Z]').hasMatch(char)) formatted += char;
+      } else if (i < 9) {
+        // Next 4 digits
+        if (RegExp(r'[0-9]').hasMatch(char)) formatted += char;
+      } else if (i < 10) {
+        // Last letter
+        if (RegExp(r'[A-Z]').hasMatch(char)) formatted += char;
+      }
+    }
+
+    return TextEditingValue(
+      text: formatted,
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
   }
 }

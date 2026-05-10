@@ -10,6 +10,8 @@ class NewUserState {
   final String employeeId;
   final String assignedZone;
   final String password;
+  final String aadharNumber;
+  final String panNumber;
   
   NewUserState({
     this.fullName = '',
@@ -19,6 +21,8 @@ class NewUserState {
     this.employeeId = '',
     this.assignedZone = '',
     this.password = '',
+    this.aadharNumber = '',
+    this.panNumber = '',
   });
 
   NewUserState copyWith({
@@ -29,6 +33,8 @@ class NewUserState {
     String? employeeId,
     String? assignedZone,
     String? password,
+    String? aadharNumber,
+    String? panNumber,
   }) {
     return NewUserState(
       fullName: fullName ?? this.fullName,
@@ -38,6 +44,8 @@ class NewUserState {
       employeeId: employeeId ?? this.employeeId,
       assignedZone: assignedZone ?? this.assignedZone,
       password: password ?? this.password,
+      aadharNumber: aadharNumber ?? this.aadharNumber,
+      panNumber: panNumber ?? this.panNumber,
     );
   }
 }
@@ -52,6 +60,8 @@ class NewUserNotifier extends StateNotifier<NewUserState> {
   void updateEmployeeId(String value) => state = state.copyWith(employeeId: value);
   void updateAssignedZone(String value) => state = state.copyWith(assignedZone: value);
   void updatePassword(String value) => state = state.copyWith(password: value);
+  void updateAadharNumber(String value) => state = state.copyWith(aadharNumber: value);
+  void updatePanNumber(String value) => state = state.copyWith(panNumber: value);
 
   void reset() => state = NewUserState();
 }

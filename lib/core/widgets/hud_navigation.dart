@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../constants/app_colors.dart';
 
+/// A premium iOS-style floating top navigation bar for desktop.
 class HUDNavigation extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -17,25 +17,32 @@ class HUDNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
-      margin: const EdgeInsets.only(top: 16),
+      margin: const EdgeInsets.only(top: 12),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.6),
-              borderRadius: BorderRadius.circular(20),
+              color: isDark
+                  ? Colors.black.withValues(alpha: 0.7)
+                  : Colors.white.withValues(alpha: 0.85),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: Colors.white.withValues(alpha: 0.3),
-                width: 1,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.06),
+                width: 0.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
-                  blurRadius: 10,
+                  color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                  blurRadius: 20,
                   offset: const Offset(0, 4),
                 ),
               ],
@@ -44,7 +51,7 @@ class HUDNavigation extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: List.generate(
                 items.length,
-                (index) => _buildHUDItem(context, index),
+                (index) => _buildHUDItem(context, index, primary),
               ),
             ),
           ),
@@ -53,40 +60,49 @@ class HUDNavigation extends StatelessWidget {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2, end: 0);
   }
 
-  Widget _buildHUDItem(BuildContext context, int index) {
+  Widget _buildHUDItem(BuildContext context, int index, Color primary) {
     final item = items[index];
     final isSelected = currentIndex == index;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GestureDetector(
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AnimatedContainer(
-            duration: 300.ms,
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: isSelected ? AppColors.primaryTeal.withValues(alpha: 0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOutCubic,
+        margin: const EdgeInsets.symmetric(horizontal: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? primary.withValues(alpha: isDark ? 0.2 : 0.1)
+              : Colors.transparent,
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
               isSelected ? item.activeIcon : item.icon,
-              color: isSelected ? AppColors.primaryTeal : AppColors.textSecondaryLight,
-              size: 22,
+              color: isSelected
+                  ? primary
+                  : (isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.4)),
+              size: 20,
             ),
-          ),
-          if (isSelected)
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              height: 4,
-              width: 4,
-              decoration: const BoxDecoration(
-                color: AppColors.primaryTeal,
-                shape: BoxShape.circle,
+            if (isSelected) ...[
+              const SizedBox(width: 8),
+              Text(
+                item.label,
+                style: TextStyle(
+                  color: primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.3,
+                ),
               ),
-            ).animate().scale(),
-        ],
+            ],
+          ],
+        ),
       ),
     );
   }

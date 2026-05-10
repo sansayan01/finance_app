@@ -1,9 +1,8 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import '../constants/app_colors.dart';
-import '../constants/app_spacing.dart';
 
+/// iOS-style floating bottom navigation bar for mobile devices.
 class LumaBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -18,38 +17,37 @@ class LumaBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+
     return Container(
-      margin: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.lg,
-        vertical: AppSpacing.sm,
-      ),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusXl),
+        borderRadius: BorderRadius.circular(22),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
           child: Container(
-            height: 70,
+            height: 64,
             decoration: BoxDecoration(
-              color: AppColors.glassBackground,
-              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusXl),
+              color: isDark
+                  ? const Color(0xFF1C1C1E).withValues(alpha: 0.92)
+                  : Colors.white.withValues(alpha: 0.92),
+              borderRadius: BorderRadius.circular(22),
               border: Border.all(
-                color: AppColors.glassBorder,
-                width: 1,
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.06),
+                width: 0.5,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 20,
+                  color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.08),
+                  blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(
-                items.length,
-                (index) => _buildItem(context, index),
-              ),
+              children: List.generate(items.length, (i) => _buildItem(context, i, primary, isDark)),
             ),
           ),
         ),
@@ -57,57 +55,33 @@ class LumaBar extends StatelessWidget {
     );
   }
 
-  Widget _buildItem(BuildContext context, int index) {
+  Widget _buildItem(BuildContext context, int index, Color primary, bool isDark) {
     final item = items[index];
     final isSelected = currentIndex == index;
+    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.35);
 
     return GestureDetector(
       onTap: () => onTap(index),
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: AppSpacing.animationNormal,
-        curve: Curves.easeOutCubic,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
+      child: SizedBox(
+        width: 56,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: AppSpacing.animationNormal,
-              curve: Curves.easeOutCubic,
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primaryIndigo.withValues(alpha: 0.2)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primaryIndigo.withValues(alpha: 0.4),
-                          blurRadius: 12,
-                          spreadRadius: 0,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Icon(
-                isSelected ? item.activeIcon : item.icon,
-                color: isSelected ? AppColors.primaryTeal : AppColors.textMuted,
-                size: 24,
-              ),
+            Icon(
+              isSelected ? item.activeIcon : item.icon,
+              color: isSelected ? primary : inactiveColor,
+              size: 22,
             ),
-            const SizedBox(height: AppSpacing.xs),
-            AnimatedDefaultTextStyle(
-              duration: AppSpacing.animationFast,
+            const SizedBox(height: 2),
+            Text(
+              item.label,
               style: TextStyle(
-                color: isSelected ? AppColors.primaryTeal : AppColors.textMuted,
+                color: isSelected ? primary : inactiveColor,
                 fontSize: 10,
                 fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                letterSpacing: -0.2,
               ),
-              child: Text(item.label),
             ),
           ],
         ),
@@ -128,6 +102,7 @@ class LumaBarItem {
   });
 }
 
+/// Alternative bottom nav for non-floating usage.
 class PremiumBottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -140,58 +115,37 @@ class PremiumBottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: AppColors.backgroundDark.withValues(alpha: 0.95),
-        border: const Border(
-          top: BorderSide(
-            color: AppColors.glassBorder,
-            width: 0.5,
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final primary = Theme.of(context).colorScheme.primary;
+    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.35);
+
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        child: Container(
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF1C1C1E).withValues(alpha: 0.92) : Colors.white.withValues(alpha: 0.92),
+            border: Border(
+              top: BorderSide(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.08),
+                width: 0.33,
+              ),
+            ),
           ),
-        ),
-      ),
-      child: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _NavItem(
-                icon: Icons.dashboard_outlined,
-                activeIcon: Icons.dashboard,
-                label: 'Home',
-                isSelected: currentIndex == 0,
-                onTap: () => onTap(0),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _NavItem(icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded, label: 'Home', isSelected: currentIndex == 0, primary: primary, inactive: inactiveColor, onTap: () => onTap(0)),
+                  _NavItem(icon: Icons.account_balance_outlined, activeIcon: Icons.account_balance_rounded, label: 'Loans', isSelected: currentIndex == 1, primary: primary, inactive: inactiveColor, onTap: () => onTap(1)),
+                  _NavItem(icon: Icons.savings_outlined, activeIcon: Icons.savings_rounded, label: 'Savings', isSelected: currentIndex == 2, primary: primary, inactive: inactiveColor, onTap: () => onTap(2)),
+                  _NavItem(icon: Icons.people_outlined, activeIcon: Icons.people_rounded, label: 'Members', isSelected: currentIndex == 3, primary: primary, inactive: inactiveColor, onTap: () => onTap(3)),
+                  _NavItem(icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded, label: 'Analytics', isSelected: currentIndex == 4, primary: primary, inactive: inactiveColor, onTap: () => onTap(4)),
+                ],
               ),
-              _NavItem(
-                icon: Icons.account_balance_outlined,
-                activeIcon: Icons.account_balance,
-                label: 'Loans',
-                isSelected: currentIndex == 1,
-                onTap: () => onTap(1),
-              ),
-              _NavItem(
-                icon: Icons.savings_outlined,
-                activeIcon: Icons.savings,
-                label: 'Savings',
-                isSelected: currentIndex == 2,
-                onTap: () => onTap(2),
-              ),
-              _NavItem(
-                icon: Icons.people_outlined,
-                activeIcon: Icons.people,
-                label: 'Members',
-                isSelected: currentIndex == 3,
-                onTap: () => onTap(3),
-              ),
-              _NavItem(
-                icon: Icons.analytics_outlined,
-                activeIcon: Icons.analytics,
-                label: 'Analytics',
-                isSelected: currentIndex == 4,
-                onTap: () => onTap(4),
-              ),
-            ],
+            ),
           ),
         ),
       ),
@@ -204,67 +158,25 @@ class _NavItem extends StatelessWidget {
   final IconData activeIcon;
   final String label;
   final bool isSelected;
+  final Color primary;
+  final Color inactive;
   final VoidCallback onTap;
 
-  const _NavItem({
-    required this.icon,
-    required this.activeIcon,
-    required this.label,
-    required this.isSelected,
-    required this.onTap,
-  });
+  const _NavItem({required this.icon, required this.activeIcon, required this.label, required this.isSelected, required this.primary, required this.inactive, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
-      child: AnimatedContainer(
-        duration: AppSpacing.animationFast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.sm,
-          vertical: AppSpacing.xs,
-        ),
+      child: SizedBox(
+        width: 60,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: AppSpacing.animationNormal,
-              padding: const EdgeInsets.all(AppSpacing.sm),
-              decoration: BoxDecoration(
-                color: isSelected
-                    ? AppColors.primaryIndigo.withValues(alpha: 0.15)
-                    : Colors.transparent,
-                borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
-                boxShadow: isSelected
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primaryTeal.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          spreadRadius: 0,
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Icon(
-                isSelected ? activeIcon : icon,
-                color: isSelected ? AppColors.primaryTeal : AppColors.textMuted,
-                size: 22,
-              ),
-            ).animate(target: isSelected ? 1 : 0).scale(
-                  begin: const Offset(1, 1),
-                  end: const Offset(1.1, 1.1),
-                  duration: AppSpacing.animationFast,
-                ),
+            Icon(isSelected ? activeIcon : icon, color: isSelected ? primary : inactive, size: 22),
             const SizedBox(height: 2),
-            Text(
-              label,
-              style: TextStyle(
-                color: isSelected ? AppColors.primaryTeal : AppColors.textMuted,
-                fontSize: 10,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-              ),
-            ),
+            Text(label, style: TextStyle(color: isSelected ? primary : inactive, fontSize: 10, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
           ],
         ),
       ),

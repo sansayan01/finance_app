@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
-import '../constants/app_spacing.dart';
 
 enum StatusType {
   standard,
@@ -13,7 +11,8 @@ enum StatusType {
   completed,
 }
 
-class StatusBadge extends StatefulWidget {
+/// A clean iOS-style pill badge for statuses.
+class StatusBadge extends StatelessWidget {
   final String label;
   final StatusType type;
   final bool glow;
@@ -23,119 +22,60 @@ class StatusBadge extends StatefulWidget {
     super.key,
     required this.label,
     required this.type,
-    this.glow = true,
+    this.glow = false,
     this.fontSize,
   });
 
-  @override
-  State<StatusBadge> createState() => _StatusBadgeState();
-}
-
-class _StatusBadgeState extends State<StatusBadge>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _glowAnimation;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: const Duration(milliseconds: 1500),
-      vsync: this,
-    )..repeat(reverse: true);
-
-    _glowAnimation = Tween<double>(begin: 0.3, end: 0.6).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  Color get _backgroundColor {
-    switch (widget.type) {
+  Color get _color {
+    switch (type) {
       case StatusType.standard:
-        return AppColors.success;
-      case StatusType.defaultStatus:
-        return AppColors.error;
-      case StatusType.pending:
-        return AppColors.warning;
       case StatusType.approved:
       case StatusType.active:
-        return AppColors.success;
+        return const Color(0xFF34C759);
+      case StatusType.defaultStatus:
       case StatusType.rejected:
       case StatusType.inactive:
-        return AppColors.error;
+        return const Color(0xFFFF3B30);
+      case StatusType.pending:
+        return const Color(0xFFFF9F0A);
       case StatusType.completed:
-        return AppColors.primaryTeal;
+        return const Color(0xFF007AFF);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AnimatedBuilder(
-      animation: _glowAnimation,
-      builder: (context, child) {
-        return Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm + 4,
-            vertical: AppSpacing.xs + 2,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: _color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: _color.withValues(alpha: 0.2), width: 0.5),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 5, height: 5,
+            decoration: BoxDecoration(shape: BoxShape.circle, color: _color),
           ),
-          decoration: BoxDecoration(
-            color: _backgroundColor.withValues(alpha: 0.15),
-            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
-            border: Border.all(
-              color: _backgroundColor.withValues(alpha: 0.3),
-              width: 1,
+          const SizedBox(width: 5),
+          Text(
+            label,
+            style: TextStyle(
+              color: _color,
+              fontSize: fontSize ?? 10,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 0.3,
             ),
-            boxShadow: widget.glow
-                ? [
-                    BoxShadow(
-                      color: _backgroundColor.withValues(alpha: _glowAnimation.value * 0.5),
-                      blurRadius: 8,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
           ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 6,
-                height: 6,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _backgroundColor,
-                  boxShadow: [
-                    BoxShadow(
-                      color: _backgroundColor.withValues(alpha: 0.8),
-                      blurRadius: 4,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.xs + 2),
-              Text(
-                widget.label,
-                style: TextStyle(
-                  color: _backgroundColor,
-                  fontSize: widget.fontSize ?? 11,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
 
+/// A simple pill badge with custom color and optional icon.
 class PillBadge extends StatelessWidget {
   final String label;
   final Color color;
@@ -151,32 +91,20 @@ class PillBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
-        border: Border.all(
-          color: color.withValues(alpha: 0.2),
-        ),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 0.5),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
           if (icon != null) ...[
             Icon(icon, size: 12, color: color),
-            const SizedBox(width: AppSpacing.xs),
+            const SizedBox(width: 4),
           ],
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );
