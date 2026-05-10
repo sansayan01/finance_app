@@ -138,6 +138,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
+  Future<bool> resetPassword(String email) async {
+    if (_repository == null) return false;
+    try {
+      await _repository.resetPassword(email);
+      return true;
+    } catch (e) {
+      state = state.copyWith(
+        status: AuthStatus.error,
+        errorMessage: _getErrorMessage(e),
+      );
+      return false;
+    }
+  }
+
   String _getErrorMessage(dynamic error) {
     final message = error.toString().toLowerCase();
     if (message.contains('invalid credentials')) {
