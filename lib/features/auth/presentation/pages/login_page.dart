@@ -1,10 +1,11 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'dart:math' as math;
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/widgets/aurora_background.dart';
 import '../providers/auth_provider.dart';
 
 class LoginPage extends ConsumerStatefulWidget {
@@ -19,7 +20,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  
   bool _obscurePassword = true;
+  bool _isHovering = false;
 
   @override
   void dispose() {
@@ -30,47 +33,24 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
+    
+    HapticFeedback.lightImpact();
+    
     final success = await ref.read(authProvider.notifier).signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
+        
     if (success && mounted) {
       context.go('/');
     } else if (mounted) {
       final error = ref.read(authProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(error ?? 'Login failed'),
-        backgroundColor: Theme.of(context).colorScheme.error,
-      ));
-    }
-  }
-
-  Future<void> _handleForgotPassword() async {
-    final email = _emailController.text.trim();
-    if (email.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Please enter your email first to reset password'),
+        content: Text(error ?? 'Authentication failed'),
+        backgroundColor: Colors.redAccent,
         behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       ));
-      return;
-    }
-
-    final success = await ref.read(authProvider.notifier).resetPassword(email);
-    if (success && mounted) {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          backgroundColor: Theme.of(context).cardColor.withValues(alpha: 0.9),
-          title: const Text('Reset Link Sent', style: TextStyle(fontWeight: FontWeight.w800)),
-          content: Text('A password reset link has been sent to $email. Please check your inbox.'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('OK', style: TextStyle(fontWeight: FontWeight.w700)),
-            ),
-          ],
-        ),
-      );
     }
   }
 
@@ -83,158 +63,65 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final primary = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Colors.black,
-      body: AuroraBackground(
-        child: Stack(
-          children: [
-            // ── Deep Blur Overlay ──
-            Positioned.fill(
-              child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
-              child: Container(color: Colors.black.withValues(alpha: 0.2)),
-            ),
-          ),
+      backgroundColor: isDark ? const Color(0xFF0A0A0B) : const Color(0xFFFBFBFE),
+      body: Stack(
+        children: [
+          // Refined Aurora Background
+          const Positioned.fill(child: _AuroraBackground()),
 
-          // ── Particle System ──
-          ...List.generate(12, (i) => Positioned(
-            top: (i * 150.0) % MediaQuery.of(context).size.height,
-            left: (i * 100.0) % MediaQuery.of(context).size.width,
-            child: Container(
-              width: 2 + (i % 3).toDouble(),
-              height: 2 + (i % 3).toDouble(),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.15),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: primary.withValues(alpha: 0.2), blurRadius: 10, spreadRadius: 2),
-                ],
-              ),
-            ).animate(onPlay: (c) => c.repeat())
-             .moveY(begin: 0, end: -100, duration: (5000 + i * 1000).ms, curve: Curves.linear)
-             .fadeOut(duration: 1000.ms),
-          )),
-
-          // ── Content ──
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // ── Header Section ──
-                      const SizedBox(height: 20),
-                      _buildIOSLogo(primary),
-                      const SizedBox(height: 40),
+                      // Sophisticated Logo Entry
+                      _buildLogo(primary),
                       
-                      // ── Glassmorphic Login Container ──
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(32),
-                        child: BackdropFilter(
-                          filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
-                          child: Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: BoxDecoration(
-                              color: isDark 
-                                  ? Colors.white.withValues(alpha: 0.04) 
-                                  : Colors.white.withValues(alpha: 0.6),
-                              borderRadius: BorderRadius.circular(32),
-                              border: Border.all(
-                                color: Colors.white.withValues(alpha: isDark ? 0.08 : 0.4),
-                                width: 0.5,
-                              ),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.2),
-                                  blurRadius: 40,
-                                  offset: const Offset(0, 20),
-                                ),
-                              ],
-                            ),
-                            child: Form(
-                              key: _formKey,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Sign In',
-                                    style: theme.textTheme.headlineSmall?.copyWith(
-                                      fontWeight: FontWeight.w900,
-                                      letterSpacing: -1,
-                                      fontSize: 28,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Enter your workspace credentials',
-                                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 14, letterSpacing: -0.2),
-                                  ),
-                                  const SizedBox(height: 32),
-                                  
-                                  // Email Field
-                                  _buildIOSInput(
-                                    controller: _emailController,
-                                    label: 'Email',
-                                    icon: Icons.alternate_email_rounded,
-                                    isDark: isDark,
-                                    primary: primary,
-                                    keyboardType: TextInputType.emailAddress,
-                                  ),
-                                  
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 48),
-                                    child: Divider(height: 1, color: isDark ? Colors.white10 : Colors.black12),
-                                  ),
-                                  
-                                  // Password Field
-                                  _buildIOSInput(
-                                    controller: _passwordController,
-                                    label: 'Password',
-                                    icon: Icons.lock_outline_rounded,
-                                    isDark: isDark,
-                                    primary: primary,
-                                    obscureText: _obscurePassword,
-                                    suffix: IconButton(
-                                      icon: Icon(_obscurePassword ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 18),
-                                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
-                                      color: isDark ? Colors.white38 : Colors.black38,
-                                    ),
-                                  ),
-                                  
-                                  const SizedBox(height: 32),
-                                  
-                                  // Login Button
-                                  _buildPremiumButton(isLoading, primary, _handleLogin),
-                                  
-                                  const SizedBox(height: 20),
-                                  
-                                  // Forgot Password
-                                  Center(
-                                    child: TextButton(
-                                      onPressed: _handleForgotPassword,
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: primary.withValues(alpha: 0.8),
-                                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                                      ),
-                                      child: const Text(
-                                        'Forgot Password?',
-                                        style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, letterSpacing: -0.2),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                      const SizedBox(height: 32),
+                      
+                      // Modern Header
+                      Text(
+                        'Secure Entry',
+                        style: theme.textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -1.0,
+                          color: isDark ? Colors.white : Colors.black,
+                          fontSize: 32,
                         ),
-                      ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.98, 0.98), curve: Curves.easeOutBack),
+                      ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2, end: 0),
                       
-                      const SizedBox(height: 48),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Authorized administrative access only.',
+                        style: TextStyle(
+                          color: isDark ? Colors.white54 : Colors.black54,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ).animate().fadeIn(delay: 200.ms, duration: 800.ms),
                       
-                      // Invitation Badge
-                      _buildSecurityBadge(primary, isDark),
+                      const SizedBox(height: 56),
+
+                      // Neo-Glass Login Card
+                      _buildNeoGlassCard(isDark, primary, isLoading),
+                      
                       const SizedBox(height: 40),
+                      
+                      // Footer Note
+                      Text(
+                        'Protected by Enterprise Security',
+                        style: TextStyle(
+                          color: isDark ? Colors.white24 : Colors.black26,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          letterSpacing: 1.0,
+                        ),
+                      ).animate().fadeIn(delay: 1.seconds),
                     ],
                   ),
                 ),
@@ -243,113 +130,238 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ],
       ),
-    ),
     );
   }
 
-  Widget _buildIOSLogo(Color primary) {
+  Widget _buildLogo(Color primary) {
     return Container(
-      width: 80, height: 80,
+      width: 64,
+      height: 64,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 0.5),
-      ),
-      child: Center(
-        child: Container(
-          width: 56, height: 56,
-          decoration: BoxDecoration(
-            gradient: AppColors.primaryGradient,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(color: primary.withValues(alpha: 0.4), blurRadius: 20, spreadRadius: -2),
-            ],
+        color: primary,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: primary.withValues(alpha: 0.4),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
-          child: const Icon(Icons.account_balance_rounded, color: Colors.white, size: 28),
-        ),
+        ],
       ),
-    ).animate(onPlay: (c) => c.repeat(reverse: true))
-     .shimmer(duration: 3.seconds, color: Colors.white24)
-     .moveY(begin: -4, end: 4, duration: 2.seconds, curve: Curves.easeInOut);
+      child: const Icon(Icons.shield_moon_rounded, color: Colors.white, size: 32),
+    ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack);
   }
 
-  Widget _buildIOSInput({
+  Widget _buildNeoGlassCard(bool isDark, Color primary, bool isLoading) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(32),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: const EdgeInsets.all(32),
+          decoration: BoxDecoration(
+            color: isDark 
+                ? Colors.white.withValues(alpha: 0.05) 
+                : Colors.white.withValues(alpha: 0.7),
+            borderRadius: BorderRadius.circular(32),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.3),
+              width: 1.5,
+            ),
+          ),
+          child: Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildField(
+                  controller: _emailController,
+                  label: 'IDENTITY',
+                  hint: 'Email Address',
+                  icon: Icons.alternate_email_rounded,
+                  isDark: isDark,
+                  primary: primary,
+                ),
+                const SizedBox(height: 24),
+                _buildField(
+                  controller: _passwordController,
+                  label: 'CREDENTIALS',
+                  hint: 'Password',
+                  icon: Icons.lock_outline_rounded,
+                  isDark: isDark,
+                  primary: primary,
+                  obscureText: _obscurePassword,
+                  suffix: IconButton(
+                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
+                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                _buildActionButton(isLoading, primary),
+              ],
+            ),
+          ),
+        ),
+      ),
+    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildField({
     required TextEditingController controller,
     required String label,
+    required String hint,
     required IconData icon,
     required bool isDark,
     required Color primary,
     bool obscureText = false,
     Widget? suffix,
-    TextInputType? keyboardType,
   }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: TextFormField(
-        controller: controller,
-        obscureText: obscureText,
-        keyboardType: keyboardType,
-        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-        decoration: InputDecoration(
-          labelText: label,
-          labelStyle: TextStyle(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
             color: isDark ? Colors.white38 : Colors.black38,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+            fontSize: 10,
+            fontWeight: FontWeight.w800,
+            letterSpacing: 1.5,
           ),
-          prefixIcon: Icon(icon, size: 20, color: primary.withValues(alpha: 0.7)),
-          suffixIcon: suffix,
-          border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(vertical: 16),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPremiumButton(bool isLoading, Color primary, VoidCallback onTap) {
-    return SizedBox(
-      width: double.infinity,
-      height: 56,
-      child: ElevatedButton(
-        onPressed: isLoading ? null : onTap,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: primary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          shadowColor: primary.withValues(alpha: 0.5),
-        ),
-        child: isLoading
-            ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-            : const Text('Continue', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16, letterSpacing: -0.5)),
-      ),
-    );
-  }
-
-  Widget _buildSecurityBadge(Color primary, bool isDark) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: primary.withValues(alpha: 0.1), width: 0.5),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(Icons.shield_rounded, size: 14, color: primary.withValues(alpha: 0.6)),
-          const SizedBox(width: 8),
-          Text(
-            'ENTERPRISE SECURITY ACTIVE',
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 1,
-              color: isDark ? Colors.white54 : Colors.black54,
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          obscureText: obscureText,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.w600,
+          ),
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
+            prefixIcon: Icon(icon, size: 20, color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.3)),
+            suffixIcon: suffix,
+            filled: true,
+            fillColor: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide(color: primary.withValues(alpha: 0.5), width: 1),
             ),
           ),
-        ],
-      ),
-    ).animate().fadeIn(delay: 800.ms);
+          validator: (v) => v!.isEmpty ? 'Required' : null,
+        ),
+      ],
+    );
   }
+
+  Widget _buildActionButton(bool isLoading, Color primary) {
+    return MouseRegion(
+      onEnter: (_) => setState(() => _isHovering = true),
+      onExit: (_) => setState(() => _isHovering = false),
+      child: AnimatedScale(
+        scale: _isHovering ? 1.02 : 1.0,
+        duration: 200.ms,
+        child: Container(
+          width: double.infinity,
+          height: 56,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [primary, primary.withValues(alpha: 0.8)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(
+                color: primary.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+              ),
+            ],
+          ),
+          child: ElevatedButton(
+            onPressed: isLoading ? null : _handleLogin,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.transparent,
+              shadowColor: Colors.transparent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            ),
+            child: isLoading 
+              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+              : const Text('Access Dashboard', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5)),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _AuroraBackground extends StatefulWidget {
+  const _AuroraBackground();
+
+  @override
+  State<_AuroraBackground> createState() => _AuroraBackgroundState();
+}
+
+class _AuroraBackgroundState extends State<_AuroraBackground> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final c1 = AppColors.primary.withValues(alpha: isDark ? 0.1 : 0.05);
+    final c2 = AppColors.accent.withValues(alpha: isDark ? 0.08 : 0.04);
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) => CustomPaint(
+        painter: _AuroraPainter(_controller.value, [c1, c2]),
+      ),
+    );
+  }
+}
+
+class _AuroraPainter extends CustomPainter {
+  final double progress;
+  final List<Color> colors;
+
+  _AuroraPainter(this.progress, this.colors);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final t = progress * 2 * math.pi;
+
+    canvas.drawCircle(
+      Offset(size.width * 0.3 + 50 * math.sin(t), size.height * 0.2 + 30 * math.cos(t)),
+      size.width * 0.6,
+      paint..color = colors[0],
+    );
+
+    canvas.drawCircle(
+      Offset(size.width * 0.7 + 40 * math.cos(t * 1.2), size.height * 0.8 + 60 * math.sin(t * 0.8)),
+      size.width * 0.5,
+      paint..color = colors[1],
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _AuroraPainter oldDelegate) => oldDelegate.progress != progress;
 }
