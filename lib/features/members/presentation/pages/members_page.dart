@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/glass_text_field.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../../../core/utils/kyc_validators.dart';
@@ -29,46 +27,43 @@ class _MembersPageState extends ConsumerState<MembersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(theme, primary),
           const SizedBox(height: AppSpacing.lg),
-          _buildSearchBar(),
+          _buildSearchBar(theme, isDark),
           const SizedBox(height: AppSpacing.lg),
-          _buildMemberStats(),
+          _buildMemberStats(theme, primary),
           const SizedBox(height: AppSpacing.lg),
-          _buildMembersList(),
+          _buildMembersList(theme, isDark, primary),
           const SizedBox(height: 100),
         ],
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(ThemeData theme, Color primary) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               'Members',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 24,
-                fontWeight: FontWeight.w700,
-              ),
+              style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
             ),
-            SizedBox(height: 2),
+            const SizedBox(height: 2),
             Text(
               'Manage member records and KYC',
-              style: TextStyle(
-                color: AppColors.textSecondary,
-                fontSize: 14,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
             ),
           ],
         ),
@@ -77,11 +72,11 @@ class _MembersPageState extends ConsumerState<MembersPage> {
           child: Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              color: primary,
               borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primaryIndigo.withValues(alpha: 0.4),
+                  color: primary.withValues(alpha: 0.4),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -89,14 +84,11 @@ class _MembersPageState extends ConsumerState<MembersPage> {
             ),
             child: const Row(
               children: [
-                Icon(Icons.person_add, color: AppColors.textPrimary, size: 20),
+                Icon(Icons.person_add, color: Colors.white, size: 20),
                 SizedBox(width: AppSpacing.xs),
                 Text(
                   'Add Member',
-                  style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -106,52 +98,50 @@ class _MembersPageState extends ConsumerState<MembersPage> {
     ).animate().fadeIn(duration: 400.ms);
   }
 
-  Widget _buildSearchBar() {
-    return GlassTextField(
-      hint: 'Search by name, phone, or ID...',
-      controller: _searchController,
-      onChanged: (value) {
-        ref.read(membersSearchQueryProvider.notifier).state = value;
-      },
-      prefixIcon: const Icon(Icons.search, color: AppColors.textMuted),
-      suffixIcon: IconButton(
-        icon: const Icon(Icons.tune, color: AppColors.textMuted),
-        onPressed: () {},
+  Widget _buildSearchBar(ThemeData theme, bool isDark) {
+    return Container(
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1C1C1E) : Colors.white,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04), blurRadius: 8, offset: const Offset(0, 2))],
+      ),
+      child: TextField(
+        controller: _searchController,
+        onChanged: (value) {
+          ref.read(membersSearchQueryProvider.notifier).state = value;
+        },
+        decoration: InputDecoration(
+          hintText: 'Search by name, phone, or ID...',
+          prefixIcon: Icon(Icons.search, color: theme.textTheme.bodySmall?.color),
+          suffixIcon: IconButton(
+            icon: Icon(Icons.tune, color: theme.textTheme.bodySmall?.color),
+            onPressed: () {},
+          ),
+          border: InputBorder.none,
+          enabledBorder: InputBorder.none,
+          focusedBorder: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
       ),
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildMemberStats() {
+  Widget _buildMemberStats(ThemeData theme, Color primary) {
     final summaryAsync = ref.watch(memberSummaryProvider);
 
     return summaryAsync.when(
       data: (summary) => Row(
         children: [
           Expanded(
-            child: _MemberStatCard(
-              label: 'Total Members',
-              value: summary.totalMembers.toString(),
-              icon: Icons.people,
-              color: AppColors.primaryTeal,
-            ),
+            child: _MemberStatCard(label: 'Total Members', value: summary.totalMembers.toString(), icon: Icons.people, color: primary),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: _MemberStatCard(
-              label: 'Active',
-              value: summary.activeMembers.toString(),
-              icon: Icons.check_circle,
-              color: AppColors.success,
-            ),
+            child: _MemberStatCard(label: 'Active', value: summary.activeMembers.toString(), icon: Icons.check_circle, color: const Color(0xFF34C759)),
           ),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
-            child: _MemberStatCard(
-              label: 'Pending KYC',
-              value: summary.pendingKYC.toString(),
-              icon: Icons.pending,
-              color: AppColors.warning,
-            ),
+            child: _MemberStatCard(label: 'Pending KYC', value: summary.pendingKYC.toString(), icon: Icons.pending, color: const Color(0xFFFF9F0A)),
           ),
         ],
       ),
@@ -160,19 +150,15 @@ class _MembersPageState extends ConsumerState<MembersPage> {
     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildMembersList() {
+  Widget _buildMembersList(ThemeData theme, bool isDark, Color primary) {
     final membersAsync = ref.watch(membersProvider);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Member List',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 16,
-            fontWeight: FontWeight.w600,
-          ),
+          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
         const SizedBox(height: AppSpacing.sm),
         membersAsync.when(
@@ -180,11 +166,8 @@ class _MembersPageState extends ConsumerState<MembersPage> {
             if (members.isEmpty) {
               return GlassCard(
                 padding: const EdgeInsets.all(AppSpacing.xl),
-                child: const Center(
-                  child: Text(
-                    'No members found',
-                    style: TextStyle(color: AppColors.textMuted),
-                  ),
+                child: Center(
+                  child: Text('No members found', style: theme.textTheme.bodySmall),
                 ),
               );
             }
@@ -216,19 +199,19 @@ class _MembersPageState extends ConsumerState<MembersPage> {
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 children: [
-                  const Icon(Icons.error_outline, color: AppColors.error, size: 48),
+                  Icon(Icons.error_outline, color: theme.colorScheme.error, size: 48),
                   const SizedBox(height: AppSpacing.md),
                   Text(
                     'Error loading members: ${err.toString().contains('404') || err.toString().contains('PGRST205') ? 'Database table missing' : err}',
-                    style: const TextStyle(color: AppColors.error),
+                    style: TextStyle(color: theme.colorScheme.error),
                     textAlign: TextAlign.center,
                   ),
                   if (err.toString().contains('PGRST205'))
-                    const Padding(
-                      padding: EdgeInsets.only(top: AppSpacing.sm),
+                    Padding(
+                      padding: const EdgeInsets.only(top: AppSpacing.sm),
                       child: Text(
                         'Please run the supabase_schema.sql script in your Supabase SQL editor.',
-                        style: TextStyle(color: AppColors.textSecondary, fontSize: 12),
+                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                         textAlign: TextAlign.center,
                       ),
                     ),
@@ -257,6 +240,7 @@ class _MemberStatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -272,25 +256,16 @@ class _MemberStatCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Text(
             value,
-            style: TextStyle(
-              color: color,
-              fontSize: 20,
-              fontWeight: FontWeight.w700,
-            ),
+            style: TextStyle(color: color, fontSize: 20, fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 11,
-            ),
-          ),
+          Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
         ],
       ),
     );
   }
 }
+
 class _MemberCard extends StatelessWidget {
   final MemberModel member;
 
@@ -298,6 +273,9 @@ class _MemberCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       onTap: () {},
@@ -307,17 +285,13 @@ class _MemberCard extends StatelessWidget {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              gradient: AppColors.primaryGradient,
+              color: primary.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
             ),
             child: Center(
               child: Text(
                 member.fullName.isNotEmpty ? member.fullName[0] : '?',
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
+                style: TextStyle(color: primary, fontSize: 20, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -328,32 +302,19 @@ class _MemberCard extends StatelessWidget {
               children: [
                 Text(
                   member.fullName,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: theme.textTheme.bodyLarge?.copyWith(fontSize: 15, fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 2),
                 Text(
                   '${member.memberId} • ${KYCValidators.formatPhoneForDisplay(member.phone)}',
-                  style: const TextStyle(
-                    color: AppColors.textMuted,
-                    fontSize: 12,
-                  ),
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                 ),
                 const SizedBox(height: 4),
                 Row(
                   children: [
-                    _InfoPill(
-                      icon: Icons.account_balance,
-                      label: '${member.activeLoans} Loans',
-                    ),
+                    _InfoPill(icon: Icons.account_balance, label: '${member.activeLoans} Loans'),
                     const SizedBox(width: AppSpacing.xs),
-                    _InfoPill(
-                      icon: Icons.savings,
-                      label: AppFormatters.formatCompactCurrency(member.totalSavings),
-                    ),
+                    _InfoPill(icon: Icons.savings, label: AppFormatters.formatCompactCurrency(member.totalSavings)),
                   ],
                 ),
               ],
@@ -374,28 +335,21 @@ class _InfoPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.xs + 2,
-        vertical: 2,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs + 2, vertical: 2),
       decoration: BoxDecoration(
-        color: AppColors.glassBackground,
+        color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.2)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: AppColors.textMuted),
+          Icon(icon, size: 10, color: theme.textTheme.bodySmall?.color),
           const SizedBox(width: 2),
-          Text(
-            label,
-            style: const TextStyle(
-              color: AppColors.textMuted,
-              fontSize: 10,
-            ),
-          ),
+          Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
         ],
       ),
     );
@@ -415,24 +369,21 @@ class _KYCStatusBadge extends StatelessWidget {
 
     switch (status) {
       case KYCStatus.verified:
-        color = AppColors.success;
+        color = const Color(0xFF34C759);
         label = 'Verified';
         icon = Icons.verified;
       case KYCStatus.pending:
-        color = AppColors.warning;
+        color = const Color(0xFFFF9F0A);
         label = 'Pending';
         icon = Icons.pending;
       case KYCStatus.rejected:
-        color = AppColors.error;
+        color = const Color(0xFFFF3B30);
         label = 'Rejected';
         icon = Icons.cancel;
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.xs,
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
@@ -443,14 +394,7 @@ class _KYCStatusBadge extends StatelessWidget {
         children: [
           Icon(icon, size: 12, color: color),
           const SizedBox(width: 4),
-          Text(
-            label,
-            style: TextStyle(
-              color: color,
-              fontSize: 11,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          Text(label, style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );

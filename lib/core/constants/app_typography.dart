@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'app_colors.dart';
 
+/// Legacy typography class. The AppTheme now handles all typography via ThemeData.
+/// These are kept as utility styles but should NOT be used for hardcoded colors.
+/// Always use Theme.of(context).textTheme instead for theme-aware text.
 class AppTypography {
   AppTypography._();
 
-  static TextStyle get _baseStyle => GoogleFonts.inter(
-        color: AppColors.textPrimary,
-      );
+  static TextStyle get _baseStyle => GoogleFonts.inter();
 
   static TextStyle get displayLarge => _baseStyle.copyWith(
         fontSize: 48,
@@ -105,19 +105,16 @@ class AppTypography {
       );
 
   static TextStyle get monoLarge => GoogleFonts.jetBrainsMono(
-        color: AppColors.textPrimary,
         fontSize: 20,
         fontWeight: FontWeight.w600,
       );
 
   static TextStyle get monoMedium => GoogleFonts.jetBrainsMono(
-        color: AppColors.textPrimary,
         fontSize: 16,
         fontWeight: FontWeight.w500,
       );
 
   static TextStyle get monoSmall => GoogleFonts.jetBrainsMono(
-        color: AppColors.textSecondary,
         fontSize: 14,
         fontWeight: FontWeight.w400,
       );

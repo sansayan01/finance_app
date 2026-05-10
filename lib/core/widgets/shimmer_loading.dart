@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
-import '../constants/app_colors.dart';
 import '../constants/app_spacing.dart';
 
 class ShimmerLoading extends StatelessWidget {
@@ -17,14 +16,15 @@ class ShimmerLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: AppColors.surfaceSlate.withValues(alpha: 0.3),
-      highlightColor: AppColors.glassHighlight.withValues(alpha: 0.5),
+      baseColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+      highlightColor: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7),
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.surfaceSlate,
+          color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
           borderRadius: BorderRadius.circular(borderRadius),
         ),
       ),
@@ -44,19 +44,16 @@ class ShimmerCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
-      baseColor: AppColors.surfaceSlate.withValues(alpha: 0.3),
-      highlightColor: AppColors.glassHighlight.withValues(alpha: 0.5),
+      baseColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
+      highlightColor: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7),
       child: Container(
         width: width,
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.surfaceSlate,
+          color: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
           borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
-          border: Border.all(
-            color: AppColors.glassBorder,
-            width: 1,
-          ),
         ),
       ),
     );
@@ -159,6 +156,8 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
       return widget.child;
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return AnimatedBuilder(
       animation: _animation,
       builder: (context, child) {
@@ -167,11 +166,9 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
             return LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: const [
-                AppColors.surfaceSlate,
-                AppColors.glassHighlight,
-                AppColors.surfaceSlate,
-              ],
+              colors: isDark
+                  ? const [Color(0xFF2C2C2E), Color(0xFF3A3A3C), Color(0xFF2C2C2E)]
+                  : const [Color(0xFFE5E5EA), Color(0xFFF2F2F7), Color(0xFFE5E5EA)],
               stops: [
                 0.0,
                 0.5 + _animation.value * 0.25,

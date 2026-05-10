@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../providers/auth_provider.dart';
 import '../providers/auth_provider.dart' as auth;
 
@@ -40,7 +39,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       final error = ref.read(auth.authProvider).errorMessage;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         content: Text(error ?? 'Login failed'),
-        backgroundColor: AppColors.error,
+        backgroundColor: Theme.of(context).colorScheme.error,
       ));
     }
   }
@@ -49,11 +48,12 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   Widget build(BuildContext context) {
     final authState = ref.watch(auth.authProvider);
     final isLoading = authState.status == AuthStatus.loading;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final primary = Theme.of(context).colorScheme.primary;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -67,7 +67,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   Container(
                     width: 80, height: 80,
                     decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [primary, theme.colorScheme.secondary],
+                      ),
                       borderRadius: BorderRadius.circular(22),
                       boxShadow: [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 24, offset: const Offset(0, 8))],
                     ),
@@ -76,10 +80,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   const SizedBox(height: 28),
 
                   // ─── Welcome ───
-                  Text('Welcome Back', style: Theme.of(context).textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5))
+                  Text('Welcome Back', style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5))
                     .animate().fadeIn(delay: 150.ms).slideY(begin: 0.15, end: 0),
                   const SizedBox(height: 6),
-                  Text('Sign in to continue', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Theme.of(context).textTheme.bodySmall?.color))
+                  Text('Sign in to continue', style: theme.textTheme.bodySmall?.copyWith(fontSize: 14))
                     .animate().fadeIn(delay: 250.ms),
                   const SizedBox(height: 36),
 
@@ -150,7 +154,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
                   const SizedBox(height: 24),
                   Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                    Text("Don't have an account?", style: Theme.of(context).textTheme.bodyMedium),
+                    Text("Don't have an account?", style: theme.textTheme.bodyMedium),
                     TextButton(
                       onPressed: widget.onSignUpTap,
                       child: Text('Sign Up', style: TextStyle(color: primary, fontWeight: FontWeight.w600)),

@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../providers/new_loan_provider.dart';
@@ -47,14 +46,17 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(newLoanProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
             ref.read(newLoanProvider.notifier).reset();
             context.pop();
@@ -63,27 +65,20 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              'New Loan Application',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
+            Text(
+              'New Loan',
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             Text(
-              'Configure financial terms and borrower information',
-              style: TextStyle(
-                color: AppColors.textSecondaryLight,
-                fontSize: 12,
-              ),
+              'Configure financial terms',
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
             ),
           ],
         ),
         actions: [
-          _buildActionIcon(Icons.auto_awesome),
+          _buildActionIcon(Icons.auto_awesome, theme, isDark),
           const SizedBox(width: 8),
-          _buildActionIcon(Icons.account_balance),
+          _buildActionIcon(Icons.account_balance, theme, isDark),
           const SizedBox(width: 16),
         ],
       ),
@@ -96,17 +91,17 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 2, child: _buildFacilityDetails(state)),
+                  Expanded(flex: 2, child: _buildFacilityDetails(state, theme, isDark, primary)),
                   const SizedBox(width: AppSpacing.lg),
-                  Expanded(flex: 1, child: _buildFinancialSummary(state)),
+                  Expanded(flex: 1, child: _buildFinancialSummary(state, theme, isDark, primary)),
                 ],
               );
             } else {
               return Column(
                 children: [
-                  _buildFinancialSummary(state),
+                  _buildFinancialSummary(state, theme, isDark, primary),
                   const SizedBox(height: AppSpacing.lg),
-                  _buildFacilityDetails(state),
+                  _buildFacilityDetails(state, theme, isDark, primary),
                 ],
               );
             }
@@ -116,19 +111,18 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     );
   }
 
-  Widget _buildActionIcon(IconData icon) {
+  Widget _buildActionIcon(IconData icon, ThemeData theme, bool isDark) {
     return Container(
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.04),
         shape: BoxShape.circle,
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
-      child: Icon(icon, size: 18, color: AppColors.primaryTeal),
+      child: Icon(icon, size: 18, color: theme.colorScheme.primary),
     );
   }
 
-  Widget _buildFacilityDetails(NewLoanState state) {
+  Widget _buildFacilityDetails(NewLoanState state, ThemeData theme, bool isDark, Color primary) {
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
@@ -136,23 +130,21 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance, color: AppColors.primaryTeal, size: 20),
+              Icon(Icons.account_balance, color: primary, size: 20),
               const SizedBox(width: 8),
-              const Text(
-                'Facility Details',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              Text('Facility Details', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
           
-          _buildLabel('BORROWER ACCOUNT *'),
+          _buildLabel('BORROWER ACCOUNT *', theme),
           const SizedBox(height: 8),
           _buildDropdown(
             value: state.borrowerId,
             hint: 'Select registered customer',
-            items: [], // Will populate later from DB
+            items: [],
             onChanged: (val) => ref.read(newLoanProvider.notifier).updateBorrower(val),
+            theme: theme, isDark: isDark,
           ),
           
           const SizedBox(height: AppSpacing.xl),
@@ -164,7 +156,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('PRINCIPAL AMOUNT (₹) *'),
+                    _buildLabel('PRINCIPAL AMOUNT (₹) *', theme),
                     const SizedBox(height: 8),
                     _buildTextField(
                       controller: _principalController,
@@ -172,6 +164,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                         final parsed = double.tryParse(val) ?? 0;
                         ref.read(newLoanProvider.notifier).updatePrincipal(parsed);
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -182,7 +175,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('INTEREST RATE (%) *'),
+                    _buildLabel('INTEREST RATE (%) *', theme),
                     const SizedBox(height: 8),
                     _buildTextField(
                       controller: _rateController,
@@ -190,6 +183,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                         final parsed = double.tryParse(val) ?? 0;
                         ref.read(newLoanProvider.notifier).updateInterestRate(parsed);
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -200,7 +194,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('FREQUENCY'),
+                    _buildLabel('FREQUENCY', theme),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: state.frequency.name,
@@ -213,6 +207,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                           );
                         }
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -228,16 +223,15 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 flex: 2,
                 child: _buildSlider(
                   value: state.principalAmount.clamp(1000, 1000000),
-                  min: 1000,
-                  max: 1000000,
+                  min: 1000, max: 1000000,
                   label: 'ADJUST AMOUNT',
                   displayValue: currencyFormatNoDecimals.format(state.principalAmount),
-                  minLabel: '₹1,000',
-                  maxLabel: '₹10,00,000',
+                  minLabel: '₹1,000', maxLabel: '₹10,00,000',
                   onChanged: (val) {
                     _principalController.text = val.toInt().toString();
                     ref.read(newLoanProvider.notifier).updatePrincipal(val);
                   },
+                  theme: theme, primary: theme.colorScheme.primary,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -245,16 +239,15 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 flex: 2,
                 child: _buildSlider(
                   value: state.interestRate.clamp(0, 50),
-                  min: 0,
-                  max: 50,
+                  min: 0, max: 50,
                   label: 'ADJUST RATE',
                   displayValue: '${state.interestRate.toStringAsFixed(1)}%',
-                  minLabel: '0%',
-                  maxLabel: '50%',
+                  minLabel: '0%', maxLabel: '50%',
                   onChanged: (val) {
                     _rateController.text = val.toStringAsFixed(1);
                     ref.read(newLoanProvider.notifier).updateInterestRate(val);
                   },
+                  theme: theme, primary: theme.colorScheme.primary,
                 ),
               ),
             ],
@@ -269,7 +262,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('TENURE (MONTHS) *'),
+                    _buildLabel('TENURE (MONTHS) *', theme),
                     const SizedBox(height: 8),
                     _buildTextField(
                       controller: _tenureController,
@@ -277,20 +270,20 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                         final parsed = int.tryParse(val) ?? 1;
                         ref.read(newLoanProvider.notifier).updateTenure(parsed);
                       },
+                      theme: theme, isDark: isDark,
                     ),
                     const SizedBox(height: 16),
                     _buildSlider(
                       value: state.tenureMonths.toDouble().clamp(1, 120),
-                      min: 1,
-                      max: 120,
+                      min: 1, max: 120,
                       label: 'ADJUST TENURE',
                       displayValue: '${state.tenureMonths} Mo',
-                      minLabel: '1 Mo',
-                      maxLabel: '120 Mo',
+                      minLabel: '1 Mo', maxLabel: '120 Mo',
                       onChanged: (val) {
                         _tenureController.text = val.toInt().toString();
                         ref.read(newLoanProvider.notifier).updateTenure(val.toInt());
                       },
+                      theme: theme, primary: theme.colorScheme.primary,
                     ),
                   ],
                 ),
@@ -302,7 +295,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.start,
                   children: [
-                    _buildLabel('COLLECTION TYPE *'),
+                    _buildLabel('COLLECTION TYPE *', theme),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: state.collectionType.name,
@@ -315,6 +308,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                           );
                         }
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -331,7 +325,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('INTEREST LOGIC'),
+                    _buildLabel('INTEREST LOGIC', theme),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: state.interestLogic.name,
@@ -344,6 +338,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                           );
                         }
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -354,9 +349,10 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('FIRST INSTALLMENT DATE *'),
+                    _buildLabel('FIRST INSTALLMENT DATE *', theme),
                     const SizedBox(height: 8),
                     InkWell(
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () async {
                         final date = await showDatePicker(
                           context: context,
@@ -371,9 +367,9 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.glassBorder),
+                          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -383,10 +379,12 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                                 ? DateFormat('MM/dd/yyyy').format(state.firstInstallmentDate!)
                                 : 'mm/dd/yyyy',
                               style: TextStyle(
-                                color: state.firstInstallmentDate != null ? AppColors.textPrimary : AppColors.textMuted,
+                                color: state.firstInstallmentDate != null 
+                                    ? theme.colorScheme.onSurface 
+                                    : theme.textTheme.bodySmall?.color,
                               ),
                             ),
-                            const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textMuted),
+                            Icon(Icons.calendar_today_outlined, size: 18, color: theme.textTheme.bodySmall?.color),
                           ],
                         ),
                       ),
@@ -407,24 +405,17 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                   ref.read(newLoanProvider.notifier).reset();
                   context.pop();
                 },
-                child: const Text('Discard', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
               ),
               const SizedBox(width: 24),
               ElevatedButton.icon(
                 onPressed: () {
-                  // Submit logic
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(content: Text('Creating Loan Application...')),
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Create Application', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                label: const Text('Create Application', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -433,7 +424,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildFinancialSummary(NewLoanState state) {
+  Widget _buildFinancialSummary(NewLoanState state, ThemeData theme, bool isDark, Color primary) {
     return Column(
       children: [
         GlassCard(
@@ -443,35 +434,31 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.calculate_outlined, color: AppColors.textPrimary, size: 20),
+                  Icon(Icons.calculate_outlined, color: theme.colorScheme.onSurface, size: 20),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Financial Summary',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Financial Summary', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
               
-              _buildSummaryRow('CAPITAL OUTLAY', currencyFormatNoDecimals.format(state.principalAmount)),
+              _buildSummaryRow('CAPITAL OUTLAY', currencyFormatNoDecimals.format(state.principalAmount), theme),
               const SizedBox(height: 16),
-              _buildSummaryRow('YIELD RATE', '${state.interestRate}% APR'),
+              _buildSummaryRow('YIELD RATE', '${state.interestRate}% APR', theme),
               const SizedBox(height: 16),
-              _buildSummaryRow('MATURITY', '${state.tenureMonths} Months (${state.numberOfInstallments} ${state.collectionType.name}s)'),
+              _buildSummaryRow('MATURITY', '${state.tenureMonths} Months (${state.numberOfInstallments} ${state.collectionType.name}s)', theme),
               
               const SizedBox(height: 24),
-              const Divider(color: AppColors.glassBorder),
+              Divider(color: theme.dividerColor.withValues(alpha: 0.3)),
               const SizedBox(height: 24),
               
-              Text('ESTIMATED INSTALLMENT', style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+              Text('ESTIMATED INSTALLMENT', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
               const SizedBox(height: 4),
               Text(
                 currencyFormat.format(state.estimatedInstallment),
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.primaryTeal),
+                style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: primary),
               ),
               
               const SizedBox(height: 16),
-              // Visual Range Slider matching screenshot
               Stack(
                 alignment: Alignment.centerLeft,
                 children: [
@@ -479,27 +466,25 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                     height: 4,
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      color: AppColors.glassBorder,
+                      color: theme.dividerColor.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   Container(
-                    height: 4,
-                    width: 40, // Static visual representation for now
+                    height: 4, width: 40,
                     decoration: BoxDecoration(
-                      color: AppColors.primaryTeal,
+                      color: primary,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                   Positioned(
                     left: 36,
                     child: Container(
-                      width: 12,
-                      height: 12,
+                      width: 12, height: 12,
                       decoration: BoxDecoration(
-                        color: AppColors.primaryTeal,
+                        color: primary,
                         shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
+                        border: Border.all(color: isDark ? const Color(0xFF1C1C1E) : Colors.white, width: 2),
                       ),
                     ),
                   ),
@@ -509,22 +494,20 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text('₹500', style: TextStyle(fontSize: 10, color: AppColors.textMutedLight)),
-                  Text('₹50,000', style: TextStyle(fontSize: 10, color: AppColors.textMutedLight)),
+                  Text('₹500', style: theme.textTheme.labelSmall),
+                  Text('₹50,000', style: theme.textTheme.labelSmall),
                 ],
               ),
               
               const SizedBox(height: 24),
-              
-              _buildSummaryRow('INTEREST BURDEN', currencyFormat.format(state.interestBurden)),
+              _buildSummaryRow('INTEREST BURDEN', currencyFormat.format(state.interestBurden), theme),
               
               const SizedBox(height: 24),
-              
-              Text('TOTAL EXPOSURE', style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+              Text('TOTAL EXPOSURE', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
               const SizedBox(height: 4),
               Text(
                 currencyFormat.format(state.totalExposure),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
               ),
             ],
           ),
@@ -539,18 +522,15 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.schedule, color: AppColors.textPrimary, size: 20),
+                  Icon(Icons.schedule, color: theme.colorScheme.onSurface, size: 20),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Amortization Info',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Amortization Info', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 'The system will generate a full ${state.interestLogic == InterestLogic.reducingBalance ? 'reducing balance' : 'flat rate'} schedule upon approval. Late payment penalties may apply as per global policy.',
-                style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.5),
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
               ),
             ],
           ),
@@ -559,35 +539,29 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
+  Widget _buildSummaryRow(String label, String value, ThemeData theme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
-        ),
-        Text(
-          value,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w900),
-        ),
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
+        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900, fontSize: 14)),
       ],
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1,
-        color: AppColors.textMutedLight,
-      ),
+      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1),
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller, required Function(String) onChanged}) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required Function(String) onChanged,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
     return TextField(
       controller: controller,
       onChanged: onChanged,
@@ -595,22 +569,22 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.glassBorder),
+          borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.glassBorder),
+          borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      style: const TextStyle(fontWeight: FontWeight.bold),
+      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 
@@ -619,27 +593,27 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     required String hint,
     required List<String> items,
     required Function(String?) onChanged,
+    required ThemeData theme,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: items.contains(value) ? value : null,
-          hint: Text(hint, style: TextStyle(color: AppColors.textMuted)),
+          hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
+          icon: Icon(Icons.keyboard_arrow_down, color: theme.textTheme.bodySmall?.color),
+          dropdownColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
           items: items.map((String item) {
             return DropdownMenuItem<String>(
               value: item,
-              child: Text(
-                _capitalize(item),
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+              child: Text(_capitalize(item), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
             );
           }).toList(),
           onChanged: onChanged,
@@ -662,6 +636,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     required String minLabel,
     required String maxLabel,
     required Function(double) onChanged,
+    required ThemeData theme,
+    required Color primary,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -671,42 +647,31 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           children: [
             Row(
               children: [
-                const Icon(Icons.circle, size: 4, color: AppColors.primaryTeal),
+                Icon(Icons.circle, size: 4, color: primary),
                 const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textMutedLight, letterSpacing: 1),
-                ),
+                Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
               ],
             ),
-            Text(
-              displayValue,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.primaryTeal),
-            ),
+            Text(displayValue, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: primary)),
           ],
         ),
         SliderTheme(
           data: SliderThemeData(
-            activeTrackColor: AppColors.primaryTeal.withValues(alpha: 0.3),
-            inactiveTrackColor: AppColors.glassBorder,
-            thumbColor: AppColors.primaryTeal,
-            overlayColor: AppColors.primaryTeal.withValues(alpha: 0.1),
+            activeTrackColor: primary.withValues(alpha: 0.3),
+            inactiveTrackColor: theme.dividerColor.withValues(alpha: 0.2),
+            thumbColor: primary,
+            overlayColor: primary.withValues(alpha: 0.1),
             trackHeight: 4,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(minLabel, style: TextStyle(fontSize: 9, color: AppColors.textMutedLight)),
-            Text(maxLabel, style: TextStyle(fontSize: 9, color: AppColors.textMutedLight)),
+            Text(minLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 9)),
+            Text(maxLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 9)),
           ],
         ),
       ],

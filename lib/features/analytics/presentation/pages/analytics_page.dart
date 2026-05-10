@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:fl_chart/fl_chart.dart';
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
@@ -15,26 +14,27 @@ class AnalyticsPage extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final analyticsAsync = ref.watch(analyticsProvider);
+    final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(theme),
           const SizedBox(height: AppSpacing.lg),
-          _buildPeriodSelector(),
+          _buildPeriodSelector(theme),
           const SizedBox(height: AppSpacing.lg),
           analyticsAsync.when(
             data: (stats) => Column(
               children: [
-                _buildPortfolioOverview(stats),
+                _buildPortfolioOverview(stats, theme),
                 const SizedBox(height: AppSpacing.lg),
-                _buildDisbursementVsCollection(stats),
+                _buildDisbursementVsCollection(stats, theme),
                 const SizedBox(height: AppSpacing.lg),
-                _buildPortfolioTrend(stats),
+                _buildPortfolioTrend(stats, theme),
                 const SizedBox(height: AppSpacing.lg),
-                _buildDelinquencyAnalysis(stats),
+                _buildDelinquencyAnalysis(stats, theme),
               ],
             ),
             loading: () => Column(
@@ -49,7 +49,7 @@ class AnalyticsPage extends ConsumerWidget {
             error: (err, _) => Center(
               child: Text(
                 'Error loading analytics: $err',
-                style: const TextStyle(color: AppColors.error),
+                style: TextStyle(color: theme.colorScheme.error),
               ),
             ),
           ),
@@ -59,48 +59,44 @@ class AnalyticsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader() {
-    return const Column(
+  Widget _buildHeader(ThemeData theme) {
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           'Analytics',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-          ),
+          style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.5),
         ),
-        SizedBox(height: 2),
+        const SizedBox(height: 2),
         Text(
           'Portfolio insights and performance metrics',
-          style: TextStyle(
-            color: AppColors.textSecondary,
-            fontSize: 14,
-          ),
+          style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
         ),
       ],
     ).animate().fadeIn(duration: 400.ms);
   }
 
-  Widget _buildPeriodSelector() {
+  Widget _buildPeriodSelector(ThemeData theme) {
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+
     return SingleChildScrollView(
       scrollDirection: Axis.horizontal,
       child: Row(
         children: [
-          _PeriodChip(label: 'This Month', isSelected: true),
+          _PeriodChip(label: 'This Month', isSelected: true, primary: primary, isDark: isDark, theme: theme),
           const SizedBox(width: AppSpacing.sm),
-          _PeriodChip(label: 'Last Quarter'),
+          _PeriodChip(label: 'Last Quarter', primary: primary, isDark: isDark, theme: theme),
           const SizedBox(width: AppSpacing.sm),
-          _PeriodChip(label: 'YTD'),
+          _PeriodChip(label: 'YTD', primary: primary, isDark: isDark, theme: theme),
           const SizedBox(width: AppSpacing.sm),
-          _PeriodChip(label: 'All Time'),
+          _PeriodChip(label: 'All Time', primary: primary, isDark: isDark, theme: theme),
         ],
       ),
     ).animate().fadeIn(delay: 100.ms);
   }
 
-  Widget _buildPortfolioOverview(PortfolioStats stats) {
+  Widget _buildPortfolioOverview(PortfolioStats stats, ThemeData theme) {
     return Row(
       children: [
         Expanded(
@@ -110,6 +106,7 @@ class AnalyticsPage extends ConsumerWidget {
             change: '--',
             isPositive: true,
             chartData: stats.monthlyDisbursements,
+            theme: theme,
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
@@ -120,38 +117,32 @@ class AnalyticsPage extends ConsumerWidget {
             change: '--',
             isPositive: true,
             chartData: stats.monthlyCollections,
+            theme: theme,
           ),
         ),
       ],
     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildDisbursementVsCollection(PortfolioStats stats) {
+  Widget _buildDisbursementVsCollection(PortfolioStats stats, ThemeData theme) {
     final hasData = stats.monthlyDisbursements.isNotEmpty && stats.monthlyCollections.isNotEmpty;
+    final primary = theme.colorScheme.primary;
+    final secondary = theme.colorScheme.secondary;
 
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Disbursement vs Collection',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.lg),
           if (!hasData)
-            const SizedBox(
+            SizedBox(
               height: 200,
-              child: Center(
-                child: Text(
-                  'No historical data available',
-                  style: TextStyle(color: AppColors.textMuted),
-                ),
-              ),
+              child: Center(child: Text('No historical data available', style: theme.textTheme.bodySmall)),
             )
           else
             SizedBox(
@@ -169,31 +160,19 @@ class AnalyticsPage extends ConsumerWidget {
                         getTitlesWidget: (value, meta) {
                           const titles = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
                           if (value.toInt() >= titles.length) return const SizedBox.shrink();
-                          return Text(
-                            titles[value.toInt()],
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 10,
-                            ),
-                          );
+                          return Text(titles[value.toInt()], style: theme.textTheme.bodySmall?.copyWith(fontSize: 10));
                         },
                       ),
                     ),
-                    leftTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+                    leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
                   borderData: FlBorderData(show: false),
                   gridData: const FlGridData(show: false),
                   barGroups: stats.monthlyDisbursements.asMap().entries.map((entry) {
                     final index = entry.key;
-                    return _makeBarGroup(index, entry.value, stats.monthlyCollections[index]);
+                    return _makeBarGroup(index, entry.value, stats.monthlyCollections[index], primary, secondary);
                   }).toList(),
                 ),
               ),
@@ -202,9 +181,9 @@ class AnalyticsPage extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _LegendItem(color: AppColors.primaryTeal, label: 'Disbursement'),
+              _LegendItem(color: primary, label: 'Disbursement', theme: theme),
               const SizedBox(width: AppSpacing.lg),
-              _LegendItem(color: AppColors.primaryIndigo, label: 'Collection'),
+              _LegendItem(color: secondary, label: 'Collection', theme: theme),
             ],
           ),
         ],
@@ -212,52 +191,34 @@ class AnalyticsPage extends ConsumerWidget {
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.1, end: 0);
   }
 
-  BarChartGroupData _makeBarGroup(int x, double disbursement, double collection) {
+  BarChartGroupData _makeBarGroup(int x, double disbursement, double collection, Color primary, Color secondary) {
     return BarChartGroupData(
       x: x,
       barRods: [
-        BarChartRodData(
-          toY: disbursement,
-          color: AppColors.primaryTeal,
-          width: 12,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-        ),
-        BarChartRodData(
-          toY: collection,
-          color: AppColors.primaryIndigo,
-          width: 12,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
-        ),
+        BarChartRodData(toY: disbursement, color: primary, width: 12, borderRadius: const BorderRadius.vertical(top: Radius.circular(4))),
+        BarChartRodData(toY: collection, color: secondary, width: 12, borderRadius: const BorderRadius.vertical(top: Radius.circular(4))),
       ],
     );
   }
 
-  Widget _buildPortfolioTrend(PortfolioStats stats) {
+  Widget _buildPortfolioTrend(PortfolioStats stats, ThemeData theme) {
     final hasData = stats.monthlyCollections.isNotEmpty;
+    const trendColor = Color(0xFF34C759);
 
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Savings Growth Trend',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.lg),
           if (!hasData)
-            const SizedBox(
+            SizedBox(
               height: 180,
-              child: Center(
-                child: Text(
-                  'Insufficient trend data',
-                  style: TextStyle(color: AppColors.textMuted),
-                ),
-              ),
+              child: Center(child: Text('Insufficient trend data', style: theme.textTheme.bodySmall)),
             )
           else
             SizedBox(
@@ -269,36 +230,24 @@ class AnalyticsPage extends ConsumerWidget {
                     drawVerticalLine: false,
                     horizontalInterval: 25,
                     getDrawingHorizontalLine: (value) => FlLine(
-                      color: AppColors.glassBorder,
+                      color: theme.dividerColor.withValues(alpha: 0.2),
                       strokeWidth: 1,
                     ),
                   ),
                   titlesData: FlTitlesData(
                     show: true,
-                    bottomTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+                    bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     leftTitles: AxisTitles(
                       sideTitles: SideTitles(
                         showTitles: true,
                         getTitlesWidget: (value, meta) {
-                          return Text(
-                            '${value.toInt()}M',
-                            style: const TextStyle(
-                              color: AppColors.textMuted,
-                              fontSize: 10,
-                            ),
-                          );
+                          return Text('${value.toInt()}M', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10));
                         },
                         reservedSize: 35,
                       ),
                     ),
-                    topTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
-                    rightTitles: const AxisTitles(
-                      sideTitles: SideTitles(showTitles: false),
-                    ),
+                    topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                    rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                   ),
                   borderData: FlBorderData(show: false),
                   minX: 0,
@@ -309,7 +258,7 @@ class AnalyticsPage extends ConsumerWidget {
                     LineChartBarData(
                       spots: stats.monthlyCollections.asMap().entries.map((e) => FlSpot(e.key.toDouble(), e.value)).toList(),
                       isCurved: true,
-                      color: AppColors.success,
+                      color: trendColor,
                       barWidth: 3,
                       isStrokeCapRound: true,
                       dotData: const FlDotData(show: false),
@@ -318,10 +267,7 @@ class AnalyticsPage extends ConsumerWidget {
                         gradient: LinearGradient(
                           begin: Alignment.topCenter,
                           end: Alignment.bottomCenter,
-                          colors: [
-                            AppColors.success.withValues(alpha: 0.3),
-                            AppColors.success.withValues(alpha: 0.0),
-                          ],
+                          colors: [trendColor.withValues(alpha: 0.3), trendColor.withValues(alpha: 0.0)],
                         ),
                       ),
                     ),
@@ -334,26 +280,23 @@ class AnalyticsPage extends ConsumerWidget {
     ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0);
   }
 
-  Widget _buildDelinquencyAnalysis(PortfolioStats stats) {
+  Widget _buildDelinquencyAnalysis(PortfolioStats stats, ThemeData theme) {
+    const successColor = Color(0xFF34C759);
+    const errorColor = Color(0xFFFF3B30);
+
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Delinquency Analysis',
-            style: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-            ),
+            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
-              Expanded(
-                child: _DelinquencyChart(parPercentage: stats.parPercentage),
-              ),
+              Expanded(child: _DelinquencyChart(parPercentage: stats.parPercentage, theme: theme)),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
@@ -362,14 +305,16 @@ class AnalyticsPage extends ConsumerWidget {
                       label: 'Current',
                       amount: stats.totalDisbursed - (stats.totalDisbursed * stats.parPercentage / 100),
                       percentage: 100 - stats.parPercentage,
-                      color: AppColors.success,
+                      color: successColor,
+                      theme: theme,
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     _DelinquencyItem(
                       label: 'PAR (Overdue)',
                       amount: stats.totalDisbursed * stats.parPercentage / 100,
                       percentage: stats.parPercentage,
-                      color: AppColors.error,
+                      color: errorColor,
+                      theme: theme,
                     ),
                   ],
                 ),
@@ -385,8 +330,11 @@ class AnalyticsPage extends ConsumerWidget {
 class _PeriodChip extends StatelessWidget {
   final String label;
   final bool isSelected;
+  final Color primary;
+  final bool isDark;
+  final ThemeData theme;
 
-  const _PeriodChip({required this.label, this.isSelected = false});
+  const _PeriodChip({required this.label, this.isSelected = false, required this.primary, required this.isDark, required this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -394,23 +342,18 @@ class _PeriodChip extends StatelessWidget {
       onTap: () {},
       child: AnimatedContainer(
         duration: AppSpacing.animationFast,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.md,
-          vertical: AppSpacing.sm,
-        ),
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
         decoration: BoxDecoration(
           color: isSelected
-              ? AppColors.primaryIndigo.withValues(alpha: 0.2)
-              : AppColors.glassBackground,
+              ? primary.withValues(alpha: 0.15)
+              : (isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04)),
           borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
-          border: Border.all(
-            color: isSelected ? AppColors.primaryIndigo : AppColors.glassBorder,
-          ),
+          border: Border.all(color: isSelected ? primary : theme.dividerColor.withValues(alpha: 0.2)),
         ),
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? AppColors.primaryTeal : AppColors.textSecondary,
+            color: isSelected ? primary : theme.textTheme.bodySmall?.color,
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
           ),
@@ -426,6 +369,7 @@ class _OverviewCard extends StatelessWidget {
   final String change;
   final bool isPositive;
   final List<double> chartData;
+  final ThemeData theme;
 
   const _OverviewCard({
     required this.title,
@@ -433,10 +377,14 @@ class _OverviewCard extends StatelessWidget {
     required this.change,
     required this.isPositive,
     required this.chartData,
+    required this.theme,
   });
 
   @override
   Widget build(BuildContext context) {
+    final trendColor = isPositive ? const Color(0xFF34C759) : const Color(0xFFFF3B30);
+    final primary = theme.colorScheme.primary;
+
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Column(
@@ -445,75 +393,47 @@ class _OverviewCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 12,
-                ),
-              ),
+              Text(title, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xs,
-                  vertical: 2,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: 2),
                 decoration: BoxDecoration(
-                  color: (isPositive ? AppColors.success : AppColors.error)
-                      .withValues(alpha: 0.1),
+                  color: trendColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      isPositive ? Icons.trending_up : Icons.trending_down,
-                      color: isPositive ? AppColors.success : AppColors.error,
-                      size: 10,
-                    ),
+                    Icon(isPositive ? Icons.trending_up : Icons.trending_down, color: trendColor, size: 10),
                     const SizedBox(width: 2),
-                    Text(
-                      change,
-                      style: TextStyle(
-                        color: isPositive ? AppColors.success : AppColors.error,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
+                    Text(change, style: TextStyle(color: trendColor, fontSize: 10, fontWeight: FontWeight.w600)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(
-            value,
-            style: const TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+          Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: AppSpacing.sm),
           SizedBox(
             height: 30,
-            child: chartData.isEmpty 
-              ? const SizedBox.shrink()
-              : Row(
-                  children: chartData.asMap().entries.map((entry) {
-                    final maxVal = chartData.reduce((a, b) => a > b ? a : b);
-                    if (maxVal == 0) return Expanded(child: Container());
-                    return Expanded(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 1),
-                        height: (entry.value / maxVal) * 30,
-                        decoration: BoxDecoration(
-                          color: AppColors.primaryTeal.withValues(alpha: 0.3 + (entry.key / chartData.length) * 0.5),
-                          borderRadius: BorderRadius.circular(2),
+            child: chartData.isEmpty
+                ? const SizedBox.shrink()
+                : Row(
+                    children: chartData.asMap().entries.map((entry) {
+                      final maxVal = chartData.reduce((a, b) => a > b ? a : b);
+                      if (maxVal == 0) return Expanded(child: Container());
+                      return Expanded(
+                        child: Container(
+                          margin: const EdgeInsets.symmetric(horizontal: 1),
+                          height: (entry.value / maxVal) * 30,
+                          decoration: BoxDecoration(
+                            color: primary.withValues(alpha: 0.3 + (entry.key / chartData.length) * 0.5),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
                         ),
-                      ),
-                    );
-                  }).toList(),
-                ),
+                      );
+                    }).toList(),
+                  ),
           ),
         ],
       ),
@@ -524,29 +444,17 @@ class _OverviewCard extends StatelessWidget {
 class _LegendItem extends StatelessWidget {
   final Color color;
   final String label;
+  final ThemeData theme;
 
-  const _LegendItem({required this.color, required this.label});
+  const _LegendItem({required this.color, required this.label, required this.theme});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 12,
-          height: 12,
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.circular(3),
-          ),
-        ),
+        Container(width: 12, height: 12, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(3))),
         const SizedBox(width: AppSpacing.xs),
-        Text(
-          label,
-          style: const TextStyle(
-            color: AppColors.textMuted,
-            fontSize: 12,
-          ),
-        ),
+        Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
       ],
     );
   }
@@ -554,11 +462,15 @@ class _LegendItem extends StatelessWidget {
 
 class _DelinquencyChart extends StatelessWidget {
   final double parPercentage;
+  final ThemeData theme;
 
-  const _DelinquencyChart({required this.parPercentage});
+  const _DelinquencyChart({required this.parPercentage, required this.theme});
 
   @override
   Widget build(BuildContext context) {
+    const successColor = Color(0xFF34C759);
+    const errorColor = Color(0xFFFF3B30);
+
     return SizedBox(
       height: 150,
       child: Stack(
@@ -569,18 +481,8 @@ class _DelinquencyChart extends StatelessWidget {
               sectionsSpace: 2,
               centerSpaceRadius: 45,
               sections: [
-                PieChartSectionData(
-                  value: 100 - parPercentage,
-                  color: AppColors.success,
-                  radius: 25,
-                  showTitle: false,
-                ),
-                PieChartSectionData(
-                  value: parPercentage,
-                  color: AppColors.error,
-                  radius: 25,
-                  showTitle: false,
-                ),
+                PieChartSectionData(value: 100 - parPercentage, color: successColor, radius: 25, showTitle: false),
+                PieChartSectionData(value: parPercentage, color: errorColor, radius: 25, showTitle: false),
               ],
             ),
           ),
@@ -589,19 +491,9 @@ class _DelinquencyChart extends StatelessWidget {
             children: [
               Text(
                 '${parPercentage.toStringAsFixed(1)}%',
-                style: const TextStyle(
-                  color: AppColors.error,
-                  fontSize: 20,
-                  fontWeight: FontWeight.w700,
-                ),
+                style: const TextStyle(color: errorColor, fontSize: 20, fontWeight: FontWeight.w700),
               ),
-              const Text(
-                'PAR',
-                style: TextStyle(
-                  color: AppColors.textMuted,
-                  fontSize: 10,
-                ),
-              ),
+              Text('PAR', style: theme.textTheme.bodySmall?.copyWith(fontSize: 10)),
             ],
           ),
         ],
@@ -615,57 +507,32 @@ class _DelinquencyItem extends StatelessWidget {
   final double amount;
   final double percentage;
   final Color color;
+  final ThemeData theme;
 
   const _DelinquencyItem({
     required this.label,
     required this.amount,
     required this.percentage,
     required this.color,
+    required this.theme,
   });
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Container(
-          width: 8,
-          height: 8,
-          decoration: BoxDecoration(
-            color: color,
-            shape: BoxShape.circle,
-          ),
-        ),
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
         const SizedBox(width: AppSpacing.sm),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  color: AppColors.textSecondary,
-                  fontSize: 11,
-                ),
-              ),
-              Text(
-                AppFormatters.formatCompactCurrency(amount),
-                style: const TextStyle(
-                  color: AppColors.textPrimary,
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
+              Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11)),
+              Text(AppFormatters.formatCompactCurrency(amount), style: theme.textTheme.bodyMedium?.copyWith(fontSize: 13, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
-        Text(
-          '$percentage%',
-          style: TextStyle(
-            color: color,
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        Text('$percentage%', style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
       ],
     );
   }

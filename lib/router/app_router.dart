@@ -211,7 +211,7 @@ class MainShell extends StatelessWidget {
             ),
         ],
       ),
-      // Mobile: iOS-style bottom tab bar
+      // Mobile: premium iOS-style frosted bottom tab bar
       bottomNavigationBar: isDesktop
           ? null
           : _IOSBottomTabBar(
@@ -223,7 +223,7 @@ class MainShell extends StatelessWidget {
   }
 }
 
-/// iOS-style bottom tab bar with frosted glass effect.
+/// Premium iOS-style bottom tab bar with frosted glass blur.
 class _IOSBottomTabBar extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -239,22 +239,22 @@ class _IOSBottomTabBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final primary = Theme.of(context).colorScheme.primary;
     final inactiveColor = isDark
-        ? Colors.white.withValues(alpha: 0.4)
-        : Colors.black.withValues(alpha: 0.35);
+        ? Colors.white.withValues(alpha: 0.35)
+        : Colors.black.withValues(alpha: 0.3);
 
     return ClipRRect(
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
+        filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40),
         child: Container(
           decoration: BoxDecoration(
             color: isDark
-                ? const Color(0xFF1C1C1E).withValues(alpha: 0.92)
-                : Colors.white.withValues(alpha: 0.92),
+                ? const Color(0xFF1C1C1E).withValues(alpha: 0.88)
+                : Colors.white.withValues(alpha: 0.88),
             border: Border(
               top: BorderSide(
                 color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.08),
+                    ? Colors.white.withValues(alpha: 0.06)
+                    : Colors.black.withValues(alpha: 0.06),
                 width: 0.33,
               ),
             ),
@@ -262,7 +262,7 @@ class _IOSBottomTabBar extends StatelessWidget {
           child: SafeArea(
             top: false,
             child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 0),
+              padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
@@ -350,10 +350,14 @@ class _TabItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              isSelected ? activeIcon : icon,
-              color: isSelected ? selectedColor : inactiveColor,
-              size: 24,
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              child: Icon(
+                isSelected ? activeIcon : icon,
+                key: ValueKey(isSelected),
+                color: isSelected ? selectedColor : inactiveColor,
+                size: 24,
+              ),
             ),
             const SizedBox(height: 2),
             Text(

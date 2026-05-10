@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 
 
 class ProgressGauge extends StatefulWidget {
@@ -85,9 +84,9 @@ class _ProgressGaugeState extends State<ProgressGauge>
                 painter: _GaugePainter(
                   value: _animation.value.clamp(0.0, 1.0),
                   strokeWidth: widget.strokeWidth,
-                  progressColor: widget.progressColor ?? AppColors.primaryTeal,
+                  progressColor: widget.progressColor ?? Theme.of(context).colorScheme.primary,
                   backgroundColor:
-                      widget.backgroundColor ?? AppColors.surfaceSlate.withValues(alpha: 0.5),
+                      widget.backgroundColor ?? Theme.of(context).dividerColor.withValues(alpha: 0.2),
                 ),
               ),
               if (widget.center != null) widget.center!,
@@ -241,7 +240,7 @@ class _LinearProgressBarState extends State<LinearProgressBar>
         return Container(
           height: widget.height,
           decoration: BoxDecoration(
-            color: widget.backgroundColor ?? AppColors.surfaceSlate.withValues(alpha: 0.5),
+            color: widget.backgroundColor ?? Theme.of(context).dividerColor.withValues(alpha: 0.2),
             borderRadius: radius,
           ),
           child: ClipRRect(
@@ -253,14 +252,14 @@ class _LinearProgressBarState extends State<LinearProgressBar>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      (widget.progressColor ?? AppColors.primaryTeal).withValues(alpha: 0.8),
-                      widget.progressColor ?? AppColors.primaryTeal,
+                      (widget.progressColor ?? Theme.of(context).colorScheme.primary).withValues(alpha: 0.8),
+                      widget.progressColor ?? Theme.of(context).colorScheme.primary,
                     ],
                   ),
                   borderRadius: radius,
                   boxShadow: [
                     BoxShadow(
-                      color: (widget.progressColor ?? AppColors.primaryTeal)
+                      color: (widget.progressColor ?? Theme.of(context).colorScheme.primary)
                           .withValues(alpha: 0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 2),

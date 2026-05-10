@@ -4,7 +4,6 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../providers/new_user_provider.dart';
@@ -28,7 +27,6 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   final TextEditingController _passwordController = TextEditingController();
   bool _obscurePassword = true;
   
-  // PAN Keyboard switching state
   TextInputType _panKeyboardType = TextInputType.text;
   final FocusNode _panFocusNode = FocusNode();
 
@@ -42,7 +40,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       _mobileController.text = state.mobileNumber;
       _employeeIdController.text = state.employeeId;
       _zoneController.text = state.assignedZone;
-      _addressController.text = ""; // Initial empty
+      _addressController.text = "";
       _aadharController.text = state.aadharNumber;
       _panController.text = state.panNumber;
       _passwordController.text = state.password;
@@ -73,14 +71,17 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(newUserProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
             ref.read(newUserProvider.notifier).reset();
             context.pop();
@@ -89,20 +90,13 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'New User Profile',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             Text(
               'Configure system access and administrative roles',
-              style: TextStyle(
-                color: AppColors.textSecondaryLight,
-                fontSize: 12,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
             ),
           ],
         ),
@@ -116,17 +110,17 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 2, child: _buildFormDetails(state)),
+                  Expanded(flex: 2, child: _buildFormDetails(state, theme, isDark, primary)),
                   const SizedBox(width: AppSpacing.lg),
-                  Expanded(flex: 1, child: _buildSummary(state)),
+                  Expanded(flex: 1, child: _buildSummary(state, theme, isDark, primary)),
                 ],
               );
             } else {
               return Column(
                 children: [
-                  _buildSummary(state),
+                  _buildSummary(state, theme, isDark, primary),
                   const SizedBox(height: AppSpacing.lg),
-                  _buildFormDetails(state),
+                  _buildFormDetails(state, theme, isDark, primary),
                 ],
               );
             }
@@ -136,13 +130,13 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     );
   }
 
-  Widget _buildFormDetails(NewUserState state) {
+  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark, Color primary) {
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('ACCOUNT DETAILS', Icons.person_outline),
+          _buildSectionHeader('ACCOUNT DETAILS', Icons.person_outline, theme, primary),
           const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
@@ -153,6 +147,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   controller: _fullNameController,
                   textCapitalization: TextCapitalization.words,
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateFullName(val),
+                  theme: theme, isDark: isDark,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -163,6 +158,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   icon: Icons.mail_outline,
                   controller: _emailController,
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateEmail(val),
+                  theme: theme, isDark: isDark,
                 ),
               ),
             ],
@@ -179,6 +175,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateMobileNumber(val),
+                  theme: theme, isDark: isDark,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -186,7 +183,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('SYSTEM ROLE *'),
+                    _buildLabel('SYSTEM ROLE *', theme),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: state.role.name,
@@ -200,6 +197,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                           );
                         }
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -214,11 +212,12 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
             controller: _addressController,
             textCapitalization: TextCapitalization.words,
             onChanged: (val) {}, 
+            theme: theme, isDark: isDark,
           ),
           
           if (state.role != SystemRole.retailMember) ...[
             const SizedBox(height: AppSpacing.xxl),
-            _buildSectionHeader('FIELD OPERATIONS', Icons.corporate_fare_outlined),
+            _buildSectionHeader('FIELD OPERATIONS', Icons.corporate_fare_outlined, theme, primary),
             const SizedBox(height: AppSpacing.lg),
             Row(
               children: [
@@ -228,6 +227,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     hint: 'Internal reference #',
                     controller: _employeeIdController,
                     onChanged: (val) => ref.read(newUserProvider.notifier).updateEmployeeId(val),
+                    theme: theme, isDark: isDark,
                   ),
                 ),
                 const SizedBox(width: AppSpacing.lg),
@@ -238,6 +238,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     icon: Icons.location_on_outlined,
                     controller: _zoneController,
                     onChanged: (val) => ref.read(newUserProvider.notifier).updateAssignedZone(val),
+                    theme: theme, isDark: isDark,
                   ),
                 ),
               ],
@@ -245,7 +246,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           ],
           
           const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('IDENTITY DETAILS', Icons.badge_outlined),
+          _buildSectionHeader('IDENTITY DETAILS', Icons.badge_outlined, theme, primary),
           const SizedBox(height: AppSpacing.lg),
           Row(
             children: [
@@ -258,6 +259,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateAadharNumber(val),
+                  theme: theme, isDark: isDark,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
@@ -278,21 +280,22 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     ref.read(newUserProvider.notifier).updatePanNumber(val);
                     _updatePanKeyboard(val);
                   },
+                  theme: theme, isDark: isDark,
                 ),
               ),
             ],
           ),
           
           const SizedBox(height: AppSpacing.xxl),
-          _buildSectionHeader('SECURITY CREDENTIALS', Icons.key_outlined),
+          _buildSectionHeader('SECURITY CREDENTIALS', Icons.key_outlined, theme, primary),
           const SizedBox(height: AppSpacing.lg),
           
           SizedBox(
-            width: 400, // Make it roughly half-width on large screens as per screenshot
+            width: 400,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildLabel('INITIAL PASSWORD *'),
+                _buildLabel('INITIAL PASSWORD *', theme),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _passwordController,
@@ -300,40 +303,35 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   onChanged: (val) => ref.read(newUserProvider.notifier).updatePassword(val),
                   decoration: InputDecoration(
                     hintText: 'Minimum 8 characters',
-                    hintStyle: const TextStyle(color: AppColors.textMutedLight, fontWeight: FontWeight.normal),
                     filled: true,
-                    fillColor: Colors.white,
+                    fillColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.glassBorder),
+                      borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
                     ),
                     enabledBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: AppColors.glassBorder),
+                      borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
+                      borderSide: BorderSide(color: primary, width: 2),
                     ),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     suffixIcon: IconButton(
                       icon: Icon(
                         _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-                        color: AppColors.textMuted,
+                        color: theme.textTheme.bodySmall?.color,
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
+                      onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
                     ),
                   ),
-                  style: const TextStyle(fontWeight: FontWeight.w600),
+                  style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                 ),
                 const SizedBox(height: 8),
-                const Text(
+                Text(
                   'The user will be prompted to change their password upon their first successful login.',
-                  style: TextStyle(color: AppColors.textMutedLight, fontSize: 12, fontStyle: FontStyle.italic),
+                  style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontStyle: FontStyle.italic),
                 ),
               ],
             ),
@@ -349,7 +347,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   ref.read(newUserProvider.notifier).reset();
                   context.pop();
                 },
-                child: const Text('Discard', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
               ),
               const SizedBox(width: 24),
               ElevatedButton.icon(
@@ -359,13 +357,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Create Profile', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                label: const Text('Create Profile', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -386,7 +378,6 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
       setState(() {
         _panKeyboardType = newType;
       });
-      // Force keyboard refresh by refocussing
       if (_panFocusNode.hasFocus) {
         _panFocusNode.unfocus();
         Future.delayed(const Duration(milliseconds: 50), () {
@@ -396,7 +387,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     }
   }
 
-  Widget _buildSummary(NewUserState state) {
+  Widget _buildSummary(NewUserState state, ThemeData theme, bool isDark, Color primary) {
     String roleDisplay = _getRoleDisplayName(state.role);
     String roleDescription = _getRoleDescription(state.role);
 
@@ -409,26 +400,23 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.shield_outlined, color: AppColors.primaryTeal, size: 20),
+                  Icon(Icons.shield_outlined, color: primary, size: 20),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Permission Matrix',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Permission Matrix', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
               
-              _buildLabel('SELECTED ROLE'),
+              _buildLabel('SELECTED ROLE', theme),
               const SizedBox(height: 4),
               Text(
                 roleDisplay,
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w900),
+                style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 16),
               Text(
                 roleDescription,
-                style: const TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.5),
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
               ),
             ],
           ),
@@ -441,18 +429,14 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  const Text(
-                    'AUDIT LOG',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primaryTeal, letterSpacing: 1),
-                  ),
-                ],
+              Text(
+                'AUDIT LOG',
+                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: primary, letterSpacing: 1),
               ),
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 'All user creation events are logged in the system timeline with the performing administrator\'s timestamp.',
-                style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.5),
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
               ),
             ],
           ),
@@ -461,28 +445,20 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     );
   }
 
-  Widget _buildSectionHeader(String title, IconData icon) {
+  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme, Color primary) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.primaryTeal, size: 20),
+        Icon(icon, color: primary, size: 20),
         const SizedBox(width: 8),
-        Text(
-          title,
-          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
-        ),
+        Text(title, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900)),
       ],
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: const TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1,
-        color: AppColors.textMutedLight,
-      ),
+      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1),
     );
   }
 
@@ -496,11 +472,13 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     List<TextInputFormatter>? inputFormatters,
     required TextEditingController controller,
     required Function(String) onChanged,
+    required ThemeData theme,
+    required bool isDark,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildLabel(label),
+        _buildLabel(label, theme),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
@@ -511,25 +489,24 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: const TextStyle(color: AppColors.textMutedLight, fontWeight: FontWeight.normal),
-            prefixIcon: icon != null ? Icon(icon, color: AppColors.textMuted, size: 20) : null,
+            prefixIcon: icon != null ? Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20) : null,
             filled: true,
-            fillColor: Colors.white,
+            fillColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.glassBorder),
+              borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.glassBorder),
+              borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
+              borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
-          style: const TextStyle(fontWeight: FontWeight.w600),
+          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -541,20 +518,23 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     IconData? icon,
     required List<String> items,
     required Function(String?) onChanged,
+    required ThemeData theme,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: items.contains(value) ? value : null,
-          hint: Text(hint, style: const TextStyle(color: AppColors.textMuted)),
+          hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
+          icon: Icon(Icons.keyboard_arrow_down, color: theme.textTheme.bodySmall?.color),
+          dropdownColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
           items: items.map((String item) {
             SystemRole role = SystemRole.values.firstWhere((e) => e.name == item);
             return DropdownMenuItem<String>(
@@ -562,12 +542,12 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               child: Row(
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, color: AppColors.textMuted, size: 20),
+                    Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20),
                     const SizedBox(width: 8),
                   ],
                   Text(
                     _getRoleDisplayName(role),
-                    style: const TextStyle(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -615,13 +595,10 @@ class _PanFormatter extends TextInputFormatter {
     for (int i = 0; i < text.length; i++) {
       String char = text[i];
       if (i < 5) {
-        // First 5 letters
         if (RegExp(r'[A-Z]').hasMatch(char)) formatted += char;
       } else if (i < 9) {
-        // Next 4 digits
         if (RegExp(r'[0-9]').hasMatch(char)) formatted += char;
       } else if (i < 10) {
-        // Last letter
         if (RegExp(r'[A-Z]').hasMatch(char)) formatted += char;
       }
     }

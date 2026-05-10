@@ -1,6 +1,5 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
 
 class AuroraBackground extends StatefulWidget {
   final Widget child;
@@ -55,18 +54,22 @@ class _AuroraBackgroundState extends State<AuroraBackground>
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+    final secondary = theme.colorScheme.secondary;
+
+    final bgColor = isDark ? const Color(0xFF0A0F1A) : const Color(0xFFF2F2F7);
+    final bgSlate = isDark ? const Color(0xFF0F172A) : const Color(0xFFE5E5EA);
+
     return Stack(
       children: [
         Container(
-          decoration: const BoxDecoration(
+          decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                AppColors.backgroundDark,
-                AppColors.backgroundSlate,
-                Color(0xFF0F1729),
-              ],
+              colors: [bgColor, bgSlate, isDark ? const Color(0xFF0F1729) : const Color(0xFFD1D1D6)],
             ),
           ),
         ),
@@ -78,6 +81,9 @@ class _AuroraBackgroundState extends State<AuroraBackground>
                 painter: AuroraPainter(
                   primaryAngle: _primaryAnimation.value,
                   secondaryAngle: _secondaryAnimation.value,
+                  primaryColor: primary,
+                  secondaryColor: secondary,
+                  accentColor: isDark ? const Color(0xFF00D1FF) : const Color(0xFF5AC8FA),
                 ),
                 size: Size.infinite,
               );
@@ -88,6 +94,9 @@ class _AuroraBackgroundState extends State<AuroraBackground>
             painter: AuroraPainter(
               primaryAngle: 0,
               secondaryAngle: math.pi,
+              primaryColor: primary,
+              secondaryColor: secondary,
+              accentColor: isDark ? const Color(0xFF00D1FF) : const Color(0xFF5AC8FA),
             ),
             size: Size.infinite,
           ),
@@ -98,9 +107,9 @@ class _AuroraBackgroundState extends State<AuroraBackground>
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
               colors: [
-                AppColors.backgroundDark.withValues(alpha: 0.3),
-                AppColors.backgroundDark.withValues(alpha: 0.8),
-                AppColors.backgroundDark,
+                bgColor.withValues(alpha: 0.3),
+                bgColor.withValues(alpha: 0.8),
+                bgColor,
               ],
               stops: const [0.0, 0.5, 1.0],
             ),
@@ -115,10 +124,16 @@ class _AuroraBackgroundState extends State<AuroraBackground>
 class AuroraPainter extends CustomPainter {
   final double primaryAngle;
   final double secondaryAngle;
+  final Color primaryColor;
+  final Color secondaryColor;
+  final Color accentColor;
 
   AuroraPainter({
     required this.primaryAngle,
     required this.secondaryAngle,
+    required this.primaryColor,
+    required this.secondaryColor,
+    required this.accentColor,
   });
 
   @override
@@ -133,8 +148,8 @@ class AuroraPainter extends CustomPainter {
         ),
         radius: 1.2,
         colors: [
-          AppColors.primaryTeal.withValues(alpha: 0.4),
-          AppColors.primaryIndigo.withValues(alpha: 0.2),
+          primaryColor.withValues(alpha: 0.4),
+          secondaryColor.withValues(alpha: 0.2),
           Colors.transparent,
         ],
         stops: const [0.0, 0.5, 1.0],
@@ -154,8 +169,8 @@ class AuroraPainter extends CustomPainter {
         ),
         radius: 1.0,
         colors: [
-          AppColors.primaryPurple.withValues(alpha: 0.3),
-          AppColors.primaryIndigo.withValues(alpha: 0.15),
+          secondaryColor.withValues(alpha: 0.3),
+          primaryColor.withValues(alpha: 0.15),
           Colors.transparent,
         ],
         stops: const [0.0, 0.6, 1.0],
@@ -174,7 +189,7 @@ class AuroraPainter extends CustomPainter {
     final paint3 = Paint()
       ..shader = RadialGradient(
         colors: [
-          AppColors.accentCyan.withValues(alpha: 0.2),
+          accentColor.withValues(alpha: 0.2),
           Colors.transparent,
         ],
       ).createShader(Rect.fromCircle(
@@ -202,18 +217,20 @@ class MeshGradientBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
+    final secondary = theme.colorScheme.secondary;
+
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF0A0F1A),
-            Color(0xFF0F172A),
-            Color(0xFF111827),
-            Color(0xFF0F172A),
-          ],
-          stops: [0.0, 0.3, 0.7, 1.0],
+          colors: isDark
+              ? const [Color(0xFF0A0F1A), Color(0xFF0F172A), Color(0xFF111827), Color(0xFF0F172A)]
+              : const [Color(0xFFF8F9FA), Color(0xFFF2F2F7), Color(0xFFE5E5EA), Color(0xFFF2F2F7)],
+          stops: const [0.0, 0.3, 0.7, 1.0],
         ),
       ),
       child: Stack(
@@ -226,12 +243,7 @@ class MeshGradientBackground extends StatelessWidget {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primaryIndigo.withValues(alpha: 0.15),
-                    Colors.transparent,
-                  ],
-                ),
+                gradient: RadialGradient(colors: [secondary.withValues(alpha: 0.15), Colors.transparent]),
               ),
             ),
           ),
@@ -243,29 +255,7 @@ class MeshGradientBackground extends StatelessWidget {
               height: 500,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primaryTeal.withValues(alpha: 0.1),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            top: size.height * 0.3,
-            left: size.width * 0.6,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    AppColors.primaryPurple.withValues(alpha: 0.08),
-                    Colors.transparent,
-                  ],
-                ),
+                gradient: RadialGradient(colors: [primary.withValues(alpha: 0.1), Colors.transparent]),
               ),
             ),
           ),
@@ -274,6 +264,4 @@ class MeshGradientBackground extends StatelessWidget {
       ),
     );
   }
-
-  Size get size => Size.zero;
 }

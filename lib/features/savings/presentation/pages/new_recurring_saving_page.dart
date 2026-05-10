@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
-import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../providers/new_recurring_saving_provider.dart';
@@ -47,14 +46,17 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(newRecurringSavingProvider);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final primary = theme.colorScheme.primary;
 
     return Scaffold(
-      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
             ref.read(newRecurringSavingProvider.notifier).reset();
             context.pop();
@@ -63,20 +65,13 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Recurring Savings',
-              style: TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
             ),
             Text(
               'Set up a new recurring saving plan',
-              style: TextStyle(
-                color: AppColors.textSecondaryLight,
-                fontSize: 12,
-              ),
+              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
             ),
           ],
         ),
@@ -90,17 +85,17 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 2, child: _buildFormDetails(state)),
+                  Expanded(flex: 2, child: _buildFormDetails(state, theme, isDark, primary)),
                   const SizedBox(width: AppSpacing.lg),
-                  Expanded(flex: 1, child: _buildSummary(state)),
+                  Expanded(flex: 1, child: _buildSummary(state, theme, isDark, primary)),
                 ],
               );
             } else {
               return Column(
                 children: [
-                  _buildSummary(state),
+                  _buildSummary(state, theme, isDark, primary),
                   const SizedBox(height: AppSpacing.lg),
-                  _buildFormDetails(state),
+                  _buildFormDetails(state, theme, isDark, primary),
                 ],
               );
             }
@@ -110,7 +105,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
     );
   }
 
-  Widget _buildFormDetails(NewRecurringSavingState state) {
+  Widget _buildFormDetails(NewRecurringSavingState state, ThemeData theme, bool isDark, Color primary) {
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
@@ -118,23 +113,21 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance_wallet, color: AppColors.primaryTeal, size: 20),
+              Icon(Icons.account_balance_wallet, color: primary, size: 20),
               const SizedBox(width: 8),
-              const Text(
-                'Account Parameters',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-              ),
+              Text('Account Parameters', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
           
-          _buildLabel('MEMBER ACCOUNT *'),
+          _buildLabel('MEMBER ACCOUNT *', theme),
           const SizedBox(height: 8),
           _buildDropdown(
             value: state.memberId,
             hint: 'Select registered member',
-            items: [], // Populate from DB later
+            items: [],
             onChanged: (val) => ref.read(newRecurringSavingProvider.notifier).updateMember(val),
+            theme: theme, isDark: isDark,
           ),
           
           const SizedBox(height: AppSpacing.xl),
@@ -146,7 +139,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('COLLECTION TYPE *'),
+                    _buildLabel('COLLECTION TYPE *', theme),
                     const SizedBox(height: 8),
                     _buildDropdown(
                       value: state.collectionType.name,
@@ -159,6 +152,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                           );
                         }
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -169,7 +163,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('INSTALLMENT AMOUNT (₹) *'),
+                    _buildLabel('INSTALLMENT AMOUNT (₹) *', theme),
                     const SizedBox(height: 8),
                     _buildTextField(
                       controller: _installmentController,
@@ -177,6 +171,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                         final parsed = double.tryParse(val) ?? 0;
                         ref.read(newRecurringSavingProvider.notifier).updateInstallmentAmount(parsed);
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -187,7 +182,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           const SizedBox(height: 16),
           Row(
             children: [
-              Expanded(flex: 1, child: const SizedBox()),
+              const Expanded(flex: 1, child: SizedBox()),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
                 flex: 1,
@@ -203,6 +198,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                     _installmentController.text = val.toInt().toString();
                     ref.read(newRecurringSavingProvider.notifier).updateInstallmentAmount(val);
                   },
+                  theme: theme, primary: primary,
                 ),
               ),
             ],
@@ -217,7 +213,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('MATURITY AMOUNT (₹) *'),
+                    _buildLabel('MATURITY AMOUNT (₹) *', theme),
                     const SizedBox(height: 8),
                     _buildTextField(
                       controller: _maturityAmountController,
@@ -225,6 +221,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                         final parsed = double.tryParse(val) ?? 0;
                         ref.read(newRecurringSavingProvider.notifier).updateMaturityAmount(parsed);
                       },
+                      theme: theme, isDark: isDark,
                     ),
                   ],
                 ),
@@ -235,9 +232,10 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('MATURITY DATE *'),
+                    _buildLabel('MATURITY DATE *', theme),
                     const SizedBox(height: 8),
                     InkWell(
+                      borderRadius: BorderRadius.circular(12),
                       onTap: () async {
                         final date = await showDatePicker(
                           context: context,
@@ -252,18 +250,18 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppColors.glassBorder),
+                          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
                               DateFormat('dd/MM/yyyy').format(state.maturityDate),
-                              style: const TextStyle(color: AppColors.textPrimary),
+                              style: TextStyle(color: theme.colorScheme.onSurface),
                             ),
-                            const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textMuted),
+                            Icon(Icons.calendar_today_outlined, size: 18, color: theme.textTheme.bodySmall?.color),
                           ],
                         ),
                       ),
@@ -291,10 +289,11 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                     _maturityAmountController.text = val.toInt().toString();
                     ref.read(newRecurringSavingProvider.notifier).updateMaturityAmount(val);
                   },
+                  theme: theme, primary: primary,
                 ),
               ),
               const SizedBox(width: AppSpacing.lg),
-              Expanded(flex: 1, child: const SizedBox()),
+              const Expanded(flex: 1, child: SizedBox()),
             ],
           ),
           
@@ -307,7 +306,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('PREMATURE PENALTY (%) *'),
+                    _buildLabel('PREMATURE PENALTY (%) *', theme),
                     const SizedBox(height: 8),
                     _buildTextField(
                       controller: _penaltyController,
@@ -315,6 +314,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                         final parsed = double.tryParse(val) ?? 0;
                         ref.read(newRecurringSavingProvider.notifier).updatePrematurePenalty(parsed);
                       },
+                      theme: theme, isDark: isDark,
                     ),
                     const SizedBox(height: 16),
                     _buildSlider(
@@ -329,6 +329,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                         _penaltyController.text = val.toInt().toString();
                         ref.read(newRecurringSavingProvider.notifier).updatePrematurePenalty(val);
                       },
+                      theme: theme, primary: primary,
                     ),
                   ],
                 ),
@@ -339,22 +340,28 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 child: Container(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withValues(alpha: 0.05),
+                    color: const Color(0xFF30D158).withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+                    border: Border.all(color: const Color(0xFF30D158).withValues(alpha: 0.2)),
                   ),
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.verified_user_outlined, color: AppColors.success, size: 24),
+                      const Icon(Icons.verified_user_outlined, color: Color(0xFF30D158), size: 24),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text('PRINCIPAL PROTECTED', style: TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
-                            SizedBox(height: 4),
-                            Text('This plan is fully insured and capital-guaranteed.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          children: [
+                            const Text(
+                              'PRINCIPAL PROTECTED',
+                              style: TextStyle(color: Color(0xFF30D158), fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'This plan is fully insured and capital-guaranteed.',
+                              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                            ),
                           ],
                         ),
                       ),
@@ -375,7 +382,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   ref.read(newRecurringSavingProvider.notifier).reset();
                   context.pop();
                 },
-                child: const Text('Discard', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
+                child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
               ),
               const SizedBox(width: 24),
               ElevatedButton.icon(
@@ -385,13 +392,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Open Account', style: TextStyle(fontWeight: FontWeight.bold)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.primaryTeal,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                ),
+                label: const Text('Open Account', style: TextStyle(fontWeight: FontWeight.w600)),
               ),
             ],
           ),
@@ -400,7 +401,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildSummary(NewRecurringSavingState state) {
+  Widget _buildSummary(NewRecurringSavingState state, ThemeData theme, bool isDark, Color primary) {
     return Column(
       children: [
         GlassCard(
@@ -410,43 +411,40 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.radar_outlined, color: AppColors.textPrimary, size: 20),
+                  Icon(Icons.radar_outlined, color: theme.colorScheme.onSurface, size: 20),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Wealth Forecast',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Wealth Forecast', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
               
-              _buildSummaryRow('DEPOSIT CYCLE', _capitalize(state.collectionType.name)),
+              _buildSummaryRow('DEPOSIT CYCLE', _capitalize(state.collectionType.name), theme),
               const SizedBox(height: 16),
-              _buildSummaryRow('PERIODIC INSTALLMENT', currencyFormat.format(state.installmentAmount)),
+              _buildSummaryRow('PERIODIC INSTALLMENT', currencyFormat.format(state.installmentAmount), theme),
               const SizedBox(height: 16),
-              _buildSummaryRow('TOTAL TENURE', '${state.totalInstallments} installments'),
+              _buildSummaryRow('TOTAL TENURE', '${state.totalInstallments} installments', theme),
               const SizedBox(height: 16),
-              _buildSummaryRow('TOTAL CAPITAL INVESTED', currencyFormat.format(state.totalCapitalInvested)),
+              _buildSummaryRow('TOTAL CAPITAL INVESTED', currencyFormat.format(state.totalCapitalInvested), theme),
               const SizedBox(height: 16),
-              _buildSummaryRow('ESTIMATED INTEREST/YIELD', currencyFormat.format(state.estimatedInterest), valueColor: AppColors.success),
+              _buildSummaryRow('ESTIMATED INTEREST/YIELD', currencyFormat.format(state.estimatedInterest), theme, valueColor: const Color(0xFF30D158)),
               
               const SizedBox(height: 24),
               
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.glassBorder),
+                  border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('GUARANTEED MATURITY', style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    Text('GUARANTEED MATURITY', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
                     const SizedBox(height: 4),
                     Text(
                       currencyFormat.format(state.maturityAmount),
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.primaryTeal),
+                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: primary),
                     ),
                   ],
                 ),
@@ -464,18 +462,15 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
             children: [
               Row(
                 children: [
-                  const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
+                  const Icon(Icons.warning_amber_rounded, color: Color(0xFFFFD60A), size: 20),
                   const SizedBox(width: 8),
-                  const Text(
-                    'Premature Exit Policy',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  Text('Premature Exit Policy', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600)),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
                 'A ${state.prematurePenalty.toInt()}% penalty on total accumulated interest will apply for withdrawals before ${DateFormat('dd/MM/yyyy').format(state.maturityDate)}.',
-                style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.5),
+                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
               ),
             ],
           ),
@@ -484,35 +479,29 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
     );
   }
 
-  Widget _buildSummaryRow(String label, String value, {Color valueColor = AppColors.textPrimary}) {
+  Widget _buildSummaryRow(String label, String value, ThemeData theme, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1),
-        ),
-        Text(
-          value,
-          style: TextStyle(color: valueColor, fontSize: 14, fontWeight: FontWeight.w900),
-        ),
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
+        Text(value, style: TextStyle(color: valueColor ?? theme.colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w900)),
       ],
     );
   }
 
-  Widget _buildLabel(String text) {
+  Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: TextStyle(
-        fontSize: 10,
-        fontWeight: FontWeight.bold,
-        letterSpacing: 1,
-        color: AppColors.textMutedLight,
-      ),
+      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1),
     );
   }
 
-  Widget _buildTextField({required TextEditingController controller, required Function(String) onChanged}) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required Function(String) onChanged,
+    required ThemeData theme,
+    required bool isDark,
+  }) {
     return TextField(
       controller: controller,
       onChanged: onChanged,
@@ -520,22 +509,22 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
       decoration: InputDecoration(
         filled: true,
-        fillColor: Colors.white,
+        fillColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.glassBorder),
+          borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.glassBorder),
+          borderSide: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primaryTeal, width: 2),
+          borderSide: BorderSide(color: theme.colorScheme.primary, width: 2),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
-      style: const TextStyle(fontWeight: FontWeight.bold),
+      style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
     );
   }
 
@@ -544,27 +533,27 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
     required String hint,
     required List<String> items,
     required Function(String?) onChanged,
+    required ThemeData theme,
+    required bool isDark,
   }) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? const Color(0xFF2C2C2E) : Colors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AppColors.glassBorder),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<String>(
           value: items.contains(value) ? value : null,
-          hint: Text(hint, style: TextStyle(color: AppColors.textMuted)),
+          hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: const Icon(Icons.keyboard_arrow_down, color: AppColors.textMuted),
+          icon: Icon(Icons.keyboard_arrow_down, color: theme.textTheme.bodySmall?.color),
+          dropdownColor: isDark ? const Color(0xFF2C2C2E) : Colors.white,
           items: items.map((String item) {
             return DropdownMenuItem<String>(
               value: item,
-              child: Text(
-                _capitalize(item),
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
+              child: Text(_capitalize(item), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
             );
           }).toList(),
           onChanged: onChanged,
@@ -587,6 +576,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
     required String minLabel,
     required String maxLabel,
     required Function(double) onChanged,
+    required ThemeData theme,
+    required Color primary,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -596,42 +587,31 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           children: [
             Row(
               children: [
-                const Icon(Icons.circle, size: 4, color: AppColors.primaryTeal),
+                Icon(Icons.circle, size: 4, color: primary),
                 const SizedBox(width: 4),
-                Text(
-                  label,
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.textMutedLight, letterSpacing: 1),
-                ),
+                Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 1)),
               ],
             ),
-            Text(
-              displayValue,
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.primaryTeal),
-            ),
+            Text(displayValue, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w900, color: primary)),
           ],
         ),
         SliderTheme(
           data: SliderThemeData(
-            activeTrackColor: AppColors.primaryTeal.withValues(alpha: 0.3),
-            inactiveTrackColor: AppColors.glassBorder,
-            thumbColor: AppColors.primaryTeal,
-            overlayColor: AppColors.primaryTeal.withValues(alpha: 0.1),
+            activeTrackColor: primary.withValues(alpha: 0.3),
+            inactiveTrackColor: theme.dividerColor.withValues(alpha: 0.2),
+            thumbColor: primary,
+            overlayColor: primary.withValues(alpha: 0.1),
             trackHeight: 4,
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 6),
             overlayShape: const RoundSliderOverlayShape(overlayRadius: 14),
           ),
-          child: Slider(
-            value: value,
-            min: min,
-            max: max,
-            onChanged: onChanged,
-          ),
+          child: Slider(value: value, min: min, max: max, onChanged: onChanged),
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(minLabel, style: TextStyle(fontSize: 9, color: AppColors.textMutedLight)),
-            Text(maxLabel, style: TextStyle(fontSize: 9, color: AppColors.textMutedLight)),
+            Text(minLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 9)),
+            Text(maxLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 9)),
           ],
         ),
       ],

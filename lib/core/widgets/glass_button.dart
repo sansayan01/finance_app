@@ -1,164 +1,110 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../constants/app_colors.dart';
-import '../constants/app_spacing.dart';
 
+/// Premium button with iOS-grade press animation and
+/// optional gradient or tinted surface styling.
 class GlassButton extends StatefulWidget {
-  final String text;
-  final VoidCallback? onPressed;
-  final bool isLoading;
+  final String label;
+  final VoidCallback? onTap;
   final IconData? icon;
-  final bool isOutlined;
+  final bool isLoading;
+  final bool isPrimary;
+  final bool isDestructive;
+  final Color? color;
   final double? width;
   final double height;
-  final List<Color>? gradientColors;
+  final double borderRadius;
+  final double fontSize;
 
   const GlassButton({
     super.key,
-    required this.text,
-    this.onPressed,
-    this.isLoading = false,
+    required this.label,
+    this.onTap,
     this.icon,
-    this.isOutlined = false,
+    this.isLoading = false,
+    this.isPrimary = true,
+    this.isDestructive = false,
+    this.color,
     this.width,
-    this.height = AppSpacing.buttonHeightMd,
-    this.gradientColors,
+    this.height = 50,
+    this.borderRadius = 14,
+    this.fontSize = 16,
   });
 
   @override
   State<GlassButton> createState() => _GlassButtonState();
 }
 
-class _GlassButtonState extends State<GlassButton>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scaleAnimation;
+class _GlassButtonState extends State<GlassButton> {
   bool _isPressed = false;
 
   @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      duration: AppSpacing.animationFast,
-      vsync: this,
-    );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _handleTapDown(TapDownDetails details) {
-    setState(() => _isPressed = true);
-    _controller.forward();
-  }
-
-  void _handleTapUp(TapUpDetails details) {
-    setState(() => _isPressed = false);
-    _controller.reverse();
-  }
-
-  void _handleTapCancel() {
-    setState(() => _isPressed = false);
-    _controller.reverse();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final colors = widget.gradientColors ?? [AppColors.primaryIndigo, AppColors.primaryTeal];
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    Color bgColor;
+    Color fgColor;
+
+    if (widget.isDestructive) {
+      bgColor = theme.colorScheme.error;
+      fgColor = Colors.white;
+    } else if (widget.isPrimary) {
+      bgColor = widget.color ?? theme.colorScheme.primary;
+      fgColor = Colors.white;
+    } else {
+      bgColor = isDark
+          ? Colors.white.withValues(alpha: 0.08)
+          : Colors.black.withValues(alpha: 0.04);
+      fgColor = widget.color ?? theme.colorScheme.onSurface;
+    }
 
     return GestureDetector(
-      onTapDown: widget.onPressed != null && !widget.isLoading ? _handleTapDown : null,
-      onTapUp: widget.onPressed != null && !widget.isLoading ? _handleTapUp : null,
-      onTapCancel: widget.onPressed != null && !widget.isLoading ? _handleTapCancel : null,
-      onTap: widget.isLoading ? null : widget.onPressed,
-      child: AnimatedBuilder(
-        animation: _scaleAnimation,
-        builder: (context, child) {
-          return Transform.scale(
-            scale: _scaleAnimation.value,
-            child: child,
-          );
-        },
-        child: Container(
-          width: widget.width,
-          height: widget.height,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
-            gradient: widget.isOutlined
-                ? null
-                : LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: widget.onPressed != null ? colors : [colors.first.withValues(alpha: 0.5), colors.last.withValues(alpha: 0.5)],
-                  ),
-            border: Border.all(
-              color: widget.isOutlined
-                  ? AppColors.glassBorder
-                  : (widget.onPressed != null
-                      ? AppColors.glassHighlight
-                      : AppColors.glassBorder.withValues(alpha: 0.5)),
-              width: 1,
+      onTap: widget.isLoading ? null : widget.onTap,
+      onTapDown: (_) => setState(() => _isPressed = true),
+      onTapUp: (_) => setState(() => _isPressed = false),
+      onTapCancel: () => setState(() => _isPressed = false),
+      child: AnimatedScale(
+        scale: _isPressed ? 0.97 : 1.0,
+        duration: const Duration(milliseconds: 100),
+        curve: Curves.easeOut,
+        child: AnimatedOpacity(
+          opacity: _isPressed ? 0.85 : 1.0,
+          duration: const Duration(milliseconds: 100),
+          child: Container(
+            width: widget.width,
+            height: widget.height,
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
             ),
-            boxShadow: widget.onPressed != null && !_isPressed
-                ? [
-                    BoxShadow(
-                      color: colors.first.withValues(alpha: 0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : null,
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 0, sigmaY: 0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (widget.isLoading) ...[
-                      SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            widget.isOutlined
-                                ? AppColors.textPrimary
-                                : AppColors.textPrimary,
+            child: Center(
+              child: widget.isLoading
+                  ? SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: fgColor,
+                      ),
+                    )
+                  : Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        if (widget.icon != null) ...[
+                          Icon(widget.icon, color: fgColor, size: 18),
+                          const SizedBox(width: 8),
+                        ],
+                        Text(
+                          widget.label,
+                          style: TextStyle(
+                            color: fgColor,
+                            fontSize: widget.fontSize,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: -0.3,
                           ),
                         ),
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                    ] else if (widget.icon != null) ...[
-                      Icon(
-                        widget.icon,
-                        size: 20,
-                        color: AppColors.textPrimary,
-                      ),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Text(
-                      widget.text,
-                      style: TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.5,
-                      ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
             ),
           ),
         ),
