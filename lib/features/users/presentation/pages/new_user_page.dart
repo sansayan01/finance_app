@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../auth/data/models/user_model.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 import '../providers/new_user_provider.dart';
 
 class NewUserPage extends ConsumerStatefulWidget {
@@ -70,12 +72,32 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
 
   @override
   Widget build(BuildContext context) {
+    final currentUser = ref.watch(currentUserProvider);
     final state = ref.watch(newUserProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
     final screenWidth = MediaQuery.of(context).size.width;
     final isNarrow = screenWidth < 600;
+
+    // Hierarchy check: Only Admin and Manager can create users
+    final canCreate = currentUser?.role == UserRole.executiveAdmin || currentUser?.role == UserRole.manager;
+
+    if (!canCreate) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('Access Denied')),
+        body: const Center(child: Text('You do not have permission to create users.')),
+      );
+    }
+
+    // Filter roles based on hierarchy
+    final List<UserRole> availableRoles;
+    if (currentUser?.role == UserRole.executiveAdmin) {
+      availableRoles = UserRole.values;
+    } else {
+      // Manager can only create Staff and Retailers
+      availableRoles = [UserRole.fieldStaff, UserRole.retailMember];
+    }
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -104,24 +126,24 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isDesktop = constraints.maxWidth > 900;
-                  if (isDesktop) {
-                    return Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(flex: 3, child: _buildFormDetails(state, theme, isDark, primary, false)),
-                        const SizedBox(width: 24),
-                        Expanded(flex: 2, child: _buildSummary(state, theme, isDark, primary)),
-                      ],
-                    );
-                  } else {
-                    return Column(
-                      children: [
-                        _buildSummary(state, theme, isDark, primary),
-                        const SizedBox(height: 20),
-                        _buildFormDetails(state, theme, isDark, primary, isNarrow),
-                      ],
-                    );
-                  }
+                    if (isDesktop) {
+                      return Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(flex: 3, child: _buildFormDetails(state, theme, isDark, primary, false, availableRoles)),
+                          const SizedBox(width: 24),
+                          Expanded(flex: 2, child: _buildSummary(state, theme, isDark, primary)),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          _buildSummary(state, theme, isDark, primary),
+                          const SizedBox(height: 20),
+                          _buildFormDetails(state, theme, isDark, primary, isNarrow, availableRoles),
+                        ],
+                      );
+                    }
                 },
               ),
             ),
@@ -222,7 +244,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   // ═══════════════════════════════════════════════════
   //  FORM DETAILS
   // ═══════════════════════════════════════════════════
-  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark, Color primary, bool isNarrow) {
+  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark, Color primary, bool isNarrow, List<UserRole> availableRoles) {
     return Column(
       children: [
         // ── Account Details Card ──
@@ -277,11 +299,11 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                       value: state.role.name,
                       hint: 'Select role',
                       icon: Icons.shield_outlined,
-                      items: SystemRole.values.map((e) => e.name).toList(),
+                      items: availableRoles.map((e) => e.name).toList(),
                       onChanged: (val) {
                         if (val != null) {
                           ref.read(newUserProvider.notifier).updateRole(
-                            SystemRole.values.firstWhere((e) => e.name == val),
+                            UserRole.values.firstWhere((e) => e.name == val),
                           );
                         }
                       },
@@ -307,7 +329,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
         ).animate().fadeIn(duration: 350.ms).slideY(begin: 0.04, end: 0),
 
         // ── Field Operations Card (conditional) ──
-        if (state.role != SystemRole.retailMember) ...[
+        if (state.role != UserRole.retailMember) ...[
           const SizedBox(height: 20),
           GlassCard(
             padding: EdgeInsets.all(isNarrow ? 18 : 24),
@@ -635,7 +657,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           dropdownColor: isDark ? AppColors.elevatedDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
           items: items.map((String item) {
-            SystemRole role = SystemRole.values.firstWhere((e) => e.name == item);
+            UserRole role = UserRole.values.firstWhere((e) => e.name == item);
             return DropdownMenuItem<String>(
               value: item,
               child: Row(
@@ -658,28 +680,28 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     );
   }
 
-  String _getRoleDisplayName(SystemRole role) {
+  String _getRoleDisplayName(UserRole role) {
     switch (role) {
-      case SystemRole.administrator:
-        return 'System Administrator';
-      case SystemRole.fieldStaff:
-        return 'Field Staff (Operations)';
-      case SystemRole.operations:
+      case UserRole.executiveAdmin:
+        return 'Executive Admin';
+      case UserRole.manager:
         return 'Operations Manager';
-      case SystemRole.retailMember:
+      case UserRole.fieldStaff:
+        return 'Field Staff (Operations)';
+      case UserRole.retailMember:
         return 'Retail Member';
     }
   }
 
-  String _getRoleDescription(SystemRole role) {
+  String _getRoleDescription(UserRole role) {
     switch (role) {
-      case SystemRole.administrator:
+      case UserRole.executiveAdmin:
         return 'Administrators have full system access, can manage all users, system configurations, and view all global reporting.';
-      case SystemRole.fieldStaff:
-        return 'Field Staff can manage loans, collect payments, and register new members in their assigned zones.';
-      case SystemRole.operations:
+      case UserRole.manager:
         return 'Operations Managers oversee field staff, approve loan applications, and manage regional reporting.';
-      case SystemRole.retailMember:
+      case UserRole.fieldStaff:
+        return 'Field Staff can manage loans, collect payments, and register new members in their assigned zones.';
+      case UserRole.retailMember:
         return 'Retail Members can only view their personal savings, loans, and transaction history.';
     }
   }

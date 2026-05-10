@@ -173,16 +173,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     ).animate().fadeIn(delay: 450.ms),
 
                     const SizedBox(height: 48),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text("Don't have an account?", style: theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodySmall?.color)),
-                        TextButton(
-                          onPressed: widget.onSignUpTap,
-                          child: Text('Create Account', style: TextStyle(color: primary, fontWeight: FontWeight.w800, fontSize: 15)),
-                        ),
-                      ],
-                    ),
+                    Text(
+                      "Invitation-only access. Contact your administrator to create an account.",
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ).animate().fadeIn(delay: 550.ms),
                   ],
                 ),
               ),

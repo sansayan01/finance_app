@@ -1,29 +1,37 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../auth/data/models/user_model.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
-class UsersPage extends StatelessWidget {
+class UsersPage extends ConsumerWidget {
   const UsersPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentUser = ref.watch(currentUserProvider);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
 
+    final canCreate = currentUser?.role == UserRole.executiveAdmin || currentUser?.role == UserRole.manager;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/users/new'),
-        backgroundColor: primary,
-        foregroundColor: isDark ? Colors.black : Colors.white,
-        elevation: 2,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        icon: Icon(Icons.person_add_alt_1_rounded, size: 22, color: isDark ? Colors.black : Colors.white),
-        label: Text('Add User', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.3, color: isDark ? Colors.black : Colors.white)),
-      ),
+      floatingActionButton: canCreate
+          ? FloatingActionButton.extended(
+              onPressed: () => context.push('/users/new'),
+              backgroundColor: primary,
+              foregroundColor: isDark ? Colors.black : Colors.white,
+              elevation: 2,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              icon: Icon(Icons.person_add_alt_1_rounded, size: 22, color: isDark ? Colors.black : Colors.white),
+              label: Text('Add User', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, letterSpacing: -0.3, color: isDark ? Colors.black : Colors.white)),
+            )
+          : null,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),

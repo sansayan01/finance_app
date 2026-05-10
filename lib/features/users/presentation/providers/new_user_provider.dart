@@ -1,12 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-enum SystemRole { administrator, fieldStaff, operations, retailMember }
+import '../../../auth/data/models/user_model.dart';
 
 class NewUserState {
   final String fullName;
   final String email;
   final String mobileNumber;
-  final SystemRole role;
+  final UserRole role;
   final String employeeId;
   final String assignedZone;
   final String password;
@@ -17,7 +16,7 @@ class NewUserState {
     this.fullName = '',
     this.email = '',
     this.mobileNumber = '',
-    this.role = SystemRole.fieldStaff,
+    this.role = UserRole.fieldStaff,
     this.employeeId = '',
     this.assignedZone = '',
     this.password = '',
@@ -29,7 +28,7 @@ class NewUserState {
     String? fullName,
     String? email,
     String? mobileNumber,
-    SystemRole? role,
+    UserRole? role,
     String? employeeId,
     String? assignedZone,
     String? password,
@@ -56,7 +55,7 @@ class NewUserNotifier extends StateNotifier<NewUserState> {
   void updateFullName(String value) => state = state.copyWith(fullName: value);
   void updateEmail(String value) => state = state.copyWith(email: value);
   void updateMobileNumber(String value) => state = state.copyWith(mobileNumber: value);
-  void updateRole(SystemRole role) => state = state.copyWith(role: role);
+  void updateRole(UserRole role) => state = state.copyWith(role: role);
   void updateEmployeeId(String value) => state = state.copyWith(employeeId: value);
   void updateAssignedZone(String value) => state = state.copyWith(assignedZone: value);
   void updatePassword(String value) => state = state.copyWith(password: value);
