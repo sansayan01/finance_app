@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
@@ -40,7 +41,7 @@ class HomePage extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           _buildTodaysTasks(ref),
           const SizedBox(height: AppSpacing.lg),
-          _buildQuickActions(),
+          _buildQuickActions(context),
           const SizedBox(height: AppSpacing.lg),
           _buildActiveLoansSection(ref),
           const SizedBox(height: AppSpacing.lg),
@@ -308,7 +309,7 @@ Widget _buildHeader(BuildContext context, WidgetRef ref) {
     );
   }
 
-  Widget _buildQuickActions() {
+  Widget _buildQuickActions(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -335,7 +336,15 @@ Widget _buildHeader(BuildContext context, WidgetRef ref) {
               child: _QuickActionButton(
                 icon: Icons.request_quote,
                 label: 'New Loan',
-                onTap: onQuickAction,
+                onTap: () {
+                  // Direct navigation to the new loan application
+                  // Using GoRouter requires checking if the context has GoRouter
+                  try {
+                    GoRouter.of(context).push('/loans/new');
+                  } catch (e) {
+                    onQuickAction();
+                  }
+                },
               ),
             ),
             const SizedBox(width: AppSpacing.sm),

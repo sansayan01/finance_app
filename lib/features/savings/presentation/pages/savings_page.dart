@@ -6,6 +6,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/progress_gauge.dart';
+import 'package:go_router/go_router.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../home/data/providers/dashboard_providers.dart';
 import '../../data/models/savings_model.dart';
@@ -20,7 +21,7 @@ class SavingsPage extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildHeader(),
+          _buildHeader(context),
           const SizedBox(height: AppSpacing.lg),
           _buildTotalSavings(ref),
           const SizedBox(height: AppSpacing.lg),
@@ -33,7 +34,7 @@ class SavingsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -41,7 +42,7 @@ class SavingsPage extends ConsumerWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Savings Portfolio',
+              'Recurring Savings',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 24,
@@ -50,7 +51,7 @@ class SavingsPage extends ConsumerWidget {
             ),
             SizedBox(height: 2),
             Text(
-              'Track member savings and targets',
+              '0 accounts managed • 0 growing',
               style: TextStyle(
                 color: AppColors.textSecondary,
                 fontSize: 14,
@@ -58,15 +59,17 @@ class SavingsPage extends ConsumerWidget {
             ),
           ],
         ),
-        Container(
-          padding: const EdgeInsets.all(AppSpacing.sm),
-          decoration: BoxDecoration(
-            color: AppColors.success.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
-          ),
-          child: const Icon(
-            Icons.add,
-            color: AppColors.success,
+        ElevatedButton.icon(
+          onPressed: () {
+            context.push('/savings/new');
+          },
+          icon: const Icon(Icons.add, size: 18),
+          label: const Text('Open Account', style: TextStyle(fontWeight: FontWeight.bold)),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.primaryTeal,
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           ),
         ),
       ],
@@ -77,107 +80,45 @@ class SavingsPage extends ConsumerWidget {
     final savingsSummaryAsync = ref.watch(savingsSummaryProvider);
 
     return savingsSummaryAsync.when(
-      data: (summary) => GlassCard(
-        gradientColors: [
-          AppColors.primaryIndigo.withValues(alpha: 0.2),
-          AppColors.primaryTeal.withValues(alpha: 0.1),
-        ],
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
+      data: (summary) {
+        return Row(
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text(
-                      'Total Savings',
-                      style: TextStyle(
-                        color: AppColors.textSecondary,
-                        fontSize: 14,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      AppFormatters.formatCurrency(summary.totalSavings),
-                      style: const TextStyle(
-                        color: AppColors.textPrimary,
-                        fontSize: 32,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.trending_up,
-                          color: AppColors.success,
-                          size: 14,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '${summary.activeAccounts} active accounts',
-                          style: const TextStyle(
-                            color: AppColors.success,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AppColors.primaryTeal.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(AppSpacing.borderRadiusLg),
-                  ),
-                  child: const Icon(
-                    Icons.savings,
-                    color: AppColors.primaryTeal,
-                    size: 40,
-                  ),
-                ),
-              ],
+            Expanded(
+              child: _buildTopStatCard(
+                label: 'TOTAL SAVED',
+                value: AppFormatters.formatCurrency(summary.totalSavings),
+                icon: Icons.savings,
+              ),
             ),
-            const SizedBox(height: AppSpacing.lg),
-            Row(
-              children: [
-                Expanded(
-                  child: _MiniStat(
-                    label: 'Active Accounts',
-                    value: summary.activeAccounts.toString(),
-                    icon: Icons.person,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _MiniStat(
-                    label: 'Avg Balance',
-                    value: AppFormatters.formatCompactCurrency(summary.averageBalance),
-                    icon: Icons.bar_chart,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.md),
-                Expanded(
-                  child: _MiniStat(
-                    label: 'Interest Earned',
-                    value: AppFormatters.formatCompactCurrency(summary.interestEarned),
-                    icon: Icons.percent,
-                  ),
-                ),
-              ],
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _buildTopStatCard(
+                label: 'ACTIVE ACCOUNTS',
+                value: summary.activeAccounts.toString(),
+                icon: Icons.track_changes,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _buildTopStatCard(
+                label: 'MATURED',
+                value: '0', // Adjust when matured logic is added
+                icon: Icons.trending_up,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: _buildTopStatCard(
+                label: 'TOTAL TARGET',
+                value: AppFormatters.formatCurrency(summary.totalSavings * 1.5), // Dummy logic for now
+                icon: Icons.pie_chart_outline,
+              ),
             ),
           ],
-        ),
-      ),
-      loading: () => const ShimmerCard(height: 220),
+        );
+      },
+      loading: () => const ShimmerStatsRow(itemCount: 4),
       error: (_, __) => GlassCard(
-        gradientColors: [
-          AppColors.primaryIndigo.withValues(alpha: 0.2),
-          AppColors.primaryTeal.withValues(alpha: 0.1),
-        ],
         padding: const EdgeInsets.all(AppSpacing.lg),
         child: const Center(
           child: Text(
@@ -187,6 +128,52 @@ class SavingsPage extends ConsumerWidget {
         ),
       ),
     ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.1, end: 0);
+  }
+
+  Widget _buildTopStatCard({required String label, required String value, required IconData icon}) {
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.primaryTeal.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: AppColors.primaryTeal, size: 24),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: AppColors.textMutedLight,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  value,
+                  style: const TextStyle(
+                    color: AppColors.textPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSavingsAccounts(WidgetRef ref) {
@@ -310,55 +297,6 @@ class SavingsPage extends ConsumerWidget {
             ),
           ),
         ).animate(delay: 400.ms).fadeIn().slideX(begin: 0.05, end: 0),
-      ],
-    );
-  }
-}
-
-class _MiniStat extends StatelessWidget {
-  final String label;
-  final String value;
-  final IconData icon;
-
-  const _MiniStat({
-    required this.label,
-    required this.value,
-    required this.icon,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: AppColors.primaryIndigo.withValues(alpha: 0.2),
-            borderRadius: BorderRadius.circular(6),
-          ),
-          child: Icon(icon, color: AppColors.primaryTeal, size: 14),
-        ),
-        const SizedBox(width: AppSpacing.xs),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                color: AppColors.textPrimary,
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            Text(
-              label,
-              style: const TextStyle(
-                color: AppColors.textMuted,
-                fontSize: 10,
-              ),
-            ),
-          ],
-        ),
       ],
     );
   }

@@ -17,7 +17,7 @@ class NewLoanState {
   NewLoanState({
     this.borrowerId,
     this.principalAmount = 50000,
-    this.interestRate = 2, // e.g. 2% monthly or 24% annual? Let's assume the slider is Annual Percentage Rate (APR) based on standard practice, but the screenshot says "2" and "Monthly". We will treat it as Annual Rate for the math, or user input. Let's assume it's annual rate.
+    this.interestRate = 24, // Use 24% APR as default (equivalent to 2% monthly)
     this.frequency = LoanFrequency.monthly,
     this.tenureMonths = 12,
     this.collectionType = LoanFrequency.monthly,
@@ -47,25 +47,49 @@ class NewLoanState {
     );
   }
 
+  // Total number of installments
+  int get numberOfInstallments {
+    if (tenureMonths <= 0) return 0;
+    switch (collectionType) {
+      case LoanFrequency.daily:
+        return (tenureMonths * 365 / 12).round();
+      case LoanFrequency.weekly:
+        return (tenureMonths * 52 / 12).round();
+      case LoanFrequency.yearly:
+        int n = (tenureMonths / 12).round();
+        return n > 0 ? n : 1;
+      case LoanFrequency.monthly:
+        return tenureMonths;
+    }
+  }
+
   // Calculated properties
   double get estimatedInstallment {
     if (principalAmount <= 0 || tenureMonths <= 0) return 0;
 
-    // For simplicity, assuming the interest rate entered is the ANNUAL rate (APR).
-    // If the screenshot implies something else (like 2% flat per month), this logic can be adjusted.
-    // The screenshot says 50,000 principal, 2% rate, 12 months. Installment is 4727.98
-    // Let's reverse engineer: 50000 * 0.02 = 1000. 1000 * 12 = 12000 total interest? No.
-    // Reducing balance formula: P * r * (1+r)^n / ((1+r)^n - 1)
-    // If r = 2% per month (0.02), n = 12, P = 50000
-    // 50000 * 0.02 * (1.02)^12 / ((1.02)^12 - 1)
-    // 1000 * 1.26824 / 0.26824 = 4727.98!
-    // So the "INTEREST RATE (%)" in the UI is actually the MONTHLY rate.
+    double annualRate = interestRate / 100;
+    int n = numberOfInstallments;
+    if (n <= 0) return 0;
 
-    double r = interestRate / 100; // Monthly rate
-    int n = tenureMonths;
+    double r;
+    switch (collectionType) {
+      case LoanFrequency.daily:
+        r = annualRate / 365;
+        break;
+      case LoanFrequency.weekly:
+        r = annualRate / 52;
+        break;
+      case LoanFrequency.yearly:
+        r = annualRate;
+        break;
+      case LoanFrequency.monthly:
+        r = annualRate / 12;
+        break;
+    }
+
     double p = principalAmount;
 
-    if (interestRate == 0) {
+    if (r == 0) {
       return p / n;
     }
 
@@ -73,14 +97,13 @@ class NewLoanState {
       return (p * r * pow(1 + r, n)) / (pow(1 + r, n) - 1);
     } else {
       // Flat rate
-      // Total interest = P * r * n
-      double totalInterest = p * r * n;
+      double totalInterest = p * annualRate * (tenureMonths / 12);
       return (p + totalInterest) / n;
     }
   }
 
   double get interestBurden {
-    return (estimatedInstallment * tenureMonths) - principalAmount;
+    return (estimatedInstallment * numberOfInstallments) - principalAmount;
   }
 
   double get totalExposure {

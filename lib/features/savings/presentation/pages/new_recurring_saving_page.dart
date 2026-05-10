@@ -8,45 +8,45 @@ import 'package:intl/intl.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../providers/new_loan_provider.dart';
+import '../providers/new_recurring_saving_provider.dart';
 
-class NewLoanPage extends ConsumerStatefulWidget {
-  const NewLoanPage({super.key});
+class NewRecurringSavingPage extends ConsumerStatefulWidget {
+  const NewRecurringSavingPage({super.key});
 
   @override
-  ConsumerState<NewLoanPage> createState() => _NewLoanPageState();
+  ConsumerState<NewRecurringSavingPage> createState() => _NewRecurringSavingPageState();
 }
 
-class _NewLoanPageState extends ConsumerState<NewLoanPage> {
+class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage> {
   final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
   final currencyFormatNoDecimals = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
-  final TextEditingController _principalController = TextEditingController();
-  final TextEditingController _rateController = TextEditingController();
-  final TextEditingController _tenureController = TextEditingController();
+  final TextEditingController _installmentController = TextEditingController();
+  final TextEditingController _maturityAmountController = TextEditingController();
+  final TextEditingController _penaltyController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final state = ref.read(newLoanProvider);
-      _principalController.text = state.principalAmount.toInt().toString();
-      _rateController.text = state.interestRate.toString();
-      _tenureController.text = state.tenureMonths.toString();
+      final state = ref.read(newRecurringSavingProvider);
+      _installmentController.text = state.installmentAmount.toInt().toString();
+      _maturityAmountController.text = state.maturityAmount.toInt().toString();
+      _penaltyController.text = state.prematurePenalty.toInt().toString();
     });
   }
 
   @override
   void dispose() {
-    _principalController.dispose();
-    _rateController.dispose();
-    _tenureController.dispose();
+    _installmentController.dispose();
+    _maturityAmountController.dispose();
+    _penaltyController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final state = ref.watch(newLoanProvider);
+    final state = ref.watch(newRecurringSavingProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FB),
@@ -56,7 +56,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () {
-            ref.read(newLoanProvider.notifier).reset();
+            ref.read(newRecurringSavingProvider.notifier).reset();
             context.pop();
           },
         ),
@@ -64,7 +64,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              'New Loan Application',
+              'Recurring Savings',
               style: TextStyle(
                 color: AppColors.textPrimary,
                 fontSize: 20,
@@ -72,7 +72,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               ),
             ),
             Text(
-              'Configure financial terms and borrower information',
+              'Set up a new recurring saving plan',
               style: TextStyle(
                 color: AppColors.textSecondaryLight,
                 fontSize: 12,
@@ -80,12 +80,6 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             ),
           ],
         ),
-        actions: [
-          _buildActionIcon(Icons.auto_awesome),
-          const SizedBox(width: 8),
-          _buildActionIcon(Icons.account_balance),
-          const SizedBox(width: 16),
-        ],
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(AppSpacing.lg),
@@ -96,17 +90,17 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(flex: 2, child: _buildFacilityDetails(state)),
+                  Expanded(flex: 2, child: _buildFormDetails(state)),
                   const SizedBox(width: AppSpacing.lg),
-                  Expanded(flex: 1, child: _buildFinancialSummary(state)),
+                  Expanded(flex: 1, child: _buildSummary(state)),
                 ],
               );
             } else {
               return Column(
                 children: [
-                  _buildFinancialSummary(state),
+                  _buildSummary(state),
                   const SizedBox(height: AppSpacing.lg),
-                  _buildFacilityDetails(state),
+                  _buildFormDetails(state),
                 ],
               );
             }
@@ -116,19 +110,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     );
   }
 
-  Widget _buildActionIcon(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        shape: BoxShape.circle,
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
-      ),
-      child: Icon(icon, size: 18, color: AppColors.primaryTeal),
-    );
-  }
-
-  Widget _buildFacilityDetails(NewLoanState state) {
+  Widget _buildFormDetails(NewRecurringSavingState state) {
     return GlassCard(
       padding: const EdgeInsets.all(AppSpacing.xl),
       child: Column(
@@ -136,23 +118,23 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.account_balance, color: AppColors.primaryTeal, size: 20),
+              const Icon(Icons.account_balance_wallet, color: AppColors.primaryTeal, size: 20),
               const SizedBox(width: 8),
               const Text(
-                'Facility Details',
+                'Account Parameters',
                 style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
           
-          _buildLabel('BORROWER ACCOUNT *'),
+          _buildLabel('MEMBER ACCOUNT *'),
           const SizedBox(height: 8),
           _buildDropdown(
-            value: state.borrowerId,
-            hint: 'Select registered customer',
-            items: [], // Will populate later from DB
-            onChanged: (val) => ref.read(newLoanProvider.notifier).updateBorrower(val),
+            value: state.memberId,
+            hint: 'Select registered member',
+            items: [], // Populate from DB later
+            onChanged: (val) => ref.read(newRecurringSavingProvider.notifier).updateMember(val),
           ),
           
           const SizedBox(height: AppSpacing.xl),
@@ -160,58 +142,40 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           Row(
             children: [
               Expanded(
-                flex: 2,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('PRINCIPAL AMOUNT (₹) *'),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: _principalController,
-                      onChanged: (val) {
-                        final parsed = double.tryParse(val) ?? 0;
-                        ref.read(newLoanProvider.notifier).updatePrincipal(parsed);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
                 flex: 1,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('INTEREST RATE (%) *'),
-                    const SizedBox(height: 8),
-                    _buildTextField(
-                      controller: _rateController,
-                      onChanged: (val) {
-                        final parsed = double.tryParse(val) ?? 0;
-                        ref.read(newLoanProvider.notifier).updateInterestRate(parsed);
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('FREQUENCY'),
+                    _buildLabel('COLLECTION TYPE *'),
                     const SizedBox(height: 8),
                     _buildDropdown(
-                      value: state.frequency.name,
+                      value: state.collectionType.name,
                       hint: 'Select',
-                      items: LoanFrequency.values.map((e) => e.name).toList(),
+                      items: CollectionType.values.map((e) => e.name).toList(),
                       onChanged: (val) {
                         if (val != null) {
-                          ref.read(newLoanProvider.notifier).updateFrequency(
-                            LoanFrequency.values.firstWhere((e) => e.name == val)
+                          ref.read(newRecurringSavingProvider.notifier).updateCollectionType(
+                            CollectionType.values.firstWhere((e) => e.name == val)
                           );
                         }
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel('INSTALLMENT AMOUNT (₹) *'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _installmentController,
+                      onChanged: (val) {
+                        final parsed = double.tryParse(val) ?? 0;
+                        ref.read(newRecurringSavingProvider.notifier).updateInstallmentAmount(parsed);
                       },
                     ),
                   ],
@@ -221,39 +185,23 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           ),
           
           const SizedBox(height: 16),
-          
           Row(
             children: [
-              Expanded(
-                flex: 2,
-                child: _buildSlider(
-                  value: state.principalAmount.clamp(1000, 1000000),
-                  min: 1000,
-                  max: 1000000,
-                  label: 'ADJUST AMOUNT',
-                  displayValue: currencyFormatNoDecimals.format(state.principalAmount),
-                  minLabel: '₹1,000',
-                  maxLabel: '₹10,00,000',
-                  onChanged: (val) {
-                    _principalController.text = val.toInt().toString();
-                    ref.read(newLoanProvider.notifier).updatePrincipal(val);
-                  },
-                ),
-              ),
+              Expanded(flex: 1, child: const SizedBox()),
               const SizedBox(width: AppSpacing.lg),
               Expanded(
-                flex: 2,
+                flex: 1,
                 child: _buildSlider(
-                  value: state.interestRate.clamp(0, 50),
-                  min: 0,
-                  max: 50,
-                  label: 'ADJUST RATE',
-                  displayValue: '${state.interestRate.toStringAsFixed(1)}%',
-                  minLabel: '0%',
-                  maxLabel: '50%',
+                  value: state.installmentAmount.clamp(10, 50000),
+                  min: 10,
+                  max: 50000,
+                  label: 'ADJUST INSTALLMENT',
+                  displayValue: currencyFormatNoDecimals.format(state.installmentAmount),
+                  minLabel: '₹10',
+                  maxLabel: '₹50,000',
                   onChanged: (val) {
-                    _rateController.text = val.toStringAsFixed(1);
-                    ref.read(newLoanProvider.notifier).updateInterestRate(val);
+                    _installmentController.text = val.toInt().toString();
+                    ref.read(newRecurringSavingProvider.notifier).updateInstallmentAmount(val);
                   },
                 ),
               ),
@@ -269,80 +217,13 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('TENURE (MONTHS) *'),
+                    _buildLabel('MATURITY AMOUNT (₹) *'),
                     const SizedBox(height: 8),
                     _buildTextField(
-                      controller: _tenureController,
+                      controller: _maturityAmountController,
                       onChanged: (val) {
-                        final parsed = int.tryParse(val) ?? 1;
-                        ref.read(newLoanProvider.notifier).updateTenure(parsed);
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSlider(
-                      value: state.tenureMonths.toDouble().clamp(1, 120),
-                      min: 1,
-                      max: 120,
-                      label: 'ADJUST TENURE',
-                      displayValue: '${state.tenureMonths} Mo',
-                      minLabel: '1 Mo',
-                      maxLabel: '120 Mo',
-                      onChanged: (val) {
-                        _tenureController.text = val.toInt().toString();
-                        ref.read(newLoanProvider.notifier).updateTenure(val.toInt());
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    _buildLabel('COLLECTION TYPE *'),
-                    const SizedBox(height: 8),
-                    _buildDropdown(
-                      value: state.collectionType.name,
-                      hint: 'Select',
-                      items: LoanFrequency.values.map((e) => e.name).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          ref.read(newLoanProvider.notifier).updateCollectionType(
-                            LoanFrequency.values.firstWhere((e) => e.name == val)
-                          );
-                        }
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          
-          const SizedBox(height: AppSpacing.xl),
-          
-          Row(
-            children: [
-              Expanded(
-                flex: 1,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildLabel('INTEREST LOGIC'),
-                    const SizedBox(height: 8),
-                    _buildDropdown(
-                      value: state.interestLogic.name,
-                      hint: 'Select logic',
-                      items: InterestLogic.values.map((e) => e.name).toList(),
-                      onChanged: (val) {
-                        if (val != null) {
-                          ref.read(newLoanProvider.notifier).updateInterestLogic(
-                            InterestLogic.values.firstWhere((e) => e.name == val)
-                          );
-                        }
+                        final parsed = double.tryParse(val) ?? 0;
+                        ref.read(newRecurringSavingProvider.notifier).updateMaturityAmount(parsed);
                       },
                     ),
                   ],
@@ -354,18 +235,18 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    _buildLabel('FIRST INSTALLMENT DATE *'),
+                    _buildLabel('MATURITY DATE *'),
                     const SizedBox(height: 8),
                     InkWell(
                       onTap: () async {
                         final date = await showDatePicker(
                           context: context,
-                          initialDate: DateTime.now().add(const Duration(days: 30)),
+                          initialDate: state.maturityDate,
                           firstDate: DateTime.now(),
-                          lastDate: DateTime.now().add(const Duration(days: 365)),
+                          lastDate: DateTime.now().add(const Duration(days: 3650)),
                         );
                         if (date != null) {
-                          ref.read(newLoanProvider.notifier).updateFirstInstallmentDate(date);
+                          ref.read(newRecurringSavingProvider.notifier).updateMaturityDate(date);
                         }
                       },
                       child: Container(
@@ -379,12 +260,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              state.firstInstallmentDate != null 
-                                ? DateFormat('MM/dd/yyyy').format(state.firstInstallmentDate!)
-                                : 'mm/dd/yyyy',
-                              style: TextStyle(
-                                color: state.firstInstallmentDate != null ? AppColors.textPrimary : AppColors.textMuted,
-                              ),
+                              DateFormat('dd/MM/yyyy').format(state.maturityDate),
+                              style: const TextStyle(color: AppColors.textPrimary),
                             ),
                             const Icon(Icons.calendar_today_outlined, size: 18, color: AppColors.textMuted),
                           ],
@@ -397,6 +274,97 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             ],
           ),
           
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: _buildSlider(
+                  value: state.maturityAmount.clamp(1000, 5000000),
+                  min: 1000,
+                  max: 5000000,
+                  label: 'ADJUST GOAL',
+                  displayValue: currencyFormatNoDecimals.format(state.maturityAmount),
+                  minLabel: '₹1,000',
+                  maxLabel: '₹50,00,000',
+                  onChanged: (val) {
+                    _maturityAmountController.text = val.toInt().toString();
+                    ref.read(newRecurringSavingProvider.notifier).updateMaturityAmount(val);
+                  },
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(flex: 1, child: const SizedBox()),
+            ],
+          ),
+          
+          const SizedBox(height: AppSpacing.xl),
+          
+          Row(
+            children: [
+              Expanded(
+                flex: 1,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildLabel('PREMATURE PENALTY (%) *'),
+                    const SizedBox(height: 8),
+                    _buildTextField(
+                      controller: _penaltyController,
+                      onChanged: (val) {
+                        final parsed = double.tryParse(val) ?? 0;
+                        ref.read(newRecurringSavingProvider.notifier).updatePrematurePenalty(parsed);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSlider(
+                      value: state.prematurePenalty.clamp(0, 10),
+                      min: 0,
+                      max: 10,
+                      label: 'ADJUST PENALTY',
+                      displayValue: '${state.prematurePenalty.toInt()}%',
+                      minLabel: '0%',
+                      maxLabel: '10%',
+                      onChanged: (val) {
+                        _penaltyController.text = val.toInt().toString();
+                        ref.read(newRecurringSavingProvider.notifier).updatePrematurePenalty(val);
+                      },
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: AppSpacing.lg),
+              Expanded(
+                flex: 1,
+                child: Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: AppColors.success.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.verified_user_outlined, color: AppColors.success, size: 24),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text('PRINCIPAL PROTECTED', style: TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                            SizedBox(height: 4),
+                            Text('This plan is fully insured and capital-guaranteed.', style: TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+          
           const SizedBox(height: 40),
           
           Row(
@@ -404,7 +372,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             children: [
               TextButton(
                 onPressed: () {
-                  ref.read(newLoanProvider.notifier).reset();
+                  ref.read(newRecurringSavingProvider.notifier).reset();
                   context.pop();
                 },
                 child: const Text('Discard', style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
@@ -412,13 +380,12 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               const SizedBox(width: 24),
               ElevatedButton.icon(
                 onPressed: () {
-                  // Submit logic
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Creating Loan Application...')),
+                    const SnackBar(content: Text('Opening Account...')),
                   );
                 },
                 icon: const Icon(Icons.check_circle_outline, size: 18),
-                label: const Text('Create Application', style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text('Open Account', style: TextStyle(fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primaryTeal,
                   foregroundColor: Colors.white,
@@ -433,7 +400,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildFinancialSummary(NewLoanState state) {
+  Widget _buildSummary(NewRecurringSavingState state) {
     return Column(
       children: [
         GlassCard(
@@ -443,88 +410,46 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.calculate_outlined, color: AppColors.textPrimary, size: 20),
+                  const Icon(Icons.radar_outlined, color: AppColors.textPrimary, size: 20),
                   const SizedBox(width: 8),
                   const Text(
-                    'Financial Summary',
+                    'Wealth Forecast',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.xl),
               
-              _buildSummaryRow('CAPITAL OUTLAY', currencyFormatNoDecimals.format(state.principalAmount)),
+              _buildSummaryRow('DEPOSIT CYCLE', _capitalize(state.collectionType.name)),
               const SizedBox(height: 16),
-              _buildSummaryRow('YIELD RATE', '${state.interestRate}% APR'),
+              _buildSummaryRow('PERIODIC INSTALLMENT', currencyFormat.format(state.installmentAmount)),
               const SizedBox(height: 16),
-              _buildSummaryRow('MATURITY', '${state.tenureMonths} Months (${state.numberOfInstallments} ${state.collectionType.name}s)'),
-              
-              const SizedBox(height: 24),
-              const Divider(color: AppColors.glassBorder),
-              const SizedBox(height: 24),
-              
-              Text('ESTIMATED INSTALLMENT', style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
-              const SizedBox(height: 4),
-              Text(
-                currencyFormat.format(state.estimatedInstallment),
-                style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900, color: AppColors.primaryTeal),
-              ),
-              
+              _buildSummaryRow('TOTAL TENURE', '${state.totalInstallments} installments'),
               const SizedBox(height: 16),
-              // Visual Range Slider matching screenshot
-              Stack(
-                alignment: Alignment.centerLeft,
-                children: [
-                  Container(
-                    height: 4,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: AppColors.glassBorder,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Container(
-                    height: 4,
-                    width: 40, // Static visual representation for now
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryTeal,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  Positioned(
-                    left: 36,
-                    child: Container(
-                      width: 12,
-                      height: 12,
-                      decoration: BoxDecoration(
-                        color: AppColors.primaryTeal,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('₹500', style: TextStyle(fontSize: 10, color: AppColors.textMutedLight)),
-                  Text('₹50,000', style: TextStyle(fontSize: 10, color: AppColors.textMutedLight)),
-                ],
-              ),
+              _buildSummaryRow('TOTAL CAPITAL INVESTED', currencyFormat.format(state.totalCapitalInvested)),
+              const SizedBox(height: 16),
+              _buildSummaryRow('ESTIMATED INTEREST/YIELD', currencyFormat.format(state.estimatedInterest), valueColor: AppColors.success),
               
               const SizedBox(height: 24),
               
-              _buildSummaryRow('INTEREST BURDEN', currencyFormat.format(state.interestBurden)),
-              
-              const SizedBox(height: 24),
-              
-              Text('TOTAL EXPOSURE', style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
-              const SizedBox(height: 4),
-              Text(
-                currencyFormat.format(state.totalExposure),
-                style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppColors.glassBorder),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('GUARANTEED MATURITY', style: TextStyle(color: AppColors.textMutedLight, fontSize: 10, fontWeight: FontWeight.bold, letterSpacing: 1)),
+                    const SizedBox(height: 4),
+                    Text(
+                      currencyFormat.format(state.maturityAmount),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.primaryTeal),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
@@ -539,17 +464,17 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.schedule, color: AppColors.textPrimary, size: 20),
+                  const Icon(Icons.warning_amber_rounded, color: AppColors.warning, size: 20),
                   const SizedBox(width: 8),
                   const Text(
-                    'Amortization Info',
+                    'Premature Exit Policy',
                     style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ],
               ),
               const SizedBox(height: 12),
               Text(
-                'The system will generate a full ${state.interestLogic == InterestLogic.reducingBalance ? 'reducing balance' : 'flat rate'} schedule upon approval. Late payment penalties may apply as per global policy.',
+                'A ${state.prematurePenalty.toInt()}% penalty on total accumulated interest will apply for withdrawals before ${DateFormat('dd/MM/yyyy').format(state.maturityDate)}.',
                 style: TextStyle(color: AppColors.textSecondaryLight, fontSize: 13, height: 1.5),
               ),
             ],
@@ -559,7 +484,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
+  Widget _buildSummaryRow(String label, String value, {Color valueColor = AppColors.textPrimary}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -569,7 +494,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         ),
         Text(
           value,
-          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14, fontWeight: FontWeight.w900),
+          style: TextStyle(color: valueColor, fontSize: 14, fontWeight: FontWeight.w900),
         ),
       ],
     );

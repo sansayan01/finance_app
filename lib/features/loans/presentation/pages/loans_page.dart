@@ -60,7 +60,10 @@ class _LoansPageState extends ConsumerState<LoansPage> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => context.push('/loans/new'),
+        onPressed: () {
+          debugPrint('FAB Clicked! Pushing /loans/new');
+          context.push('/loans/new');
+        },
         backgroundColor: Colors.black,
         icon: const Icon(Icons.add, color: Colors.white),
         label: const Text('Deploy Capital', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -450,7 +453,10 @@ class _LoansPageState extends ConsumerState<LoansPage> {
         _buildShortcutItem(
           Icons.add_rounded, 
           'Deploy Capital', 
-          onTap: () => context.push('/loans/new'),
+          onTap: () {
+            debugPrint('Shortcut Clicked! Pushing /loans/new');
+            context.push('/loans/new');
+          },
         ),
         const SizedBox(height: 12),
         _buildShortcutItem(Icons.trending_up_rounded, 'EMI Forecaster'),

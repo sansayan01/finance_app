@@ -13,6 +13,9 @@ import '../features/analytics/presentation/pages/analytics_page.dart';
 import '../core/widgets/hud_navigation.dart';
 import '../features/loans/presentation/pages/loan_detail_page.dart';
 import '../features/loans/presentation/pages/new_loan_page.dart';
+import '../features/savings/presentation/pages/new_recurring_saving_page.dart';
+import '../features/users/presentation/pages/users_page.dart';
+import '../features/users/presentation/pages/new_user_page.dart';
 
 class AuthRedirectListener extends ChangeNotifier {
   final Ref ref;
@@ -76,8 +79,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (context, state) => const SavingsPage(),
           ),
           GoRoute(
+            path: '/savings/new',
+            builder: (context, state) => const NewRecurringSavingPage(),
+          ),
+          GoRoute(
             path: '/members',
             builder: (context, state) => const MembersPage(),
+          ),
+          GoRoute(
+            path: '/users',
+            builder: (context, state) => const UsersPage(),
+          ),
+          GoRoute(
+            path: '/users/new',
+            builder: (context, state) => const NewUserPage(),
           ),
           GoRoute(
             path: '/analytics',
@@ -123,6 +138,7 @@ class MainShell extends StatelessWidget {
     if (location.startsWith('/loans')) return 2;
     if (location.startsWith('/savings')) return 3;
     if (location.startsWith('/members')) return 4;
+    if (location.startsWith('/users')) return 5;
     if (location.startsWith('/analytics')) return 1;
     return 0;
   }
@@ -143,6 +159,9 @@ class MainShell extends StatelessWidget {
         break;
       case 4:
         context.go('/members');
+        break;
+      case 5:
+        context.go('/users');
         break;
     }
   }
@@ -191,6 +210,11 @@ class MainShell extends StatelessWidget {
                       label: 'Members',
                       icon: Icons.people_outline_rounded,
                       activeIcon: Icons.people_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Users',
+                      icon: Icons.manage_accounts_outlined,
+                      activeIcon: Icons.manage_accounts_rounded,
                     ),
                     HUDNavItem(
                       label: 'Settings',
