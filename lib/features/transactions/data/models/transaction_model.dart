@@ -1,11 +1,4 @@
-enum TransactionType {
-  emiCollection,
-  loanDisbursement,
-  savingsDeposit,
-  savingsWithdrawal,
-  penalty,
-  other,
-}
+import '../../../../core/constants/enums.dart';
 
 class TransactionModel {
   final String id;
@@ -36,7 +29,7 @@ class TransactionModel {
       memberId: json['member_id'] as String,
       memberName: json['member_name'] as String? ?? '',
       type: TransactionType.values.firstWhere(
-        (e) => e.name == json['type'],
+        (e) => e.name == json['type'] || _toCamel(json['type'] as String) == e.name,
         orElse: () => TransactionType.other,
       ),
       amount: (json['amount'] as num).toDouble(),
@@ -45,6 +38,16 @@ class TransactionModel {
       createdAt: DateTime.parse(json['created_at'] as String),
       description: json['description'] as String?,
     );
+  }
+
+  static String _toCamel(String snake) {
+    List<String> parts = snake.split('_');
+    if (parts.isEmpty) return snake;
+    String res = parts[0];
+    for (int i = 1; i < parts.length; i++) {
+      res += parts[i][0].toUpperCase() + parts[i].substring(1);
+    }
+    return res;
   }
 
   Map<String, dynamic> toJson() {

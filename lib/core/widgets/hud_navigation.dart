@@ -2,7 +2,6 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../constants/app_colors.dart';
-import '../constants/app_spacing.dart';
 
 class HUDNavigation extends StatelessWidget {
   final int currentIndex;
@@ -19,133 +18,75 @@ class HUDNavigation extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.all(AppSpacing.md),
+      margin: const EdgeInsets.only(top: 16),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
+        borderRadius: BorderRadius.circular(20),
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
           child: Container(
-            height: 80,
-            constraints: const BoxConstraints(maxWidth: 500),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: AppColors.glassBackground.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(AppSpacing.borderRadiusFull),
+              color: Colors.white.withValues(alpha: 0.6),
+              borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: AppColors.glassBorder,
+                color: Colors.white.withValues(alpha: 0.3),
                 width: 1,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.3),
-                  blurRadius: 30,
-                  offset: const Offset(0, 10),
-                ),
-                BoxShadow(
-                  color: AppColors.primaryIndigo.withValues(alpha: 0.1),
-                  blurRadius: 60,
-                  offset: const Offset(0, 0),
+                  color: Colors.black.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.sm,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  items.length,
-                  (index) => _buildHUDItem(index),
-                ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: List.generate(
+                items.length,
+                (index) => _buildHUDItem(context, index),
               ),
             ),
           ),
         ),
       ),
-    ).animate().fadeIn(duration: 300.ms).slideY(begin: -0.2, end: 0);
+    ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.2, end: 0);
   }
 
-  Widget _buildHUDItem(int index) {
+  Widget _buildHUDItem(BuildContext context, int index) {
     final item = items[index];
     final isSelected = currentIndex == index;
 
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => onTap(index),
-        behavior: HitTestBehavior.opaque,
-        child: AnimatedContainer(
-          duration: AppSpacing.animationNormal,
-          curve: Curves.easeOutCubic,
-          margin: const EdgeInsets.symmetric(horizontal: 2),
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppSpacing.sm,
-            vertical: AppSpacing.xs,
+    return GestureDetector(
+      onTap: () => onTap(index),
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: 300.ms,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isSelected ? AppColors.primaryTeal.withValues(alpha: 0.1) : Colors.transparent,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              isSelected ? item.activeIcon : item.icon,
+              color: isSelected ? AppColors.primaryTeal : AppColors.textSecondaryLight,
+              size: 22,
+            ),
           ),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? AppColors.primaryIndigo.withValues(alpha: 0.25)
-                : Colors.transparent,
-            borderRadius: BorderRadius.circular(AppSpacing.borderRadiusMd),
-            border: isSelected
-                ? Border.all(
-                    color: AppColors.primaryIndigo.withValues(alpha: 0.4),
-                    width: 1,
-                  )
-                : null,
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: AppColors.primaryIndigo.withValues(alpha: 0.2),
-                      blurRadius: 10,
-                      spreadRadius: 0,
-                    ),
-                  ]
-                : null,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedContainer(
-                duration: AppSpacing.animationNormal,
-                padding: const EdgeInsets.all(AppSpacing.sm),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isSelected
-                      ? AppColors.primaryTeal.withValues(alpha: 0.2)
-                      : Colors.transparent,
-                  boxShadow: isSelected
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primaryTeal.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Icon(
-                  isSelected ? item.activeIcon : item.icon,
-                  color: isSelected ? AppColors.primaryTeal : AppColors.textMuted,
-                  size: 20,
-                ),
+          if (isSelected)
+            Container(
+              margin: const EdgeInsets.only(top: 4),
+              height: 4,
+              width: 4,
+              decoration: const BoxDecoration(
+                color: AppColors.primaryTeal,
+                shape: BoxShape.circle,
               ),
-              const SizedBox(height: 4),
-              Text(
-                item.label,
-                style: TextStyle(
-                  color: isSelected ? AppColors.primaryTeal : AppColors.textMuted,
-                  fontSize: 10,
-                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                  letterSpacing: 0.3,
-                ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                softWrap: false,
-              ),
-            ],
-          ),
-        ),
+            ).animate().scale(),
+        ],
       ),
     );
   }
@@ -190,7 +131,7 @@ class FloatingHUD extends StatelessWidget {
           Positioned(
             left: 0,
             right: 0,
-            bottom: AppSpacing.lg,
+            top: 16,
             child: Center(
               child: HUDNavigation(
                 currentIndex: currentIndex,

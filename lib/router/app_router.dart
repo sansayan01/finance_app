@@ -10,10 +10,9 @@ import '../features/loans/presentation/pages/loans_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
 import '../features/members/presentation/pages/members_page.dart';
 import '../features/analytics/presentation/pages/analytics_page.dart';
-import '../core/widgets/luma_bar.dart';
 import '../core/widgets/hud_navigation.dart';
-import '../core/widgets/aurora_background.dart';
-import '../core/constants/app_colors.dart';
+import '../features/loans/presentation/pages/loan_detail_page.dart';
+import '../features/loans/presentation/pages/new_loan_page.dart';
 
 class AuthRedirectListener extends ChangeNotifier {
   final Ref ref;
@@ -36,20 +35,13 @@ final routerProvider = Provider<GoRouter>((ref) {
   final authListener = ref.watch(authRedirectListenerProvider);
 
   return GoRouter(
-    initialLocation: '/auth',
+    initialLocation: '/loans',
     refreshListenable: authListener,
     redirect: (context, state) {
-      final isAuthenticated = authListener.isAuthenticated;
-      final isOnAuth = state.matchedLocation == '/auth';
-
-      if (!isAuthenticated && !isOnAuth) {
-        return '/auth';
-      }
-      if (isAuthenticated && isOnAuth) {
-        return '/';
-      }
+      // Temporarily bypass auth for rapid UI testing
       return null;
     },
+
     routes: [
       GoRoute(
         path: '/auth',
@@ -67,6 +59,17 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/loans',
             builder: (context, state) => const LoansPage(),
+          ),
+          GoRoute(
+            path: '/loans/new',
+            builder: (context, state) => const NewLoanPage(),
+          ),
+          GoRoute(
+            path: '/loans/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return LoanDetailPage(loanId: id);
+            },
           ),
           GoRoute(
             path: '/savings',
@@ -117,10 +120,10 @@ class MainShell extends StatelessWidget {
 
   int _calculateSelectedIndex(BuildContext context) {
     final String location = GoRouterState.of(context).matchedLocation;
-    if (location.startsWith('/loans')) return 1;
-    if (location.startsWith('/savings')) return 2;
-    if (location.startsWith('/members')) return 3;
-    if (location.startsWith('/analytics')) return 4;
+    if (location.startsWith('/loans')) return 2;
+    if (location.startsWith('/savings')) return 3;
+    if (location.startsWith('/members')) return 4;
+    if (location.startsWith('/analytics')) return 1;
     return 0;
   }
 
@@ -130,16 +133,16 @@ class MainShell extends StatelessWidget {
         context.go('/');
         break;
       case 1:
-        context.go('/loans');
+        context.go('/analytics');
         break;
       case 2:
-        context.go('/savings');
+        context.go('/loans');
         break;
       case 3:
-        context.go('/members');
+        context.go('/savings');
         break;
       case 4:
-        context.go('/analytics');
+        context.go('/members');
         break;
     }
   }
@@ -150,65 +153,71 @@ class MainShell extends StatelessWidget {
     final currentIndex = _calculateSelectedIndex(context);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
-      body: AuroraBackground(
-        child: SafeArea(
-          bottom: false,
-          child: Stack(
-            children: [
-              child,
-              if (isDesktop)
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 24,
-                  child: Center(
-                    child: HUDNavigation(
-                      currentIndex: currentIndex,
-                      onTap: (index) => _onItemTapped(index, context),
-                      items: const [
-                        HUDNavItem(
-                          label: 'Home',
-                          icon: Icons.dashboard_outlined,
-                          activeIcon: Icons.dashboard,
-                        ),
-                        HUDNavItem(
-                          label: 'Loans',
-                          icon: Icons.account_balance_outlined,
-                          activeIcon: Icons.account_balance,
-                        ),
-                        HUDNavItem(
-                          label: 'Savings',
-                          icon: Icons.savings_outlined,
-                          activeIcon: Icons.savings,
-                        ),
-                        HUDNavItem(
-                          label: 'Members',
-                          icon: Icons.people_outlined,
-                          activeIcon: Icons.people,
-                        ),
-                        HUDNavItem(
-                          label: 'Analytics',
-                          icon: Icons.analytics_outlined,
-                          activeIcon: Icons.analytics,
-                        ),
-                      ],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      body: Stack(
+        children: [
+          child,
+          if (isDesktop)
+            Positioned(
+              left: 0,
+              right: 0,
+              top: 0,
+              child: Center(
+                child: HUDNavigation(
+                  currentIndex: currentIndex,
+                  onTap: (index) => _onItemTapped(index, context),
+                  items: const [
+                    HUDNavItem(
+                      label: 'Dashboard',
+                      icon: Icons.grid_view_outlined,
+                      activeIcon: Icons.grid_view_rounded,
                     ),
-                  ),
+                    HUDNavItem(
+                      label: 'Analytics',
+                      icon: Icons.history_outlined,
+                      activeIcon: Icons.history_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Loans',
+                      icon: Icons.account_balance_outlined,
+                      activeIcon: Icons.account_balance_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Savings',
+                      icon: Icons.account_balance_wallet_outlined,
+                      activeIcon: Icons.account_balance_wallet_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Members',
+                      icon: Icons.people_outline_rounded,
+                      activeIcon: Icons.people_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Settings',
+                      icon: Icons.settings_outlined,
+                      activeIcon: Icons.settings_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Theme',
+                      icon: Icons.dark_mode_outlined,
+                      activeIcon: Icons.dark_mode_rounded,
+                    ),
+                    HUDNavItem(
+                      label: 'Logout',
+                      icon: Icons.logout_rounded,
+                      activeIcon: Icons.logout_rounded,
+                    ),
+                  ],
                 ),
-            ],
-          ),
-        ),
-      ),
-      bottomNavigationBar: isDesktop
-          ? null
-          : PremiumBottomNav(
-              currentIndex: currentIndex,
-              onTap: (index) => _onItemTapped(index, context),
+              ),
             ),
+        ],
+      ),
+      bottomNavigationBar: null,
     );
   }
 }
+
 
 class HomePageContent extends StatelessWidget {
   const HomePageContent({super.key});

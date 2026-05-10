@@ -1,0 +1,72 @@
+enum UserRole {
+  admin,
+  staff,
+  customer,
+}
+
+enum LoanStatus {
+  draft,
+  pending,
+  approved,
+  active,
+  closed,
+  rejected,
+  defaultStatus,
+  restructured,
+}
+
+enum InterestType {
+  flat,
+  reducing,
+}
+
+enum EMIStatus {
+  upcoming,
+  paid,
+  overdue,
+  defaulted,
+  pendingPayment,
+}
+
+enum SavingsFrequency {
+  daily,
+  weekly,
+  monthly,
+}
+
+enum SavingsStatus {
+  active,
+  matured,
+  withdrawn,
+  cancelled,
+}
+
+enum TransactionType {
+  loanDisbursement,
+  emiPayment,
+  savingsDeposit,
+  savingsWithdrawal,
+  penalty,
+  other,
+}
+
+enum PaymentMode {
+  cash,
+  upi,
+  bankTransfer,
+  cheque,
+  card,
+}
+
+enum CustomerStatus {
+  active,
+  inactive,
+  blacklisted,
+}
+
+enum CollectionFrequency {
+  daily,
+  weekly,
+  monthly,
+  yearly,
+}

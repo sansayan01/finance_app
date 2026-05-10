@@ -13,6 +13,7 @@ import '../../../loans/data/models/loan_model.dart';
 import '../../../savings/data/models/savings_model.dart';
 import '../../../transactions/data/models/transaction_model.dart';
 import '../../data/providers/dashboard_providers.dart';
+import '../../../../core/constants/enums.dart';
 
 class HomePage extends ConsumerWidget {
   final VoidCallback onViewAllLoans;
@@ -566,15 +567,15 @@ Widget _buildHeader(BuildContext context, WidgetRef ref) {
   }
 
   Widget _buildTransactionItem(TransactionModel transaction) {
-    final isDeposit = transaction.type == TransactionType.emiCollection ||
+    final isDeposit = transaction.type == TransactionType.emiPayment ||
         transaction.type == TransactionType.savingsDeposit;
     final icon = isDeposit ? Icons.arrow_downward : Icons.arrow_upward;
     final iconColor = isDeposit ? AppColors.success : AppColors.error;
 
     String title;
     switch (transaction.type) {
-      case TransactionType.emiCollection:
-        title = 'EMI Collection - ${transaction.memberName}';
+      case TransactionType.emiPayment:
+        title = 'EMI Payment - ${transaction.memberName}';
         break;
       case TransactionType.loanDisbursement:
         title = 'Loan Disbursement - ${transaction.memberName}';
@@ -769,7 +770,7 @@ class _LoanCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final progress = 1 - (loan.outstandingAmount / loan.principal);
+    final progress = 1 - (loan.outstandingBalance / loan.amount);
     final statusType = loan.status == LoanStatus.active
         ? StatusType.standard
         : loan.status == LoanStatus.defaultStatus
@@ -792,7 +793,7 @@ class _LoanCard extends StatelessWidget {
                 ),
                 child: Center(
                   child: Text(
-                    loan.memberName.isNotEmpty ? loan.memberName[0] : '?',
+                    (loan.customerName?.isNotEmpty ?? false) ? loan.customerName![0] : '?',
                     style: const TextStyle(
                       color: AppColors.primaryTeal,
                       fontSize: 20,
@@ -807,7 +808,7 @@ class _LoanCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      loan.memberName,
+                      loan.customerName ?? 'Unknown',
                       style: const TextStyle(
                         color: AppColors.textPrimary,
                         fontSize: 14,
@@ -815,7 +816,7 @@ class _LoanCard extends StatelessWidget {
                       ),
                     ),
                     Text(
-                      loan.id.substring(0, 8).toUpperCase(),
+                      loan.loanNumber,
                       style: const TextStyle(
                         color: AppColors.textMuted,
                         fontSize: 12,
@@ -845,7 +846,7 @@ class _LoanCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    AppFormatters.formatCurrency(loan.outstandingAmount),
+                    AppFormatters.formatCurrency(loan.outstandingBalance),
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,
@@ -865,7 +866,7 @@ class _LoanCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    AppFormatters.formatCurrency(loan.principal),
+                    AppFormatters.formatCurrency(loan.amount),
                     style: const TextStyle(
                       color: AppColors.textPrimary,
                       fontSize: 16,

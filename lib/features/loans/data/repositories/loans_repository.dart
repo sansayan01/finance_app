@@ -1,17 +1,17 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/loan_model.dart';
+import '../../../../core/constants/enums.dart';
 
 class LoansRepository {
   final SupabaseClient _client;
 
   LoansRepository(this._client);
 
-  Future<List<LoanModel>> getActiveLoans({int limit = 10}) async {
+  Future<List<LoanModel>> getAllLoans({int limit = 100}) async {
     try {
       final response = await _client
           .from('loans')
-          .select()
-          .eq('status', 'active')
+          .select('*, customers(full_name, phone), staff(full_name)')
           .order('created_at', ascending: false)
           .limit(limit);
 
@@ -23,12 +23,12 @@ class LoansRepository {
     }
   }
 
-  Future<List<LoanModel>> getLoansByStatus(String status, {int limit = 50}) async {
+  Future<List<LoanModel>> getActiveLoans({int limit = 50}) async {
     try {
       final response = await _client
           .from('loans')
-          .select()
-          .eq('status', status)
+          .select('*, customers(full_name, phone), staff(full_name)')
+          .eq('status', 'active')
           .order('created_at', ascending: false)
           .limit(limit);
 
@@ -42,31 +42,27 @@ class LoansRepository {
 
   Future<LoanSummary> getLoanSummary() async {
     try {
-      final activeResponse = await _client
-          .from('loans')
-          .select('id, principal, outstanding_amount')
-          .eq('status', 'active');
-
-      final defaultResponse = await _client
-          .from('loans')
-          .select('id, principal, outstanding_amount')
-          .eq('status', 'defaultStatus');
-
-      final activeLoans = activeResponse as List;
-      final defaultLoans = defaultResponse as List;
-
-      final totalOutstanding = [...activeLoans, ...defaultLoans]
-          .fold<double>(0, (sum, loan) => sum + ((loan['outstanding_amount'] ?? loan['principal']) as num).toDouble());
+      final loans = await getAllLoans(limit: 1000);
+      
+      final active = loans.where((l) => l.status == LoanStatus.active).toList();
+      final defaults = loans.where((l) => l.status == LoanStatus.defaultStatus).toList();
+      
+      final totalOutstanding = active.fold<double>(0, (sum, l) => sum + l.outstandingBalance) +
+                               defaults.fold<double>(0, (sum, l) => sum + l.outstandingBalance);
+      
+      final totalDisbursed = loans
+          .where((l) => l.status == LoanStatus.active || l.status == LoanStatus.closed)
+          .fold<double>(0, (sum, l) => sum + l.amount);
 
       return LoanSummary(
-        totalLoans: activeLoans.length + defaultLoans.length,
-        activeLoans: activeLoans.length,
-        defaultLoans: defaultLoans.length,
+        totalLoans: loans.length,
+        activeLoans: active.length,
+        defaultLoans: defaults.length,
         totalOutstanding: totalOutstanding,
-        totalDisbursed: 0,
-        totalCollected: 0,
-        overdueAmount: 0,
-        parPercentage: activeLoans.isEmpty ? 0 : (defaultLoans.length / activeLoans.length) * 100,
+        totalDisbursed: totalDisbursed,
+        totalCollected: 0, // Would need transaction history
+        overdueAmount: defaults.fold<double>(0, (sum, l) => sum + l.outstandingBalance),
+        parPercentage: loans.isEmpty ? 0 : (defaults.length / loans.length) * 100,
       );
     } catch (e) {
       return LoanSummary(
@@ -83,25 +79,25 @@ class LoansRepository {
   }
 
   Future<LoanModel?> getLoanById(String id) async {
-    final response = await _client
-        .from('loans')
-        .select()
-        .eq('id', id)
-        .maybeSingle();
+    try {
+      final response = await _client
+          .from('loans')
+          .select('*, customers(full_name, phone), staff(full_name)')
+          .eq('id', id)
+          .maybeSingle();
 
-    if (response == null) return null;
-    return LoanModel.fromJson(response);
+      if (response == null) return null;
+      return LoanModel.fromJson(response);
+    } catch (e) {
+      return null;
+    }
   }
 
-  Future<List<LoanScheduleEntry>> getLoanSchedule(String loanId) async {
-    final response = await _client
-        .from('loan_schedules')
-        .select()
-        .eq('loan_id', loanId)
-        .order('period', ascending: true);
+  Future<void> createLoan(Map<String, dynamic> data) async {
+    await _client.from('loans').insert(data);
+  }
 
-    return (response as List)
-        .map((json) => LoanScheduleEntry.fromJson(json))
-        .toList();
+  Future<void> updateLoanStatus(String id, String status) async {
+    await _client.from('loans').update({'status': status}).eq('id', id);
   }
 }
