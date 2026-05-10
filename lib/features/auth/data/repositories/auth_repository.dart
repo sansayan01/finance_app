@@ -21,12 +21,29 @@ class AuthRepository {
     }
 
     final parsedDate = DateTime.tryParse(user.createdAt);
+    
+    // Fail-safe role fetching
+    UserRole role = _parseRole(null, user.email);
+    try {
+      final profile = await _client
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+      
+      if (profile != null) {
+        role = _parseRole(profile['role'] as String?, user.email);
+      }
+    } catch (e) {
+      // Fallback to default/email override
+    }
 
     return UserModel(
       id: user.id,
       email: user.email ?? '',
       fullName: user.userMetadata?['full_name'] as String? ?? '',
       phone: user.phone,
+      role: role,
       createdAt: parsedDate ?? DateTime.now(),
     );
   }
@@ -58,6 +75,7 @@ class AuthRepository {
       email: user.email ?? '',
       fullName: fullName,
       phone: phone,
+      role: _parseRole(null, user.email),
       createdAt: parsedDate ?? DateTime.now(),
     );
   }
@@ -75,13 +93,44 @@ class AuthRepository {
     if (user == null) return null;
 
     final parsedDate = DateTime.tryParse(user.createdAt);
+    
+    // Fail-safe role fetching
+    UserRole role = _parseRole(null, user.email);
+    try {
+      final profile = await _client
+          .from('profiles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
+
+      if (profile != null) {
+        role = _parseRole(profile['role'] as String?, user.email);
+      }
+    } catch (e) {
+      // Fallback to default/email override
+    }
 
     return UserModel(
       id: user.id,
       email: user.email ?? '',
       fullName: user.userMetadata?['full_name'] as String? ?? '',
       phone: user.phone,
+      role: role,
       createdAt: parsedDate ?? DateTime.now(),
+    );
+  }
+
+  UserRole _parseRole(String? roleStr, String? email) {
+    // Primary Admin Override
+    if (email == 'msayan9733@gmail.com') {
+      return UserRole.executiveAdmin;
+    }
+    
+    if (roleStr == null) return UserRole.retailMember;
+    
+    return UserRole.values.firstWhere(
+      (e) => e.name == roleStr,
+      orElse: () => UserRole.retailMember,
     );
   }
 
