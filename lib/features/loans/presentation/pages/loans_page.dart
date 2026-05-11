@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -31,7 +32,7 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
   String _sortBy = 'recent'; // 'recent', 'amount', 'balance'
   bool _sortAscending = false;
 
-  final _tabs = const ['All', 'Active', 'Pending', 'Defaulted', 'Closed'];
+  final _tabs = const ['All', 'Active', 'Defaulted', 'Closed'];
 
   @override
   void initState() {
@@ -49,9 +50,8 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
   LoanStatus? _statusForTab(int index) {
     switch (index) {
       case 1: return LoanStatus.active;
-      case 2: return LoanStatus.pending;
-      case 3: return LoanStatus.defaultStatus;
-      case 4: return LoanStatus.closed;
+      case 2: return LoanStatus.defaultStatus;
+      case 3: return LoanStatus.closed;
       default: return null;
     }
   }
@@ -233,9 +233,9 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
                       delegate: SliverChildBuilderDelegate(
                         (_, __) => const Padding(
                           padding: EdgeInsets.only(bottom: 20),
-                          child: ShimmerCard(height: 200),
+                          child: ShimmerCard(height: 180),
                         ),
-                        childCount: 3,
+                        childCount: 4,
                       ),
                     ),
                   ),
@@ -515,26 +515,32 @@ class _LoanListItem extends StatelessWidget {
 
     return GlassCard(
       padding: const EdgeInsets.all(22),
-      onTap: () => context.push('/loans/${loan.id}'),
+      onTap: () {
+        HapticFeedback.selectionClick();
+        context.push('/loans/${loan.id}');
+      },
       child: Column(
         children: [
           Row(
             children: [
-              Container(
-                width: 56, height: 56,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [primary.withValues(alpha: 0.15), primary.withValues(alpha: 0.05)],
+              Hero(
+                tag: 'loan_avatar_${loan.id}',
+                child: Container(
+                  width: 56, height: 56,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [primary.withValues(alpha: 0.15), primary.withValues(alpha: 0.05)],
+                    ),
+                    borderRadius: BorderRadius.circular(18),
+                    border: Border.all(color: primary.withValues(alpha: 0.1)),
                   ),
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: primary.withValues(alpha: 0.1)),
-                ),
-                child: Center(
-                  child: Text(
-                    (loan.customerName ?? '?')[0].toUpperCase(),
-                    style: TextStyle(color: primary, fontSize: 24, fontWeight: FontWeight.w900),
+                  child: Center(
+                    child: Text(
+                      (loan.customerName ?? '?')[0].toUpperCase(),
+                      style: TextStyle(color: primary, fontSize: 24, fontWeight: FontWeight.w900),
+                    ),
                   ),
                 ),
               ),
