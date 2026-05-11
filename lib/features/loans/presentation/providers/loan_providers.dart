@@ -72,3 +72,11 @@ final userLoansProvider = FutureProvider.family<List<LoanModel>, String>((ref, u
   final loans = await ref.watch(allLoansProvider.future);
   return loans.where((l) => l.customerId == userId).toList();
 });
+
+// Backward compatibility and aliases
+final loansProvider = allLoansProvider;
+
+final loanSummaryProvider = FutureProvider<LoanSummary>((ref) async {
+  final repository = ref.watch(loansRepositoryProvider);
+  return repository.getLoanSummary();
+});

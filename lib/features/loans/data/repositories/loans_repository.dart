@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../settings/data/repositories/activity_log_repository.dart';
 import '../../../settings/data/models/activity_log_model.dart';
@@ -14,7 +16,7 @@ class LoansRepository {
     try {
       final response = await _client
           .from('loans')
-          .select('*, customers(full_name, phone), staff(full_name)')
+          .select('*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
           .order('created_at', ascending: false)
           .limit(limit);
 
@@ -30,7 +32,7 @@ class LoansRepository {
     try {
       final response = await _client
           .from('loans')
-          .select('*, customers(full_name, phone), staff(full_name)')
+          .select('*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
           .eq('status', 'active')
           .order('created_at', ascending: false)
           .limit(limit);
@@ -85,7 +87,7 @@ class LoansRepository {
     try {
       final response = await _client
           .from('loans')
-          .select('*, customers(full_name, phone), staff(full_name)')
+          .select('*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
           .eq('id', id)
           .maybeSingle();
 
@@ -116,19 +118,24 @@ class LoansRepository {
     required double estimatedInstallment,
     required double totalExposure,
   }) async {
+    final now = DateTime.now();
+    // Generate a unique loan number: L-YYYYMMDD-XXXX
+    final loanNumber = 'L-${DateFormat('yyyyMMdd').format(now)}-${math.Random().nextInt(9999).toString().padLeft(4, '0')}';
+    
     await _client.from('loans').insert({
-      'borrower_id': borrowerId,
-      'principal_amount': principal,
+      'customer_id': borrowerId,
+      'loan_number': loanNumber,
+      'amount': principal,
       'interest_rate': interestRate,
       'tenure_months': tenureMonths,
       'frequency': frequency,
       'collection_type': collectionType,
-      'interest_logic': interestLogic,
-      'first_installment_date': firstInstallmentDate.toIso8601String(),
-      'estimated_installment': estimatedInstallment,
-      'total_exposure': totalExposure,
+      'emi_amount': estimatedInstallment,
+      'outstanding_balance': totalExposure,
+      'total_repayable': totalExposure,
+      'interest_type': interestLogic,
       'status': 'active',
-      'created_at': DateTime.now().toIso8601String(),
+      'first_installment_date': firstInstallmentDate.toIso8601String(),
     });
   }
 

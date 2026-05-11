@@ -17,25 +17,25 @@ class LoanRepository {
     required double totalExposure,
   }) async {
     await _client.from('loans').insert({
-      'borrower_id': borrowerId,
-      'principal_amount': principal,
+      'customer_id': borrowerId,
+      'amount': principal,
       'interest_rate': interestRate,
       'tenure_months': tenureMonths,
       'frequency': frequency,
       'collection_type': collectionType,
-      'interest_logic': interestLogic,
+      'interest_type': interestLogic,
       'first_installment_date': firstInstallmentDate.toIso8601String(),
-      'estimated_installment': estimatedInstallment,
-      'total_exposure': totalExposure,
+      'emi_amount': estimatedInstallment,
+      'outstanding_balance': totalExposure,
+      'total_repayable': totalExposure,
       'status': 'active',
-      'created_at': DateTime.now().toIso8601String(),
     });
   }
 
   Future<List<Map<String, dynamic>>> getLoans() async {
     final response = await _client
         .from('loans')
-        .select('*, profiles:borrower_id(full_name)')
+        .select('*, profiles:customer_id(full_name)')
         .order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }

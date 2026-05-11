@@ -381,11 +381,11 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 _buildDropdown(
                   value: state.collectionType.name,
                   hint: 'Select',
-                  items: LoanFrequency.values.map((e) => e.name).toList(),
+                  items: CollectionType.values.map((e) => e.name).toList(),
                   onChanged: (val) {
                     if (val != null) {
                       ref.read(newLoanProvider.notifier).updateCollectionType(
-                        LoanFrequency.values.firstWhere((e) => e.name == val),
+                        CollectionType.values.firstWhere((e) => e.name == val),
                       );
                     }
                   },

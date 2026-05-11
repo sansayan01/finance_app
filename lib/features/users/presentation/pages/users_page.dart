@@ -405,7 +405,7 @@ class _UserListItem extends ConsumerWidget {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                        colors: [primary.withValues(alpha: 0.8), primary.withValues(alpha: 0.4)],
+                      colors: [primary.withValues(alpha: 0.8), primary.withValues(alpha: 0.4)],
                       ),
                     ),
                     child: Stack(
