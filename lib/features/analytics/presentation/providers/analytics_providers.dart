@@ -274,20 +274,26 @@ final analyticsProvider = FutureProvider<AnalyticsStats>((ref) async {
   }
 
   // Financial health metrics
+  final totalCollected = transactions
+      .where((t) =>
+          t.type == TransactionType.emiPayment ||
+          t.type == TransactionType.savingsDeposit)
+      .fold<double>(0, (sum, t) => sum + t.amount);
+
   final totalDue = loanSummary.totalOutstanding;
   final collectionEfficiency =
-      totalDue > 0 ? (loanSummary.totalCollected / totalDue) * 100 : 0;
+      totalDue > 0 ? (totalCollected / (totalDue + totalCollected)) * 100 : 0.0;
   final portfolioYield = loanSummary.totalDisbursed > 0
-      ? (loanSummary.totalCollected / loanSummary.totalDisbursed) * 100
-      : 0;
+      ? (totalCollected / loanSummary.totalDisbursed) * 100
+      : 0.0;
   final nplRatio = loanSummary.parPercentage;
   final liquidityRatio = totalSavings > 0
       ? (loanSummary.totalOutstanding / totalSavings) * 100
-      : 0;
+      : 0.0;
 
   return AnalyticsStats(
     totalDisbursed: loanSummary.totalDisbursed,
-    totalCollected: loanSummary.totalCollected,
+    totalCollected: totalCollected,
     parPercentage: loanSummary.parPercentage,
     disbursementChange: disbursementChange,
     collectionChange: collectionChange,

@@ -708,7 +708,10 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
               AppFormatters.formatCurrency(saving.monthlyDeposit), theme),
           const SizedBox(height: 12),
           _buildInfoRow(
-              'Interest Earned', AppFormatters.formatCurrency(0), theme,
+              'Interest Earned',
+              AppFormatters.formatCurrency(
+                  saving.currentAmount * saving.interestRate / 100),
+              theme,
               valueColor: AppColors.success),
           const SizedBox(height: 12),
           _buildInfoRow('Maturity Date',

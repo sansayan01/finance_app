@@ -136,18 +136,21 @@ class HomePage extends ConsumerWidget {
             ],
           ),
         ),
-        Row(
-          children: [
-            _HeaderIconBtn(
-              icon: Icons.notifications_outlined,
-              onTap: () => context.push('/notifications'),
-            ),
-            const SizedBox(width: 12),
-            _HeaderIconBtn(
-              icon: Icons.search_rounded,
-              onTap: () => context.push('/search'),
-            ),
-          ],
+        Padding(
+          padding: const EdgeInsets.only(top: 8),
+          child: Row(
+            children: [
+              _HeaderIconBtn(
+                icon: Icons.notifications_outlined,
+                onTap: () => context.push('/notifications'),
+              ),
+              const SizedBox(width: 12),
+              _HeaderIconBtn(
+                icon: Icons.search_rounded,
+                onTap: () => context.push('/search'),
+              ),
+            ],
+          ),
         ),
       ],
     ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05, end: 0);
