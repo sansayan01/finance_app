@@ -1,6 +1,5 @@
 import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/supabase_provider.dart';
 import '../../data/repositories/loans_repository.dart';
 import 'loan_providers.dart';
 
@@ -112,10 +111,6 @@ class NewLoanState {
     return principalAmount + interestBurden;
   }
 }
-
-final loansRepositoryProvider = Provider<LoansRepository>((ref) {
-  return LoansRepository(ref.watch(supabaseClientProvider));
-});
 
 class NewLoanNotifier extends StateNotifier<NewLoanState> {
   final LoansRepository _repository;

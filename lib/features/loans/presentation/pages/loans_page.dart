@@ -4,6 +4,7 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
+
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/status_badge.dart';
@@ -23,37 +24,25 @@ class LoansPage extends ConsumerStatefulWidget {
 }
 
 class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
   final _searchController = TextEditingController();
   String _searchQuery = '';
   LoanStatus? _filterStatus;
   
   // Sorting options
-  String _sortBy = 'recent'; // 'recent', 'amount', 'balance'
+  String _sortBy = 'recent'; // 'recent', 'amount', 'balance', 'progress'
   bool _sortAscending = false;
 
-  final _tabs = const ['All', 'Active', 'Defaulted', 'Closed'];
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: _tabs.length, vsync: this);
-  }
+  final List<Map<String, dynamic>> _filters = [
+    {'label': 'Overview', 'status': null, 'icon': Icons.dashboard_rounded},
+    {'label': 'Active', 'status': LoanStatus.active, 'icon': Icons.bolt_rounded},
+    {'label': 'At Risk', 'status': LoanStatus.defaultStatus, 'icon': Icons.warning_amber_rounded},
+    {'label': 'Settled', 'status': LoanStatus.closed, 'icon': Icons.verified_rounded},
+  ];
 
   @override
   void dispose() {
-    _tabController.dispose();
     _searchController.dispose();
     super.dispose();
-  }
-
-  LoanStatus? _statusForTab(int index) {
-    switch (index) {
-      case 1: return LoanStatus.active;
-      case 2: return LoanStatus.defaultStatus;
-      case 3: return LoanStatus.closed;
-      default: return null;
-    }
   }
 
   Future<void> _onRefresh() async {
@@ -83,100 +72,106 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(),
               slivers: [
-                // Premium Header Section
+                // Premium Dynamic Header
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 8),
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    'Loan Portfolio',
+                                    'Portfolio Intelligence',
                                     style: theme.textTheme.headlineLarge?.copyWith(
                                       fontWeight: FontWeight.w900,
-                                      letterSpacing: -1.5,
-                                      fontSize: 36,
+                                      letterSpacing: -1.2,
+                                      fontSize: 32,
                                     ),
-                                  ),
-                                  const SizedBox(height: 4),
+                                  ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.05),
+                                  const SizedBox(height: 6),
                                   Text(
-                                    'Capital Deployment & Risk Analytics',
-                                    style: theme.textTheme.bodySmall?.copyWith(
-                                      fontSize: 14,
+                                    'Live Risk Analytics & Capital Deployment',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
                                       fontWeight: FontWeight.w600,
-                                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                                      color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
                                     ),
-                                  ),
+                                  ).animate().fadeIn(delay: 100.ms).slideX(begin: -0.05),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: 16),
                             GlassButton(
                               label: 'DEPLOY',
-                              width: 100,
-                              height: 46,
-                              fontSize: 13,
-                              icon: Icons.rocket_launch_rounded,
+                              width: 110,
+                              height: 48,
+                              fontSize: 14,
+                              icon: Icons.add_circle_outline_rounded,
                               onTap: () => context.push('/loans/new'),
-                            ),
+                            ).animate().fadeIn(delay: 200.ms).scale(begin: const Offset(0.9, 0.9)),
                           ],
                         ),
                       ],
                     ),
-                  ).animate().fadeIn(duration: 400.ms).slideY(begin: -0.1, end: 0),
+                  ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 28)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                // Summary Metrics Dashboard
+                // Redesigned Feature-Rich Analytics Dashboard
                 SliverToBoxAdapter(
                   child: summaryAsync.when(
-                    data: (summary) => _buildSummaryDashboard(summary, primary, isDark, theme),
+                    data: (summary) => _buildAnalyticsDashboard(summary, primary, isDark, theme),
                     loading: () => const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 24),
-                      child: ShimmerCard(height: 120),
+                      child: ShimmerCard(height: 160),
                     ),
                     error: (_, __) => const SizedBox.shrink(),
-                  ).animate().fadeIn(delay: 200.ms),
+                  ).animate().fadeIn(delay: 300.ms),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 28)),
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-                // Search and Filter Bar
+                // Sticky Search & Filter Hub
                 SliverPersistentHeader(
                   pinned: true,
                   delegate: _SliverHeaderDelegate(
                     child: Container(
-                      color: theme.scaffoldBackgroundColor.withValues(alpha: 0.9),
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: Row(
-                              children: [
-                                Expanded(child: _buildSearchBar(isDark, theme)),
-                                const SizedBox(width: 12),
-                                _buildSortMenu(isDark, theme),
-                              ],
-                            ),
+                      color: theme.scaffoldBackgroundColor.withValues(alpha: 0.85),
+                      child: ClipRect(
+                        child: BackdropFilter(
+                          filter: ColorFilter.mode(theme.scaffoldBackgroundColor.withValues(alpha: 0.1), BlendMode.dstATop),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 24),
+                                child: Row(
+                                  children: [
+                                    Expanded(child: _buildSmartSearchBar(isDark, theme)),
+                                    const SizedBox(width: 12),
+                                    _buildSortMenu(isDark, theme),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                              _buildPillFilters(isDark, theme, primary),
+                              const SizedBox(height: 16),
+                            ],
                           ),
-                          const SizedBox(height: 16),
-                          _buildTabBar(isDark, theme),
-                          const SizedBox(height: 16),
-                        ],
+                        ),
                       ),
                     ),
                   ),
                 ),
 
-                // Loan List
+                // Dynamic Loan List
                 loansAsync.when(
                   data: (loans) {
                     var filtered = loans.where((l) {
@@ -217,10 +212,10 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
                       sliver: SliverList(
                         delegate: SliverChildBuilderDelegate(
                           (ctx, i) => Padding(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: _LoanListItem(loan: filtered[i]).animate()
-                                .fadeIn(delay: (50 * i).ms)
-                                .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuart),
+                            padding: const EdgeInsets.only(bottom: 24),
+                            child: _PremiumLoanCard(loan: filtered[i]).animate()
+                                .fadeIn(delay: (40 * i).ms)
+                                .slideY(begin: 0.08, end: 0, curve: Curves.easeOutQuart),
                           ),
                           childCount: filtered.length,
                         ),
@@ -232,8 +227,8 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
                     sliver: SliverList(
                       delegate: SliverChildBuilderDelegate(
                         (_, __) => const Padding(
-                          padding: EdgeInsets.only(bottom: 20),
-                          child: ShimmerCard(height: 180),
+                          padding: EdgeInsets.only(bottom: 24),
+                          child: ShimmerCard(height: 220),
                         ),
                         childCount: 4,
                       ),
@@ -242,7 +237,7 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
                   error: (e, _) => SliverToBoxAdapter(
                     child: Center(child: Padding(
                       padding: const EdgeInsets.all(40.0),
-                      child: Text('Error loading portfolio: $e', style: theme.textTheme.bodySmall),
+                      child: Text('Error loading portfolio: $e', style: theme.textTheme.bodyMedium),
                     )),
                   ),
                 ),
@@ -254,60 +249,61 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
     );
   }
 
-  Widget _buildSummaryDashboard(LoanSummary summary, Color primary, bool isDark, ThemeData theme) {
+  Widget _buildAnalyticsDashboard(LoanSummary summary, Color primary, bool isDark, ThemeData theme) {
     return SizedBox(
-      height: 120,
+      height: 160, // Increased height to prevent pixel overflow
       child: ListView(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 24),
         physics: const BouncingScrollPhysics(),
         children: [
-          _SummaryCard(
+          _AnalyticsCard(
             label: 'CAPITAL DEPLOYED',
             value: AppFormatters.formatCompactCurrency(summary.totalDisbursed),
             icon: Icons.account_balance_wallet_rounded,
             color: primary,
             trend: '+12%',
+            isDark: isDark,
           ),
           const SizedBox(width: 16),
-          _SummaryCard(
-            label: 'OUTSTANDING',
+          _AnalyticsCard(
+            label: 'TOTAL OUTSTANDING',
             value: AppFormatters.formatCompactCurrency(summary.totalOutstanding),
-            icon: Icons.pie_chart_rounded,
-            color: Colors.orangeAccent,
+            icon: Icons.donut_large_rounded,
+            color: AppColors.warning,
+            isDark: isDark,
           ),
           const SizedBox(width: 16),
-          _SummaryCard(
-            label: 'PAR % (RISK)',
+          _AnalyticsCard(
+            label: 'PORTFOLIO AT RISK',
             value: '${summary.parPercentage.toStringAsFixed(1)}%',
             icon: Icons.warning_amber_rounded,
-            color: summary.parPercentage > 10 ? Colors.redAccent : Colors.blueAccent,
-            subtitle: 'Portfolio at Risk',
+            color: summary.parPercentage > 10 ? AppColors.error : AppColors.success,
+            subtitle: '${summary.defaultLoans} Defaults',
+            isDark: isDark,
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSearchBar(bool isDark, ThemeData theme) {
+  Widget _buildSmartSearchBar(bool isDark, ThemeData theme) {
     return Container(
-      height: 52,
+      height: 54,
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        color: isDark ? AppColors.fillDark : AppColors.fillLight,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-        ),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: TextField(
         controller: _searchController,
         onChanged: (v) => setState(() => _searchQuery = v),
         decoration: InputDecoration(
-          hintText: 'Search borrower or loan ID...',
-          hintStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 14, fontWeight: FontWeight.w500),
-          prefixIcon: Icon(Icons.search_rounded, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5), size: 20),
+          hintText: 'Search borrower name, ID...',
+          hintStyle: theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodySmall?.color),
+          prefixIcon: Icon(Icons.search_rounded, color: theme.colorScheme.primary.withValues(alpha: 0.7), size: 22),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         ),
       ),
     );
@@ -324,57 +320,88 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
         }
       }),
       itemBuilder: (ctx) => [
-        const PopupMenuItem(value: 'recent', child: Text('Sort by Date')),
-        const PopupMenuItem(value: 'amount', child: Text('Sort by Amount')),
-        const PopupMenuItem(value: 'balance', child: Text('Sort by Balance')),
-        const PopupMenuItem(value: 'progress', child: Text('Sort by Progress')),
+        _buildPopupItem('recent', 'Latest Disbursed', Icons.access_time_rounded, theme),
+        _buildPopupItem('amount', 'Highest Principal', Icons.payments_rounded, theme),
+        _buildPopupItem('balance', 'Largest Balance', Icons.account_balance_rounded, theme),
+        _buildPopupItem('progress', 'Nearest to Close', Icons.track_changes_rounded, theme),
       ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      color: isDark ? AppColors.elevatedDark : Colors.white,
       child: Container(
-        height: 52, width: 52,
+        height: 54, width: 54,
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+          color: isDark ? AppColors.fillDark : AppColors.fillLight,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05),
-          ),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
         ),
-        child: Icon(Icons.tune_rounded, color: theme.colorScheme.primary, size: 22),
+        child: Icon(Icons.tune_rounded, color: theme.colorScheme.primary, size: 24),
       ),
     );
   }
 
-  Widget _buildTabBar(bool isDark, ThemeData theme) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24),
-      child: Container(
-        height: 46,
-        decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: TabBar(
-          controller: _tabController,
-          onTap: (i) => setState(() => _filterStatus = _statusForTab(i)),
-          indicator: BoxDecoration(
-            color: isDark ? AppColors.elevatedDark : Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.1),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+  PopupMenuItem<String> _buildPopupItem(String value, String label, IconData icon, ThemeData theme) {
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: 12),
+          Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPillFilters(bool isDark, ThemeData theme, Color primary) {
+    return SizedBox(
+      height: 40,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 24),
+        itemCount: _filters.length,
+        itemBuilder: (context, index) {
+          final filter = _filters[index];
+          final isSelected = _filterStatus == filter['status'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: InkWell(
+              onTap: () => setState(() => _filterStatus = filter['status'] as LoanStatus?),
+              borderRadius: BorderRadius.circular(20),
+              child: AnimatedContainer(
+                duration: 200.ms,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? primary : (isDark ? AppColors.fillDark : AppColors.fillLight),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? primary : theme.dividerColor.withValues(alpha: 0.1),
+                  ),
+                  boxShadow: isSelected ? [
+                    BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))
+                  ] : [],
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      filter['icon'] as IconData, 
+                      size: 16, 
+                      color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      filter['label'] as String,
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                        color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ],
-          ),
-          indicatorSize: TabBarIndicatorSize.tab,
-          indicatorPadding: const EdgeInsets.all(4),
-          labelColor: theme.colorScheme.primary,
-          unselectedLabelColor: theme.textTheme.bodySmall?.color,
-          labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800, letterSpacing: -0.2),
-          unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
-          dividerColor: Colors.transparent,
-          tabs: _tabs.map((t) => Tab(text: t)).toList(),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
@@ -393,12 +420,12 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
             child: Icon(Icons.account_balance_rounded, size: 72, color: primary.withValues(alpha: 0.2)),
           ),
           const SizedBox(height: 24),
-          Text('Empty Portfolio', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 24)),
+          Text('No Loans Found', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 24)),
           const SizedBox(height: 8),
-          Text('No loans found matching your criteria.', style: theme.textTheme.bodySmall?.copyWith(fontSize: 16)),
+          Text('Adjust your filters or deploy new capital.', style: theme.textTheme.bodyMedium),
           const SizedBox(height: 24),
           GlassButton(
-            label: 'Deploy First Loan',
+            label: 'Deploy Capital',
             width: 200,
             onTap: () => context.push('/loans/new'),
           ),
@@ -408,81 +435,122 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
   }
 }
 
-class _SummaryCard extends StatelessWidget {
+class _AnalyticsCard extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
   final Color color;
   final String? trend;
   final String? subtitle;
+  final bool isDark;
 
-  const _SummaryCard({
+  const _AnalyticsCard({
     required this.label,
     required this.value,
     required this.icon,
     required this.color,
     this.trend,
     this.subtitle,
+    required this.isDark,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    return SizedBox(
-      width: 180,
-      child: GlassCard(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Container(
+      width: 210, // Wider to avoid text overflow
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: color.withValues(alpha: 0.15), width: 1.5),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.05),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Stack(
+        children: [
+          Positioned(
+            right: -20,
+            bottom: -20,
+            child: Icon(icon, size: 100, color: color.withValues(alpha: 0.05)),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, size: 18, color: color),
-                if (trend != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.success.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(6),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: color.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(icon, size: 18, color: color),
                     ),
-                    child: Text(trend!, style: const TextStyle(color: AppColors.success, fontSize: 10, fontWeight: FontWeight.bold)),
+                    if (trend != null)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: AppColors.success.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(Icons.trending_up_rounded, size: 12, color: AppColors.success),
+                            const SizedBox(width: 4),
+                            Text(trend!, style: const TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w800)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const Spacer(),
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 1.5,
+                    color: Theme.of(context).textTheme.bodySmall?.color,
                   ),
+                ),
+                const SizedBox(height: 4),
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 34,
+                      fontFamily: 'JetBrains Mono',
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -1.5,
+                      color: isDark ? Colors.white : Colors.black,
+                    ),
+                  ),
+                ),
+                if (subtitle != null) ...[
+                  const SizedBox(height: 2),
+                  Text(subtitle!, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color)),
+                ]
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 10,
-                fontWeight: FontWeight.w800,
-                letterSpacing: 1.0,
-                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              value,
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.0,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 }
 
-class _LoanListItem extends StatelessWidget {
+class _PremiumLoanCard extends StatelessWidget {
   final LoanModel loan;
-  const _LoanListItem({required this.loan});
+  const _PremiumLoanCard({required this.loan});
 
   Future<void> _makeCall(String phone) async {
     final url = Uri.parse('tel:$phone');
@@ -514,32 +582,34 @@ class _LoanListItem extends StatelessWidget {
                 : StatusType.completed;
 
     return GlassCard(
-      padding: const EdgeInsets.all(22),
+      padding: const EdgeInsets.all(20),
       onTap: () {
         HapticFeedback.selectionClick();
         context.push('/loans/${loan.id}');
       },
       child: Column(
         children: [
+          // Header: Avatar, Name, ID, Badge
           Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Hero(
                 tag: 'loan_avatar_${loan.id}',
                 child: Container(
-                  width: 56, height: 56,
+                  width: 50, height: 50,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [primary.withValues(alpha: 0.15), primary.withValues(alpha: 0.05)],
+                      colors: [primary.withValues(alpha: 0.2), primary.withValues(alpha: 0.05)],
                     ),
-                    borderRadius: BorderRadius.circular(18),
-                    border: Border.all(color: primary.withValues(alpha: 0.1)),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: primary.withValues(alpha: 0.2), width: 2),
                   ),
                   child: Center(
                     child: Text(
                       (loan.customerName ?? '?')[0].toUpperCase(),
-                      style: TextStyle(color: primary, fontSize: 24, fontWeight: FontWeight.w900),
+                      style: TextStyle(color: primary, fontSize: 22, fontWeight: FontWeight.w900),
                     ),
                   ),
                 ),
@@ -551,16 +621,18 @@ class _LoanListItem extends StatelessWidget {
                   children: [
                     Text(
                       loan.customerName ?? 'Unknown Borrower',
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5),
+                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.3),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 2),
                     Row(
                       children: [
-                        Icon(Icons.fingerprint_rounded, size: 12, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5)),
+                        Icon(Icons.tag_rounded, size: 12, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7)),
                         const SizedBox(width: 4),
                         Text(
                           loan.loanNumber,
-                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, fontFamily: 'JetBrains Mono', fontWeight: FontWeight.w700),
+                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontFamily: 'JetBrains Mono', fontWeight: FontWeight.w600),
                         ),
                       ],
                     ),
@@ -571,98 +643,110 @@ class _LoanListItem extends StatelessWidget {
             ],
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           
-          // Refined Progress Indicator
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('COLLECTION PROGRESS', style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5))),
-                  Text('${(progress * 100).toStringAsFixed(0)}%', style: theme.textTheme.labelSmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: primary)),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Stack(
-                children: [
-                  Container(
-                    height: 10,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                  ),
-                  AnimatedContainer(
-                    duration: 1200.ms,
-                    curve: Curves.easeOutQuart,
-                    height: 10,
-                    width: (MediaQuery.of(context).size.width - 92) * progress.clamp(0, 1),
-                    decoration: BoxDecoration(
-                      gradient: AppColors.primaryGradient,
-                      borderRadius: BorderRadius.circular(12),
-                      boxShadow: [
-                        BoxShadow(
-                          color: primary.withValues(alpha: 0.4),
-                          blurRadius: 10,
-                          offset: const Offset(0, 2),
-                        ),
+          // Enhanced Progress Section
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.fillDark : AppColors.fillLight,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.data_usage_rounded, size: 14, color: primary),
+                        const SizedBox(width: 6),
+                        Text('RECOVERY PROGRESS', style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            ],
+                    Text('${(progress * 100).toStringAsFixed(1)}%', style: theme.textTheme.labelSmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w900, color: primary)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Stack(
+                  children: [
+                    Container(
+                      height: 8,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        color: theme.dividerColor.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    AnimatedContainer(
+                      duration: 1000.ms,
+                      curve: Curves.easeOutExpo,
+                      height: 8,
+                      width: (MediaQuery.of(context).size.width - 124) * progress.clamp(0, 1),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(color: primary.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 2)),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
           ),
           
-          const SizedBox(height: 24),
+          const SizedBox(height: 20),
           
+          // Data Points
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _InfoChip(label: 'PRINCIPAL', value: AppFormatters.formatCompactCurrency(loan.amount)),
-              _InfoChip(label: 'MONTHLY EMI', value: AppFormatters.formatCurrency(loan.emiAmount)),
-              _InfoChip(label: 'BALANCE', value: AppFormatters.formatCompactCurrency(loan.outstandingBalance), highlight: true),
+              _DataPoint(label: 'PRINCIPAL', value: AppFormatters.formatCompactCurrency(loan.amount)),
+              _DataPoint(label: 'RATE', value: '${loan.interestRate}%', icon: Icons.percent_rounded),
+              _DataPoint(label: 'BALANCE', value: AppFormatters.formatCompactCurrency(loan.outstandingBalance), highlight: true),
             ],
           ),
 
-          const SizedBox(height: 20),
-          const Divider(height: 1),
+          const SizedBox(height: 16),
+          Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.1)),
           const SizedBox(height: 16),
 
+          // Footer: Next EMI & Actions
           Row(
             children: [
-              Expanded(
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 child: Row(
                   children: [
-                    Icon(Icons.calendar_month_rounded, size: 14, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6)),
+                    Icon(Icons.event_rounded, size: 14, color: primary),
                     const SizedBox(width: 6),
                     Text(
                       'Next: ${AppFormatters.formatDate(loan.firstEmiDate ?? loan.createdAt.add(const Duration(days: 30)))}',
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, fontSize: 12),
+                      style: TextStyle(color: primary, fontWeight: FontWeight.w800, fontSize: 11),
                     ),
                   ],
                 ),
               ),
+              const Spacer(),
               if (loan.customerPhone != null) ...[
-                IconButton(
-                  onPressed: () => _makeCall(loan.customerPhone!),
-                  icon: const Icon(Icons.phone_in_talk_rounded, size: 20),
-                  style: IconButton.styleFrom(
-                    backgroundColor: primary.withValues(alpha: 0.1),
-                    foregroundColor: primary,
-                  ),
+                _ActionButton(
+                  icon: Icons.phone_in_talk_rounded,
+                  color: primary,
+                  onTap: () => _makeCall(loan.customerPhone!),
                 ),
                 const SizedBox(width: 8),
-                IconButton(
-                  onPressed: () => _makeWhatsApp(loan.customerPhone!),
-                  icon: const Icon(Icons.chat_bubble_rounded, size: 20),
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.success.withValues(alpha: 0.1),
-                    foregroundColor: AppColors.success,
-                  ),
+                _ActionButton(
+                  icon: Icons.chat_bubble_rounded,
+                  color: AppColors.success,
+                  onTap: () => _makeWhatsApp(loan.customerPhone!),
                 ),
               ],
             ],
@@ -673,11 +757,13 @@ class _LoanListItem extends StatelessWidget {
   }
 }
 
-class _InfoChip extends StatelessWidget {
+class _DataPoint extends StatelessWidget {
   final String label;
   final String value;
   final bool highlight;
-  const _InfoChip({required this.label, required this.value, this.highlight = false});
+  final IconData? icon;
+
+  const _DataPoint({required this.label, required this.value, this.highlight = false, this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -686,17 +772,52 @@ class _InfoChip extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w800, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6))),
-        const SizedBox(height: 6),
+        Row(
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 10, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6)),
+              const SizedBox(width: 4),
+            ],
+            Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w800, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6))),
+          ],
+        ),
+        const SizedBox(height: 4),
         Text(
           value, 
-          style: theme.textTheme.bodyMedium?.copyWith(
+          style: TextStyle(
+            fontFamily: 'JetBrains Mono',
             fontWeight: FontWeight.w900, 
-            fontSize: 15,
-            color: highlight ? primary : null,
+            fontSize: 16,
+            letterSpacing: -0.5,
+            color: highlight ? primary : theme.textTheme.bodyLarge?.color,
           )
         ),
       ],
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _ActionButton({required this.icon, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Material(
+      color: color.withValues(alpha: isDark ? 0.15 : 0.1),
+      borderRadius: BorderRadius.circular(10),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Icon(icon, size: 18, color: color),
+        ),
+      ),
     );
   }
 }
@@ -706,9 +827,9 @@ class _SliverHeaderDelegate extends SliverPersistentHeaderDelegate {
   _SliverHeaderDelegate({required this.child});
 
   @override
-  double get minExtent => 140;
+  double get minExtent => 146;
   @override
-  double get maxExtent => 140;
+  double get maxExtent => 146;
 
   @override
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => child;
