@@ -2,16 +2,15 @@ import 'dart:math';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/supabase_provider.dart';
 import '../../data/repositories/loans_repository.dart';
+import 'loan_providers.dart';
 
 enum InterestLogic { reducingBalance, flat }
-enum LoanFrequency { daily, weekly, monthly, yearly }
-enum CollectionType { doorToDoor, centerCollected, branchCollected }
+enum CollectionType { daily, weekly, monthly, yearly }
 
 class NewLoanState {
   final String? borrowerId;
   final double principalAmount;
   final double interestRate;
-  final LoanFrequency frequency;
   final int tenureMonths;
   final CollectionType collectionType;
   final InterestLogic interestLogic;
@@ -22,9 +21,8 @@ class NewLoanState {
     this.borrowerId,
     this.principalAmount = 50000,
     this.interestRate = 24,
-    this.frequency = LoanFrequency.monthly,
     this.tenureMonths = 12,
-    this.collectionType = CollectionType.doorToDoor,
+    this.collectionType = CollectionType.monthly,
     this.interestLogic = InterestLogic.reducingBalance,
     this.firstInstallmentDate,
     this.isLoading = false,
@@ -34,7 +32,6 @@ class NewLoanState {
     String? borrowerId,
     double? principalAmount,
     double? interestRate,
-    LoanFrequency? frequency,
     int? tenureMonths,
     CollectionType? collectionType,
     InterestLogic? interestLogic,
@@ -45,7 +42,6 @@ class NewLoanState {
       borrowerId: borrowerId ?? this.borrowerId,
       principalAmount: principalAmount ?? this.principalAmount,
       interestRate: interestRate ?? this.interestRate,
-      frequency: frequency ?? this.frequency,
       tenureMonths: tenureMonths ?? this.tenureMonths,
       collectionType: collectionType ?? this.collectionType,
       interestLogic: interestLogic ?? this.interestLogic,
@@ -54,18 +50,17 @@ class NewLoanState {
     );
   }
 
-  // Total number of installments based on frequency
   int get numberOfInstallments {
     if (tenureMonths <= 0) return 0;
-    switch (frequency) {
-      case LoanFrequency.daily:
+    switch (collectionType) {
+      case CollectionType.daily:
         return (tenureMonths * 365 / 12).round();
-      case LoanFrequency.weekly:
+      case CollectionType.weekly:
         return (tenureMonths * 52 / 12).round();
-      case LoanFrequency.yearly:
+      case CollectionType.yearly:
         int n = (tenureMonths / 12).round();
         return n > 0 ? n : 1;
-      case LoanFrequency.monthly:
+      case CollectionType.monthly:
         return tenureMonths;
     }
   }
@@ -79,17 +74,17 @@ class NewLoanState {
     if (n <= 0) return 0;
 
     double r;
-    switch (frequency) {
-      case LoanFrequency.daily:
+    switch (collectionType) {
+      case CollectionType.daily:
         r = annualRate / 365;
         break;
-      case LoanFrequency.weekly:
+      case CollectionType.weekly:
         r = annualRate / 52;
         break;
-      case LoanFrequency.yearly:
+      case CollectionType.yearly:
         r = annualRate;
         break;
-      case LoanFrequency.monthly:
+      case CollectionType.monthly:
         r = annualRate / 12;
         break;
     }
@@ -124,13 +119,13 @@ final loansRepositoryProvider = Provider<LoansRepository>((ref) {
 
 class NewLoanNotifier extends StateNotifier<NewLoanState> {
   final LoansRepository _repository;
+  final Ref _ref;
   
-  NewLoanNotifier(this._repository) : super(NewLoanState());
+  NewLoanNotifier(this._repository, this._ref) : super(NewLoanState());
 
   void updateBorrower(String? id) => state = state.copyWith(borrowerId: id);
   void updatePrincipal(double amount) => state = state.copyWith(principalAmount: amount);
   void updateInterestRate(double rate) => state = state.copyWith(interestRate: rate);
-  void updateFrequency(LoanFrequency freq) => state = state.copyWith(frequency: freq);
   void updateTenure(int months) => state = state.copyWith(tenureMonths: months);
   void updateCollectionType(CollectionType type) => state = state.copyWith(collectionType: type);
   void updateInterestLogic(InterestLogic logic) => state = state.copyWith(interestLogic: logic);
@@ -146,13 +141,17 @@ class NewLoanNotifier extends StateNotifier<NewLoanState> {
         principal: state.principalAmount,
         interestRate: state.interestRate,
         tenureMonths: state.tenureMonths,
-        frequency: state.frequency.name,
+        frequency: state.collectionType.name,
         collectionType: state.collectionType.name,
         interestLogic: state.interestLogic.name,
         firstInstallmentDate: state.firstInstallmentDate ?? DateTime.now().add(const Duration(days: 30)),
         estimatedInstallment: state.estimatedInstallment,
         totalExposure: state.totalExposure,
       );
+      
+      // Force refresh the loans list
+      _ref.invalidate(loansProvider);
+      
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -164,5 +163,5 @@ class NewLoanNotifier extends StateNotifier<NewLoanState> {
 }
 
 final newLoanProvider = StateNotifierProvider<NewLoanNotifier, NewLoanState>((ref) {
-  return NewLoanNotifier(ref.watch(loansRepositoryProvider));
+  return NewLoanNotifier(ref.watch(loansRepositoryProvider), ref);
 });

@@ -287,57 +287,29 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
 
           _buildDivider(theme),
 
-          // ── Rate & Frequency ──
-          _buildTwoColumn(
-            isNarrow: isNarrow,
-            first: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLabel('INTEREST RATE (%)', theme),
-                const SizedBox(height: 10),
-                _buildTextField(
-                  controller: _rateController,
-                  suffix: '% APR',
-                  onChanged: (val) {
-                    final parsed = double.tryParse(val) ?? 0;
-                    ref.read(newLoanProvider.notifier).updateInterestRate(parsed);
-                  },
-                  theme: theme, isDark: isDark,
-                ),
-                const SizedBox(height: 12),
-                _buildSlider(
-                  value: state.interestRate.clamp(0, 50),
-                  min: 0, max: 50,
-                  displayValue: '${state.interestRate.toStringAsFixed(1)}%',
-                  minLabel: '0%', maxLabel: '50%',
-                  onChanged: (val) {
-                    _rateController.text = val.toStringAsFixed(1);
-                    ref.read(newLoanProvider.notifier).updateInterestRate(val);
-                  },
-                  theme: theme, primary: primary,
-                ),
-              ],
-            ),
-            second: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildLabel('REPAYMENT FREQUENCY', theme),
-                const SizedBox(height: 10),
-                _buildDropdown(
-                  value: state.frequency.name,
-                  hint: 'Select',
-                  items: LoanFrequency.values.map((e) => e.name).toList(),
-                  onChanged: (val) {
-                    if (val != null) {
-                      ref.read(newLoanProvider.notifier).updateFrequency(
-                        LoanFrequency.values.firstWhere((e) => e.name == val),
-                      );
-                    }
-                  },
-                  theme: theme, isDark: isDark,
-                ),
-              ],
-            ),
+          // ── Rate ──
+          _buildLabel('INTEREST RATE (%)', theme),
+          const SizedBox(height: 10),
+          _buildTextField(
+            controller: _rateController,
+            suffix: '% APR',
+            onChanged: (val) {
+              final parsed = double.tryParse(val) ?? 0;
+              ref.read(newLoanProvider.notifier).updateInterestRate(parsed);
+            },
+            theme: theme, isDark: isDark,
+          ),
+          const SizedBox(height: 12),
+          _buildSlider(
+            value: state.interestRate.clamp(0, 50),
+            min: 0, max: 50,
+            displayValue: '${state.interestRate.toStringAsFixed(1)}%',
+            minLabel: '0%', maxLabel: '50%',
+            onChanged: (val) {
+              _rateController.text = val.toStringAsFixed(1);
+              ref.read(newLoanProvider.notifier).updateInterestRate(val);
+            },
+            theme: theme, primary: primary,
           ),
 
           _buildDivider(theme),
@@ -474,7 +446,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                       style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: primary, letterSpacing: -1),
                     ),
                     const SizedBox(height: 4),
-                    Text('per ${_capitalize(state.frequency.name)}', style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+                    Text('per ${_capitalize(state.collectionType.name)}', style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
                   ],
                 ),
               ),

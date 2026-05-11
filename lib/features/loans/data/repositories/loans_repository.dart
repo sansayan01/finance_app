@@ -147,10 +147,16 @@ class LoansRepository {
     await _client.from('loans').update({'status': status}).eq('id', id);
   }
 
-  Future<void> settleLoan(String loanId) async {
+  Future<void> settleLoan(String loanId, double amount) async {
+    final loan = await getLoanById(loanId);
+    if (loan == null) return;
+
+    final newBalance = (loan.outstandingBalance - amount).clamp(0.0, double.infinity);
+    final newStatus = newBalance <= 0 ? 'closed' : 'active';
+
     await _client.from('loans').update({
-      'status': 'closed',
-      'outstanding_balance': 0,
+      'status': newStatus,
+      'outstanding_balance': newBalance,
     }).eq('id', loanId);
   }
 }

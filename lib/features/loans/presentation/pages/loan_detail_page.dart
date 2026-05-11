@@ -487,23 +487,43 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
 
   Future<void> _handleSettlement(LoanModel loan) async {
     HapticFeedback.heavyImpact();
+    final controller = TextEditingController(text: loan.outstandingBalance.toStringAsFixed(2));
+    
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Confirm Settlement'),
-        content: Text('Settle outstanding balance of ${AppFormatters.formatCurrency(loan.outstandingBalance)}?'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Enter the final settlement amount to close this loan.', style: Theme.of(context).textTheme.bodySmall),
+            const SizedBox(height: 16),
+            TextField(
+              controller: controller,
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: InputDecoration(
+                labelText: 'Settlement Amount',
+                prefixText: '₹ ',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
+            ),
+          ],
+        ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
           ElevatedButton(
             onPressed: () async {
+              final amount = double.tryParse(controller.text) ?? 0.0;
               final messenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
               try {
-                await ref.read(loansRepositoryProvider).settleLoan(loan.id);
+                await ref.read(loansRepositoryProvider).settleLoan(loan.id, amount);
                 ref.invalidate(loanDetailProvider(loan.id));
                 ref.invalidate(loansProvider);
                 if (!mounted) return;
-                messenger.showSnackBar(const SnackBar(content: Text('Loan settled successfully')));
+                messenger.showSnackBar(SnackBar(content: Text('Settlement of ${AppFormatters.formatCurrency(amount)} processed')));
               } catch (e) {
                 if (!mounted) return;
                 messenger.showSnackBar(SnackBar(content: Text('Settlement failed: $e')));
