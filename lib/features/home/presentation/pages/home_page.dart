@@ -34,20 +34,22 @@ class HomePage extends ConsumerWidget {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: AuroraBackground(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            ref.invalidate(loanSummaryProvider);
-            ref.invalidate(dashboardLoansProvider);
-            ref.invalidate(dashboardSavingsProvider);
-            ref.invalidate(dashboardTransactionsProvider);
-            ref.invalidate(todayStatsProvider);
-          },
-          displacement: 20,
-          color: Theme.of(context).colorScheme.primary,
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
-            child: Column(
+        child: SafeArea(
+          bottom: false, // Bottom is handled by the nav bar padding
+          child: RefreshIndicator(
+            onRefresh: () async {
+              ref.invalidate(loanSummaryProvider);
+              ref.invalidate(dashboardLoansProvider);
+              ref.invalidate(dashboardSavingsProvider);
+              ref.invalidate(dashboardTransactionsProvider);
+              ref.invalidate(todayStatsProvider);
+            },
+            displacement: 20,
+            color: Theme.of(context).colorScheme.primary,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
+              child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 _buildHeader(context, ref),
@@ -66,8 +68,9 @@ class HomePage extends ConsumerWidget {
           ),
         ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
@@ -157,95 +160,98 @@ class HomePage extends ConsumerWidget {
         final collected = todayStatsAsync.valueOrNull?['collected'] as double? ?? 0.0;
         return GlassCard(
           elevated: true,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+          child: Stack(
+            clipBehavior: Clip.none,
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              // Action Menu - Positioned to the top right to save vertical space
+              Positioned(
+                top: -8,
+                right: -12,
+                child: PopupMenuButton<String>(
+                  icon: Icon(Icons.more_horiz, color: theme.textTheme.bodySmall?.color, size: 24),
+                  padding: EdgeInsets.zero,
+                  onSelected: (value) {
+                    if (value == 'refresh') {
+                      ref.invalidate(loanSummaryProvider);
+                      ref.invalidate(todayStatsProvider);
+                    } else if (value == 'analytics') {
+                      context.push('/analytics');
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'refresh',
+                      child: Row(
+                        children: [
+                          Icon(Icons.refresh_rounded, size: 20),
+                          SizedBox(width: 12),
+                          Text('Refresh Dashboard'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'analytics',
+                      child: Row(
+                        children: [
+                          Icon(Icons.analytics_outlined, size: 20),
+                          SizedBox(width: 12),
+                          Text('View Analytics'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Spacer(),
-                  PopupMenuButton<String>(
-                    icon: Icon(Icons.more_horiz, color: theme.textTheme.bodySmall?.color, size: 24),
-                    padding: EdgeInsets.zero,
-                    onSelected: (value) {
-                      if (value == 'refresh') {
-                        ref.invalidate(loanSummaryProvider);
-                        ref.invalidate(todayStatsProvider);
-                      } else if (value == 'analytics') {
-                        context.push('/analytics');
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      const PopupMenuItem(
-                        value: 'refresh',
-                        child: Row(
-                          children: [
-                            Icon(Icons.refresh_rounded, size: 20),
-                            SizedBox(width: 12),
-                            Text('Refresh Dashboard'),
-                          ],
+                  Text(
+                    AppFormatters.formatCompactCurrency(summary.totalOutstanding),
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.2,
+                      fontSize: 36,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Total Outstanding',
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _HeroStat(
+                          label: 'Active Members',
+                          value: summary.activeLoans.toString(),
+                          icon: Icons.people_rounded,
+                          color: isDark ? AppColors.accentDark : AppColors.accentLight,
+                          onTap: () => context.push('/users'),
                         ),
                       ),
-                      const PopupMenuItem(
-                        value: 'analytics',
-                        child: Row(
-                          children: [
-                            Icon(Icons.analytics_outlined, size: 20),
-                            SizedBox(width: 12),
-                            Text('View Analytics'),
-                          ],
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _HeroStat(
+                          label: "Today's Collection",
+                          value: AppFormatters.formatCompactCurrency(collected),
+                          icon: Icons.payments_rounded,
+                          color: isDark ? AppColors.successDark : AppColors.success,
+                          onTap: () {},
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _HeroStat(
+                          label: 'PAR Rate',
+                          value: '${summary.parPercentage.toStringAsFixed(1)}%',
+                          icon: Icons.trending_down_rounded,
+                          color: summary.parPercentage > 5 ? (isDark ? AppColors.errorDark : AppColors.error) : (isDark ? AppColors.warningDark : AppColors.warning),
+                          onTap: () => context.push('/analytics'),
                         ),
                       ),
                     ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 20),
-              Text(
-                AppFormatters.formatCompactCurrency(summary.totalOutstanding),
-                style: theme.textTheme.displaySmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -1.2,
-                  fontSize: 36,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                'Total Outstanding',
-                style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: _HeroStat(
-                      label: 'Active Members',
-                      value: summary.activeLoans.toString(),
-                      icon: Icons.people_rounded,
-                      color: isDark ? AppColors.accentDark : AppColors.accentLight,
-                      onTap: () => context.push('/users'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _HeroStat(
-                      label: "Today's Collection",
-                      value: AppFormatters.formatCompactCurrency(collected),
-                      icon: Icons.payments_rounded,
-                      color: isDark ? AppColors.successDark : AppColors.success,
-                      onTap: () {}, // Transactions page coming soon
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _HeroStat(
-                      label: 'PAR Rate',
-                      value: '${summary.parPercentage.toStringAsFixed(1)}%',
-                      icon: Icons.trending_down_rounded,
-                      color: summary.parPercentage > 5 ? (isDark ? AppColors.errorDark : AppColors.error) : (isDark ? AppColors.warningDark : AppColors.warning),
-                      onTap: () => context.push('/analytics'),
-                    ),
                   ),
                 ],
               ),
