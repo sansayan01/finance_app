@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -155,26 +154,23 @@ class _LoansPageState extends ConsumerState<LoansPage> with SingleTickerProvider
                   pinned: true,
                   delegate: _SliverHeaderDelegate(
                     child: Container(
-                      color: theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                        child: Column(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 24),
-                              child: Row(
-                                children: [
-                                  Expanded(child: _buildSearchBar(isDark, theme)),
-                                  const SizedBox(width: 12),
-                                  _buildSortMenu(isDark, theme),
-                                ],
-                              ),
+                      color: theme.scaffoldBackgroundColor.withValues(alpha: 0.9),
+                      child: Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Row(
+                              children: [
+                                Expanded(child: _buildSearchBar(isDark, theme)),
+                                const SizedBox(width: 12),
+                                _buildSortMenu(isDark, theme),
+                              ],
                             ),
-                            const SizedBox(height: 16),
-                            _buildTabBar(isDark, theme),
-                            const SizedBox(height: 16),
-                          ],
-                        ),
+                          ),
+                          const SizedBox(height: 16),
+                          _buildTabBar(isDark, theme),
+                          const SizedBox(height: 16),
+                        ],
                       ),
                     ),
                   ),
@@ -505,7 +501,10 @@ class _LoanListItem extends StatelessWidget {
     final primary = theme.colorScheme.primary;
     final isDark = theme.brightness == Brightness.dark;
     
-    final progress = 1 - (loan.outstandingBalance / loan.totalRepayable);
+    final progress = loan.totalRepayable > 0 
+        ? (1 - (loan.outstandingBalance / loan.totalRepayable)).clamp(0.0, 1.0)
+        : 0.0;
+    
     final statusType = loan.status == LoanStatus.active
         ? StatusType.standard
         : loan.status == LoanStatus.defaultStatus

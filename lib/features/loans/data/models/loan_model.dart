@@ -62,16 +62,16 @@ class LoanModel {
   });
 
   factory LoanModel.fromJson(Map<String, dynamic> json) {
-    // Handle Supabase join format
-    final customersJson = json['customers'] as Map<String, dynamic>?;
+    // Handle Supabase join format (support both profiles and customers aliases)
+    final profilesJson = (json['profiles'] ?? json['customers']) as Map<String, dynamic>?;
     final staffJson = json['staff'] as Map<String, dynamic>?;
 
     return LoanModel(
       id: json['id'] as String,
-      customerId: json['customer_id'] ?? json['borrower_id'] as String,
+      customerId: json['customer_id'] as String? ?? json['borrower_id'] as String? ?? '',
       planId: json['plan_id'] as String?,
       staffId: json['staff_id'] as String?,
-      loanNumber: json['loan_number'] ?? json['id'].toString().substring(0, 8).toUpperCase(),
+      loanNumber: json['loan_number'] as String? ?? json['id'].toString().substring(0, 8).toUpperCase(),
       amount: (json['amount'] ?? json['principal_amount'] ?? 0.0).toDouble(),
       interestRate: (json['interest_rate'] ?? 0.0).toDouble(),
       tenureMonths: json['tenure_months'] as int? ?? 12,
@@ -90,7 +90,7 @@ class LoanModel {
           ? DateTime.parse((json['first_emi_date'] ?? json['first_installment_date']) as String)
           : null,
       status: LoanStatus.values.firstWhere(
-        (e) => e.name == json['status'] || _toSnake(e.name) == json['status'],
+        (e) => e.name == json['status'] || _toSnake(e.name) == json['status'] || (json['status'] == 'defaulted' && e == LoanStatus.defaultStatus),
         orElse: () => LoanStatus.draft,
       ),
       purpose: json['purpose'] as String?,
@@ -105,8 +105,8 @@ class LoanModel {
       updatedAt: json['updated_at'] != null
           ? DateTime.parse(json['updated_at'] as String)
           : DateTime.now(),
-      customerName: customersJson?['full_name'] as String?,
-      customerPhone: customersJson?['phone'] as String?,
+      customerName: profilesJson?['full_name'] as String?,
+      customerPhone: profilesJson?['phone'] as String?,
       staffName: staffJson?['full_name'] as String?,
     );
   }
