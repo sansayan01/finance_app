@@ -6,6 +6,7 @@ import '../../../savings/data/models/savings_model.dart';
 import '../../../savings/data/providers/savings_providers.dart';
 import '../../../transactions/data/repositories/transactions_repository.dart';
 import '../../../transactions/data/models/transaction_model.dart';
+import '../../../../core/constants/enums.dart';
 
 final loansRepositoryProvider = Provider<LoansRepository>((ref) {
   return LoansRepository(ref.watch(supabaseClientProvider));
@@ -66,4 +67,23 @@ final dashboardTransactionsProvider =
     FutureProvider<List<TransactionModel>>((ref) async {
   final repository = ref.watch(transactionsRepositoryProvider);
   return repository.getRecentTransactions(limit: 3);
+});
+
+final overdueLoansProvider = FutureProvider<List<LoanModel>>((ref) async {
+  final repository = ref.watch(loansRepositoryProvider);
+  final allLoans = await repository.getAllLoans(limit: 100);
+  return allLoans.where((l) => l.status == LoanStatus.defaultStatus).toList();
+});
+
+final todayAgendaProvider = FutureProvider<List<dynamic>>((ref) async {
+  final loans = await ref.watch(dashboardLoansProvider.future);
+  final savings = await ref.watch(dashboardSavingsProvider.future);
+  
+  // Combine some items for the agenda
+  final agenda = <dynamic>[];
+  if (loans.isNotEmpty) agenda.add(loans.first);
+  if (savings.isNotEmpty) agenda.add(savings.first);
+  if (loans.length > 1) agenda.add(loans[1]);
+  
+  return agenda;
 });

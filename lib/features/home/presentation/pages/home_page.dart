@@ -13,8 +13,8 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../loans/data/models/loan_model.dart';
 import '../../../savings/data/models/savings_model.dart';
 import '../../../transactions/data/models/transaction_model.dart';
-import '../../data/providers/dashboard_providers.dart';
 import '../../../../core/constants/enums.dart';
+import '../../data/providers/dashboard_providers.dart';
 
 class HomePage extends ConsumerWidget {
   final VoidCallback onViewAllLoans;
@@ -54,10 +54,16 @@ class HomePage extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildHeader(context, ref),
+                  const SizedBox(height: 20),
+                  _buildOverdueBanner(context, ref),
                   const SizedBox(height: 28),
                   _buildHeroCard(context, ref),
+                  const SizedBox(height: 16),
+                  _buildFinancialSummaryStrip(context, ref),
                   const SizedBox(height: 28),
                   _buildQuickActions(context),
+                  const SizedBox(height: 28),
+                  _buildTodayAgenda(context, ref),
                   const SizedBox(height: 28),
                   _buildActiveLoansSection(context, ref),
                   const SizedBox(height: 28),
@@ -71,6 +77,239 @@ class HomePage extends ConsumerWidget {
         ),
       ),
     );
+  }
+
+  Widget _buildOverdueBanner(BuildContext context, WidgetRef ref) {
+    final overdueAsync = ref.watch(overdueLoansProvider);
+    final theme = Theme.of(context);
+
+    return overdueAsync.when(
+      data: (overdue) {
+        if (overdue.isEmpty) return const SizedBox.shrink();
+        return GestureDetector(
+          onTap: () => context.push('/analytics'),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.error.withValues(alpha: 0.15),
+                  AppColors.error.withValues(alpha: 0.05),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+            ),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.warning_amber_rounded,
+                      color: AppColors.error, size: 18),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Attention Required',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.error,
+                          fontSize: 13,
+                        ),
+                      ),
+                      Text(
+                        '${overdue.length} accounts are currently in default',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.chevron_right_rounded,
+                    color: AppColors.error.withValues(alpha: 0.5)),
+              ],
+            ),
+          ).animate().shake(delay: 500.ms, duration: 600.ms),
+        );
+      },
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildFinancialSummaryStrip(BuildContext context, WidgetRef ref) {
+    final loanSummaryAsync = ref.watch(loanSummaryProvider);
+
+    return loanSummaryAsync.when(
+      data: (summary) => SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        child: Row(
+          children: [
+            _SummaryChip(
+              label: 'Disbursed',
+              value: AppFormatters.formatCompactCurrency(summary.totalDisbursed),
+              icon: Icons.outbond_rounded,
+              color: AppColors.primary,
+            ),
+            const SizedBox(width: 10),
+            _SummaryChip(
+              label: 'Collected',
+              value: AppFormatters.formatCompactCurrency(summary.totalCollected),
+              icon: Icons.move_to_inbox_rounded,
+              color: AppColors.success,
+            ),
+            const SizedBox(width: 10),
+            _SummaryChip(
+              label: 'Overdue',
+              value: AppFormatters.formatCompactCurrency(summary.overdueAmount),
+              icon: Icons.timer_rounded,
+              color: AppColors.error,
+            ),
+          ],
+        ),
+      ),
+      loading: () => const SizedBox.shrink(),
+      error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+
+  Widget _buildTodayAgenda(BuildContext context, WidgetRef ref) {
+    final agendaAsync = ref.watch(todayAgendaProvider);
+    final theme = Theme.of(context);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "Today's Agenda",
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                'Due Today',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                  fontSize: 10,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        agendaAsync.when(
+          data: (items) {
+            if (items.isEmpty) {
+              return GlassCard(
+                padding: const EdgeInsets.all(24),
+                child: Center(
+                  child: Text('No collections due today',
+                      style: theme.textTheme.bodySmall),
+                ),
+              );
+            }
+            return Column(
+              children: items.map((item) {
+                final isLoan = item is LoanModel;
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: GlassCard(
+                    padding: const EdgeInsets.all(16),
+                    onTap: () {
+                      if (isLoan) {
+                        context.push('/loans/${item.id}');
+                      } else {
+                        context.push('/savings/${item.id}');
+                      }
+                    },
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: (isLoan ? AppColors.primary : AppColors.orange)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            isLoan ? Icons.payments_rounded : Icons.savings_rounded,
+                            color: isLoan ? AppColors.primary : AppColors.orange,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isLoan ? item.customerName ?? 'Unknown' : item.memberName,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                isLoan ? 'Loan EMI Due' : 'Savings Installment',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  fontSize: 11,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              AppFormatters.formatCurrency(
+                                isLoan ? item.emiAmount : item.monthlyDeposit,
+                              ),
+                              style: theme.textTheme.titleSmall?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                color: theme.colorScheme.onSurface,
+                              ),
+                            ),
+                            Text(
+                              'Tap to collect',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w600,
+                                fontSize: 10,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              }).toList(),
+            );
+          },
+          loading: () => const ShimmerCard(height: 150),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
+    ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
@@ -1447,6 +1686,60 @@ class _SavingsMetric extends StatelessWidget {
           Text(
             label,
             style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SummaryChip extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _SummaryChip({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: color.withValues(alpha: 0.1)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 16, color: color),
+          const SizedBox(width: 10),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 14,
+                ),
+              ),
+              Text(
+                label,
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 10,
+                  color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                ),
+              ),
+            ],
           ),
         ],
       ),
