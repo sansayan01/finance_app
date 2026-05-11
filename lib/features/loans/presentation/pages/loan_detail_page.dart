@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/constants/app_spacing.dart';
 import '../../../../core/constants/enums.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/status_badge.dart';
@@ -14,424 +13,537 @@ import '../../data/models/loan_model.dart';
 import '../../data/models/emi_schedule_model.dart';
 import '../widgets/collection_sheet.dart';
 
-class LoanDetailPage extends ConsumerWidget {
+class LoanDetailPage extends ConsumerStatefulWidget {
   final String loanId;
-
   const LoanDetailPage({super.key, required this.loanId});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final loanAsync = ref.watch(loanDetailProvider(loanId));
-    final scheduleAsync = ref.watch(emiScheduleProvider(loanId));
+  ConsumerState<LoanDetailPage> createState() => _LoanDetailPageState();
+}
+
+class _LoanDetailPageState extends ConsumerState<LoanDetailPage> with SingleTickerProviderStateMixin {
+  bool _isActionHubExpanded = false;
+  late AnimationController _auroraController;
+
+  @override
+  void initState() {
+    super.initState();
+    _auroraController = AnimationController(vsync: this, duration: 10.seconds)..repeat();
+  }
+
+  @override
+  void dispose() {
+    _auroraController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final loanAsync = ref.watch(loanDetailProvider(widget.loanId));
+    final scheduleAsync = ref.watch(emiScheduleProvider(widget.loanId));
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          'Loan Registry',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-        ),
-        actions: [
-          PopupMenuButton<String>(
-            icon: Icon(Icons.more_horiz_rounded, color: theme.colorScheme.onSurface),
-            onSelected: (value) {
-              HapticFeedback.lightImpact();
-              if (value == 'settle') {
-                // Implement settlement logic
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'settle',
-                child: Row(
-                  children: [
-                    Icon(Icons.handshake_outlined, size: 18),
-                    SizedBox(width: 12),
-                    Text('Settle Loan'),
-                  ],
-                ),
-              ),
-              const PopupMenuItem(
-                value: 'reschedule',
-                child: Row(
-                  children: [
-                    Icon(Icons.event_repeat_rounded, size: 18),
-                    SizedBox(width: 12),
-                    Text('Reschedule'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      extendBodyBehindAppBar: true,
       body: loanAsync.when(
         data: (loan) {
-          if (loan == null) {
-            return Center(child: Text('Loan not found', style: theme.textTheme.bodyMedium));
-          }
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(loan, theme, primary),
-                const SizedBox(height: AppSpacing.lg),
-                _buildMiniStats(loan, theme, primary),
-                const SizedBox(height: AppSpacing.lg),
-                _buildRepaymentJourney(loan, scheduleAsync, theme, isDark, primary),
-                const SizedBox(height: AppSpacing.lg),
-                _buildRepaymentSchedule(ref, loan, scheduleAsync, theme, primary),
-                const SizedBox(height: AppSpacing.lg),
-                _buildAdminContext(loan, theme, primary),
-                const SizedBox(height: 100),
-              ],
-            ),
+          if (loan == null) return const Center(child: Text('Loan Not Found'));
+          return Stack(
+            children: [
+              _buildEliteBackground(theme, primary),
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildCustomAppBar(loan, theme),
+                  _buildImmersiveHeader(loan, theme, primary),
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(height: 24),
+                          _buildInteractiveDebtSplit(loan, theme, primary),
+                          const SizedBox(height: 32),
+                          _buildQuickMetrics(loan, theme, primary),
+                          const SizedBox(height: 32),
+                          _buildSectionTitle('Borrower Insights', theme),
+                          const SizedBox(height: 16),
+                          _buildEliteBorrowerInsights(loan, theme, primary),
+                          const SizedBox(height: 32),
+                          _buildSectionTitle('Repayment Timeline', theme),
+                          const SizedBox(height: 16),
+                          _buildTimeline(loan, scheduleAsync, theme, primary),
+                          const SizedBox(height: 32),
+                          _buildSectionTitle('Administration Log', theme),
+                          const SizedBox(height: 16),
+                          _buildAdminLog(loan, theme, primary),
+                          const SizedBox(height: 160), // Extra space for Hub
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              _buildActionHub(loan, scheduleAsync, theme, primary),
+            ],
           );
         },
         loading: () => _buildLoadingState(theme),
-        error: (err, stack) => Center(child: Text('Error: $err', style: theme.textTheme.bodySmall)),
-      ),
-      floatingActionButton: loanAsync.when(
-        data: (loan) {
-          if (loan == null || loan.status != LoanStatus.active) return null;
-          return scheduleAsync.when(
-            data: (schedule) {
-              if (schedule.isEmpty) return null;
-              final nextEmi = schedule.firstWhere(
-                (e) => e.status != EMIStatus.paid,
-                orElse: () => schedule.first,
-              );
-              return FloatingActionButton.extended(
-                onPressed: () {
-                  HapticFeedback.mediumImpact();
-                  _showCollectionSheet(context, loan, nextEmi);
-                },
-                icon: const Icon(Icons.payments_outlined),
-                label: const Text('Collect Next EMI', style: TextStyle(fontWeight: FontWeight.w600)),
-              );
-            },
-            loading: () => null,
-            error: (_, __) => null,
-          );
-        },
-        loading: () => null,
-        error: (_, __) => null,
+        error: (err, _) => Center(child: Text('Error: $err')),
       ),
     );
   }
 
-  void _showCollectionSheet(BuildContext context, LoanModel loan, EMIScheduleModel emi) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) => CollectionSheet(loan: loan, emi: emi),
-    );
-  }
-
-  Future<void> _sendReminder(LoanModel loan, EMIScheduleModel emi) async {
-    HapticFeedback.selectionClick();
-    final phone = loan.customerPhone ?? '';
-    final message = Uri.encodeComponent(
-      'Hi ${loan.customerName}, this is a reminder for your loan ${loan.loanNumber}. '
-      'Your EMI of ${AppFormatters.formatCurrency(emi.emiAmount)} is due on ${AppFormatters.formatDate(emi.dueDate)}. '
-      'Please ensure the payment is made on time to avoid penalties.'
-    );
-    final url = 'https://wa.me/$phone?text=$message';
-    
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
-    }
-  }
-
-  Future<void> _generateSchedule(WidgetRef ref, LoanModel loan) async {
-    try {
-      HapticFeedback.mediumImpact();
-      final repository = ref.read(emiRepositoryProvider);
-      await repository.generateSchedule(
-        loan.id,
-        principal: loan.amount,
-        interestRate: loan.interestRate,
-        tenureMonths: loan.tenureMonths,
-        interestType: loan.interestType.name,
-        startDate: loan.firstEmiDate ?? DateTime.now().add(const Duration(days: 30)),
-        emiAmount: loan.emiAmount,
-      );
-      ref.invalidate(emiScheduleProvider(loan.id));
-    } catch (e) {
-      // Handle error
-    }
-  }
-
-  Widget _buildHeader(LoanModel loan, ThemeData theme, Color primary) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
+  Widget _buildEliteBackground(ThemeData theme, Color primary) {
+    return AnimatedBuilder(
+      animation: _auroraController,
+      builder: (context, child) {
+        return Stack(
           children: [
-            Text(
-              loan.loanNumber,
-              style: theme.textTheme.bodySmall?.copyWith(
-                fontFamily: 'JetBrains Mono',
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-            const SizedBox(width: 8),
-            StatusBadge(
-              label: loan.status.name.toUpperCase(),
-              type: _getStatusType(loan.status),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Hero(
-              tag: 'loan_avatar_${loan.id}',
+            Container(color: theme.scaffoldBackgroundColor),
+            Positioned(
+              top: -200 + (50 * _auroraController.value),
+              right: -100 + (20 * _auroraController.value),
               child: Container(
-                width: 64, height: 64,
+                width: 400, height: 400,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [primary.withValues(alpha: 0.2), primary.withValues(alpha: 0.05)],
-                  ),
                   shape: BoxShape.circle,
-                  border: Border.all(color: primary.withValues(alpha: 0.2), width: 2),
+                  color: primary.withValues(alpha: 0.05),
                 ),
-                child: Center(
-                  child: Text(
-                    (loan.customerName ?? '?')[0].toUpperCase(),
-                    style: TextStyle(color: primary, fontWeight: FontWeight.w900, fontSize: 24),
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    loan.customerName ?? 'Unknown Member',
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
-                  ),
-                  Text(
-                    '${AppFormatters.formatCurrency(loan.amount)} Principal · ${loan.interestRate}% APR',
-                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
-                  ),
-                ],
               ),
             ),
           ],
-        ),
-      ],
-    ).animate().fadeIn().slideY(begin: 0.1, end: 0);
-  }
-
-  Widget _buildMiniStats(LoanModel loan, ThemeData theme, Color primary) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: AppSpacing.sm,
-      crossAxisSpacing: AppSpacing.sm,
-      childAspectRatio: 1.8,
-      children: [
-        _MiniStatCard(label: 'Monthly EMI', value: AppFormatters.formatCurrency(loan.emiAmount), icon: Icons.payments, color: primary),
-        _MiniStatCard(label: 'Outstanding', value: AppFormatters.formatCurrency(loan.outstandingBalance), icon: Icons.show_chart, color: const Color(0xFF5E5CE6)),
-        _MiniStatCard(label: 'Total Paid', value: AppFormatters.formatCurrency(loan.totalRepayable - loan.outstandingBalance), icon: Icons.check_circle, color: const Color(0xFF34C759)),
-        _MiniStatCard(label: 'Total Interest', value: AppFormatters.formatCurrency(loan.totalInterest), icon: Icons.percent, color: const Color(0xFFFF9F0A)),
-      ],
-    ).animate().fadeIn(delay: 100.ms);
-  }
-
-  Widget _buildRepaymentJourney(LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme, bool isDark, Color primary) {
-    return scheduleAsync.when(
-      data: (schedule) {
-        final paidCount = schedule.where((e) => e.status == EMIStatus.paid).length;
-        final progress = loan.totalRepayable > 0 ? (1 - (loan.outstandingBalance / loan.totalRepayable)) : 0.0;
-        
-        return GlassCard(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Repayment Journey', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.3)),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '$paidCount of ${loan.tenureMonths} EMIs',
-                      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.md),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: progress.clamp(0.0, 1.0),
-                  minHeight: 12,
-                  backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                  valueColor: AlwaysStoppedAnimation<Color>(primary),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildJourneyMetric('CAPITAL RECOVERED', '${(progress * 100).toStringAsFixed(1)}%', theme),
-                  _buildJourneyMetric('REMAINING EMIS', '${loan.tenureMonths - paidCount}', theme, alignEnd: true),
-                ],
-              ),
-            ],
-          ),
         );
       },
-      loading: () => const ShimmerCard(height: 140),
-      error: (_, __) => const SizedBox(),
-    ).animate().fadeIn(delay: 200.ms);
+    );
   }
 
-  Widget _buildJourneyMetric(String label, String value, ThemeData theme, {bool alignEnd = false}) {
-    return Column(
-      crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-      children: [
-        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 0.5, color: theme.textTheme.bodySmall?.color)),
-        Text(value, style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+  Widget _buildCustomAppBar(LoanModel loan, ThemeData theme) {
+    return SliverAppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      pinned: true,
+      leading: IconButton(
+        icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
+        onPressed: () => Navigator.of(context).pop(),
+      ),
+      title: Text(
+        loan.loanNumber,
+        style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w900, fontFamily: 'JetBrains Mono'),
+      ),
+      actions: [
+        IconButton(icon: const Icon(Icons.more_vert_rounded), onPressed: () {}),
       ],
     );
   }
 
-  Widget _buildRepaymentSchedule(WidgetRef ref, LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme, Color primary) {
-    return GlassCard(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-            child: Text('Repayment Schedule', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          scheduleAsync.when(
-            data: (schedule) {
-              if (schedule.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(AppSpacing.xl),
-                    child: Column(
-                      children: [
-                        Text('No schedule generated', style: theme.textTheme.bodySmall),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () => _generateSchedule(ref, loan),
-                          icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
-                          label: const Text('Generate Now'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: theme.colorScheme.primary,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                        ),
-                      ],
-                    ),
+  Widget _buildSectionTitle(String title, ThemeData theme) {
+    return Text(
+      title,
+      style: theme.textTheme.titleMedium?.copyWith(
+        fontWeight: FontWeight.w900,
+        letterSpacing: -0.5,
+      ),
+    ).animate().fadeIn().slideX(begin: -0.1, end: 0);
+  }
+
+  Widget _buildImmersiveHeader(LoanModel loan, ThemeData theme, Color primary) {
+    final progress = 1 - (loan.outstandingBalance / loan.totalRepayable);
+    return SliverToBoxAdapter(
+      child: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          children: [
+            const SizedBox(height: 20),
+            Stack(
+              alignment: Alignment.center,
+              children: [
+                SizedBox(
+                  width: 180, height: 180,
+                  child: CircularProgressIndicator(
+                    value: progress.clamp(0, 1),
+                    strokeWidth: 16,
+                    backgroundColor: primary.withValues(alpha: 0.05),
+                    strokeCap: StrokeCap.round,
                   ),
-                );
-              }
-              return SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                child: DataTable(
-                  columnSpacing: 24,
-                  horizontalMargin: 16,
-                  headingRowHeight: 40,
-                  columns: [
-                    DataColumn(label: Text('#', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
-                    DataColumn(label: Text('DUE DATE', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
-                    DataColumn(label: Text('AMOUNT', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
-                    DataColumn(label: Text('STATUS', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
-                    DataColumn(label: Text('ACTION', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
-                  ],
-                  rows: schedule.map((emi) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(emi.emiNumber.toString().padLeft(2, '0'), style: const TextStyle(fontFamily: 'JetBrains Mono', fontSize: 12))),
-                        DataCell(Text(AppFormatters.formatDate(emi.dueDate), style: const TextStyle(fontWeight: FontWeight.w600))),
-                        DataCell(Text(AppFormatters.formatCurrency(emi.emiAmount), style: const TextStyle(fontWeight: FontWeight.w800))),
-                        DataCell(StatusBadge(label: emi.status.name, type: _getEMIStatusType(emi.status))),
-                        DataCell(IconButton(
-                          icon: Icon(Icons.send_rounded, size: 18, color: primary),
-                          onPressed: () => _sendReminder(loan, emi),
-                        )),
-                      ],
-                    );
-                  }).toList(),
                 ),
-              );
-            },
-            loading: () => const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator())),
-            error: (_, __) => const Center(child: Text('Failed to load schedule')),
+                Column(
+                  children: [
+                    Text(
+                      '${(progress * 100).toStringAsFixed(0)}%',
+                      style: theme.textTheme.displayMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -2),
+                    ),
+                    Text(
+                      'PRINCIPAL RECOVERED',
+                      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
+                    ),
+                  ],
+                ),
+              ],
+            ).animate().scale(curve: Curves.elasticOut, duration: 1.seconds),
+            const SizedBox(height: 40),
+            Text(
+              AppFormatters.formatCurrency(loan.outstandingBalance),
+              style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -1.5),
+            ),
+            Text(
+              'REMAINING OUTSTANDING',
+              style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInteractiveDebtSplit(LoanModel loan, ThemeData theme, Color primary) {
+    final total = loan.totalRepayable > 0 ? loan.totalRepayable : 1.0;
+    final principalFlex = ((loan.amount / total) * 100).toInt().clamp(1, 100);
+    final interestFlex = 100 - principalFlex;
+    
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _buildMiniMetric('Interest Rate', '${loan.interestRate}%', theme),
+              _buildMiniMetric('Total Interest', AppFormatters.formatCurrency(loan.totalInterest), theme, alignEnd: true),
+            ],
+          ),
+          const SizedBox(height: 20),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: Row(
+              children: [
+                Expanded(flex: principalFlex, child: Container(height: 8, color: primary)),
+                Expanded(flex: interestFlex, child: Container(height: 8, color: Colors.orange.withValues(alpha: 0.4))),
+              ],
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _Legend(label: 'Principal ($principalFlex%)', color: primary),
+              _Legend(label: 'Interest Reserve ($interestFlex%)', color: Colors.orange),
+            ],
           ),
         ],
       ),
     ).animate().fadeIn(delay: 300.ms);
   }
 
-  Widget _buildAdminContext(LoanModel loan, ThemeData theme, Color primary) {
+  Widget _buildEliteBorrowerInsights(LoanModel loan, ThemeData theme, Color primary) {
     return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.md),
+      padding: const EdgeInsets.all(20),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(Icons.description_outlined, size: 16, color: primary),
-              const SizedBox(width: 8),
-              Text('Administrative Context', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              Hero(
+                tag: 'loan_avatar_${loan.id}',
+                child: Container(
+                  width: 64, height: 64,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 10)],
+                    gradient: LinearGradient(colors: [primary, primary.withValues(alpha: 0.7)]),
+                  ),
+                  child: Center(
+                    child: Text((loan.customerName ?? '?')[0], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 24)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(loan.customerName ?? 'Unknown', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                    Row(
+                      children: [
+                        const Icon(Icons.verified_user_rounded, size: 14, color: Colors.blue),
+                        const SizedBox(width: 4),
+                        Text('VERIFIED MEMBER', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900, color: Colors.blue)),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
-          const SizedBox(height: AppSpacing.md),
-          _buildContextItem('Assigned Staff', loan.staffName ?? 'System Auto', Icons.person_outline, theme, primary),
-          _buildContextItem('Interest Method', loan.interestType.name.toUpperCase(), Icons.percent, theme, primary),
-          _buildContextItem('Tenure', '${loan.tenureMonths} Months', Icons.timer_outlined, theme, primary),
-          _buildContextItem('First EMI Date', loan.firstEmiDate != null ? AppFormatters.formatDate(loan.firstEmiDate!) : 'Not Set', Icons.calendar_today_outlined, theme, primary),
+          const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _StatItem(label: 'LOANS', value: '1 Active', icon: Icons.account_balance_wallet_outlined),
+              _StatItem(label: 'SINCE', value: 'Dec 2023', icon: Icons.calendar_today_rounded),
+              _StatItem(label: 'HEALTH', value: 'Good', icon: Icons.favorite_rounded, color: Colors.green),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => _makeCall(loan.customerPhone ?? ''),
+                  icon: const Icon(Icons.call_rounded),
+                  label: const Text('Call Member'),
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton.icon(
+                  onPressed: () => _makeWhatsApp(loan.customerPhone ?? '', loan),
+                  icon: const Icon(Icons.chat_bubble_rounded),
+                  label: const Text('Message'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.green,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                ),
+              ),
+            ],
+          ),
         ],
       ),
+    ).animate().fadeIn(delay: 500.ms);
+  }
+
+  Widget _buildAdminLog(LoanModel loan, ThemeData theme, Color primary) {
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        children: [
+          _LogEntry(label: 'Loan Disbursed', value: AppFormatters.formatDate(loan.createdAt), icon: Icons.check_circle_rounded, color: Colors.green),
+          _LogEntry(label: 'Assigned Agent', value: loan.staffName ?? 'System Auto', icon: Icons.person_rounded, color: primary),
+          _LogEntry(label: 'Status Updated', value: loan.status.name.toUpperCase(), icon: Icons.sync_rounded, color: Colors.orange, isLast: true),
+        ],
+      ),
+    ).animate().fadeIn(delay: 700.ms);
+  }
+
+  Widget _buildTimeline(LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme, Color primary) {
+    return scheduleAsync.when(
+      data: (schedule) {
+        if (schedule.isEmpty) return _buildNoScheduleState(loan);
+        return Column(
+          children: schedule.asMap().entries.map((entry) {
+            final index = entry.key;
+            final emi = entry.value;
+            final isLast = index == schedule.length - 1;
+            
+            return IntrinsicHeight(
+              child: Row(
+                children: [
+                  Column(
+                    children: [
+                      Container(
+                        width: 20, height: 20,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _getTimelineColor(emi.status, primary),
+                          border: Border.all(color: theme.scaffoldBackgroundColor, width: 4),
+                          boxShadow: [BoxShadow(color: _getTimelineColor(emi.status, primary).withValues(alpha: 0.2), blurRadius: 10)],
+                        ),
+                        child: emi.status == EMIStatus.paid ? const Icon(Icons.check, size: 10, color: Colors.white) : null,
+                      ),
+                      if (!isLast)
+                        Expanded(
+                          child: Container(
+                            width: 2,
+                            color: _getTimelineColor(emi.status, primary).withValues(alpha: 0.1),
+                          ),
+                        ),
+                    ],
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 32),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('INSTALLMENT #${emi.emiNumber}', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900, color: primary)),
+                                Text(AppFormatters.formatDate(emi.dueDate), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                              ],
+                            ),
+                          ),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(AppFormatters.formatCurrency(emi.emiAmount), style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w900)),
+                              StatusBadge(label: emi.status.name, type: _getEMIStatusType(emi.status)),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }).toList(),
+        );
+      },
+      loading: () => const ShimmerCard(height: 200),
+      error: (_, __) => const Text('Timeline Error'),
+    ).animate().fadeIn(delay: 600.ms);
+  }
+
+  Widget _buildActionHub(LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme, Color primary) {
+    return Positioned(
+      bottom: 24, left: 24, right: 24,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (_isActionHubExpanded)
+            _buildSecondaryActions(loan, theme, primary).animate().fadeIn().scale(begin: const Offset(0.8, 0.8)),
+          const SizedBox(height: 12),
+          AnimatedContainer(
+            duration: 400.ms,
+            curve: Curves.easeOutQuart,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface.withValues(alpha: 0.98),
+              borderRadius: BorderRadius.circular(32),
+              border: Border.all(color: primary.withValues(alpha: 0.1)),
+              boxShadow: [
+                BoxShadow(color: Colors.black.withValues(alpha: 0.15), blurRadius: 30, offset: const Offset(0, 15)),
+              ],
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: scheduleAsync.when(
+                    data: (schedule) {
+                      if (schedule.isEmpty) return const SizedBox();
+                      final nextEmi = schedule.firstWhere((e) => e.status != EMIStatus.paid, orElse: () => schedule.first);
+                      return InkWell(
+                        onTap: () {
+                          HapticFeedback.heavyImpact();
+                          _showCollectionSheet(context, loan, nextEmi);
+                        },
+                        borderRadius: BorderRadius.circular(24),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 18),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 5))],
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'Record Collection',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    loading: () => const SizedBox(),
+                    error: (_, __) => const SizedBox(),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                GestureDetector(
+                  onTap: () {
+                    HapticFeedback.selectionClick();
+                    setState(() => _isActionHubExpanded = !_isActionHubExpanded);
+                  },
+                  child: AnimatedRotation(
+                    duration: 400.ms,
+                    turns: _isActionHubExpanded ? 0.125 : 0,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: primary.withValues(alpha: _isActionHubExpanded ? 0.2 : 0.1),
+                      ),
+                      child: Icon(_isActionHubExpanded ? Icons.add : Icons.grid_view_rounded, color: primary),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ).animate().slideY(begin: 1, end: 0, delay: 1000.ms);
+  }
+
+  Widget _buildSecondaryActions(LoanModel loan, ThemeData theme, Color primary) {
+    return GlassCard(
+      padding: const EdgeInsets.all(20),
+      child: GridView.count(
+        shrinkWrap: true,
+        crossAxisCount: 3,
+        mainAxisSpacing: 20,
+        crossAxisSpacing: 20,
+        children: [
+          _SecondaryActionButton(icon: Icons.description_rounded, label: 'Export PDF', color: primary),
+          _SecondaryActionButton(icon: Icons.account_balance_rounded, label: 'Settle Loan', color: Colors.green),
+          _SecondaryActionButton(icon: Icons.event_note_rounded, label: 'Reschedule', color: Colors.orange),
+          _SecondaryActionButton(icon: Icons.history_edu_rounded, label: 'Ledger', color: Colors.blue),
+          _SecondaryActionButton(icon: Icons.group_rounded, label: 'Guarantors', color: Colors.purple),
+          _SecondaryActionButton(icon: Icons.settings_backup_restore_rounded, label: 'Audit', color: Colors.teal),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickMetrics(LoanModel loan, ThemeData theme, Color primary) {
+    return Row(
+      children: [
+        Expanded(child: _MetricTile(label: 'MONTHLY EMI', value: AppFormatters.formatCurrency(loan.emiAmount), icon: Icons.receipt_long_rounded, color: primary)),
+        const SizedBox(width: 12),
+        Expanded(child: _MetricTile(label: 'TENURE', value: '${loan.tenureMonths} Mos', icon: Icons.timelapse_rounded, color: Colors.orange)),
+      ],
     ).animate().fadeIn(delay: 400.ms);
   }
 
-  Widget _buildContextItem(String label, String value, IconData icon, ThemeData theme, Color primary) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
+  Widget _buildMiniMetric(String label, String value, ThemeData theme, {bool alignEnd = false}) {
+    return Column(
+      crossAxisAlignment: alignEnd ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+      children: [
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+        Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+      ],
+    );
+  }
+
+  Widget _buildNoScheduleState(LoanModel loan) {
+    final theme = Theme.of(context);
+    return Center(
+      child: Column(
         children: [
-          Icon(icon, size: 14, color: primary.withValues(alpha: 0.6)),
-          const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, letterSpacing: 0.5, color: theme.textTheme.bodySmall?.color)),
-              Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
-            ],
+          Icon(Icons.event_note_rounded, size: 64, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+          const SizedBox(height: 16),
+          Text('No repayment schedule found', style: theme.textTheme.bodyMedium),
+          const SizedBox(height: 24),
+          ElevatedButton(
+            onPressed: () => _generateSchedule(loan),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: theme.colorScheme.primary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Generate Now'),
           ),
         ],
       ),
@@ -439,28 +551,14 @@ class LoanDetailPage extends ConsumerWidget {
   }
 
   Widget _buildLoadingState(ThemeData theme) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        children: [
-          const ShimmerCard(height: 120),
-          const SizedBox(height: AppSpacing.lg),
-          const ShimmerCard(height: 200),
-          const SizedBox(height: AppSpacing.lg),
-          const ShimmerCard(height: 150),
-          const SizedBox(height: AppSpacing.lg),
-          const ShimmerCard(height: 300),
-        ],
-      ),
-    );
+    return const Center(child: CircularProgressIndicator());
   }
 
-  StatusType _getStatusType(LoanStatus status) {
+  Color _getTimelineColor(EMIStatus status, Color primary) {
     switch (status) {
-      case LoanStatus.active: return StatusType.standard;
-      case LoanStatus.defaultStatus: return StatusType.defaultStatus;
-      case LoanStatus.closed: return StatusType.standard;
-      default: return StatusType.pending;
+      case EMIStatus.paid: return Colors.green;
+      case EMIStatus.overdue: return Colors.red;
+      default: return primary;
     }
   }
 
@@ -471,31 +569,171 @@ class LoanDetailPage extends ConsumerWidget {
       default: return StatusType.pending;
     }
   }
+
+  Future<void> _makeCall(String phone) async {
+    final url = 'tel:$phone';
+    if (await canLaunchUrl(Uri.parse(url))) await launchUrl(Uri.parse(url));
+  }
+
+  Future<void> _makeWhatsApp(String phone, LoanModel loan) async {
+    final msg = Uri.encodeComponent('Hi ${loan.customerName}, regarding loan ${loan.loanNumber}...');
+    final url = 'https://wa.me/$phone?text=$msg';
+    if (await canLaunchUrl(Uri.parse(url))) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _generateSchedule(LoanModel loan) async {
+    HapticFeedback.mediumImpact();
+    await ref.read(emiRepositoryProvider).generateSchedule(
+      loan.id,
+      principal: loan.amount,
+      interestRate: loan.interestRate,
+      tenureMonths: loan.tenureMonths,
+      interestType: loan.interestType.name,
+      startDate: loan.firstEmiDate ?? DateTime.now().add(const Duration(days: 30)),
+      emiAmount: loan.emiAmount,
+    );
+    ref.invalidate(emiScheduleProvider(loan.id));
+  }
+
+  void _showCollectionSheet(BuildContext context, LoanModel loan, EMIScheduleModel emi) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CollectionSheet(loan: loan, emi: emi),
+    );
+  }
 }
 
-class _MiniStatCard extends StatelessWidget {
+class _LogEntry extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+  final bool isLast;
+
+  const _LogEntry({required this.label, required this.value, required this.icon, required this.color, this.isLast = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(bottom: isLast ? 0 : 20),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+            child: Icon(icon, color: color, size: 16),
+          ),
+          const SizedBox(width: 16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+              Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color? color;
+
+  const _StatItem({required this.label, required this.value, required this.icon, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Icon(icon, size: 20, color: color ?? theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+        const SizedBox(height: 8),
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w900)),
+        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900, color: color)),
+      ],
+    );
+  }
+}
+
+class _SecondaryActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final Color color;
+
+  const _SecondaryActionButton({required this.icon, required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, fontSize: 10), textAlign: TextAlign.center),
+      ],
+    );
+  }
+}
+
+class _MetricTile extends StatelessWidget {
   final String label;
   final String value;
   final IconData icon;
   final Color color;
 
-  const _MiniStatCard({required this.label, required this.value, required this.icon, required this.color});
+  const _MetricTile({required this.label, required this.value, required this.icon, required this.color});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.sm),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(height: 4),
-          Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, color: theme.textTheme.bodySmall?.color)),
-          Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w900)),
+          Icon(icon, size: 24, color: color),
+          const SizedBox(height: 8),
+          Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 8, fontWeight: FontWeight.w900, color: color.withValues(alpha: 0.7))),
+          Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
         ],
       ),
     );
   }
+}
+
+class _Legend extends StatelessWidget {
+  final String label;
+  final Color color;
+  const _Legend({required this.label, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Row(
+      children: [
+        Container(width: 8, height: 8, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
+        const SizedBox(width: 6),
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, fontSize: 10)),
+      ],
+    );
+  }
+}
+
+class AppColors {
+  static const primaryGradient = LinearGradient(
+    colors: [Color(0xFF007AFF), Color(0xFF5856D6)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
 }
