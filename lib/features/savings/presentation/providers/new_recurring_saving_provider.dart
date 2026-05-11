@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/supabase_provider.dart';
 import '../../data/repositories/savings_repository.dart';
+import '../../data/providers/savings_providers.dart';
 
 enum CollectionType { daily, weekly, monthly }
 
@@ -74,8 +75,9 @@ final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
 
 class NewRecurringSavingNotifier extends StateNotifier<NewRecurringSavingState> {
   final SavingsRepository _repository;
+  final Ref _ref;
   
-  NewRecurringSavingNotifier(this._repository) : super(NewRecurringSavingState());
+  NewRecurringSavingNotifier(this._repository, this._ref) : super(NewRecurringSavingState());
 
   void updateMember(String? id) => state = state.copyWith(memberId: id);
   void updateCollectionType(CollectionType type) => state = state.copyWith(collectionType: type);
@@ -98,6 +100,11 @@ class NewRecurringSavingNotifier extends StateNotifier<NewRecurringSavingState> 
         penalty: state.prematurePenalty,
         totalInstallments: state.totalInstallments,
       );
+      
+      // Invalidate providers to refresh the list
+      _ref.invalidate(allSavingsProvider);
+      _ref.invalidate(savingsSummaryProvider);
+      
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -109,5 +116,5 @@ class NewRecurringSavingNotifier extends StateNotifier<NewRecurringSavingState> 
 }
 
 final newRecurringSavingProvider = StateNotifierProvider<NewRecurringSavingNotifier, NewRecurringSavingState>((ref) {
-  return NewRecurringSavingNotifier(ref.watch(savingsRepositoryProvider));
+  return NewRecurringSavingNotifier(ref.watch(savingsRepositoryProvider), ref);
 });

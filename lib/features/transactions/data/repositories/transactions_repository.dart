@@ -42,6 +42,26 @@ class TransactionsRepository {
         .toList();
   }
 
+  Future<List<TransactionModel>> getTransactionsBySavingsId(
+    String savingsId, {
+    int limit = 50,
+  }) async {
+    try {
+      final response = await _client
+          .from('transactions')
+          .select()
+          .eq('savings_id', savingsId)
+          .order('created_at', ascending: false)
+          .limit(limit);
+
+      return (response as List)
+          .map((json) => TransactionModel.fromJson(json))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
+
   Future<Map<String, dynamic>> getTodayStats() async {
     try {
       final today = DateTime.now();

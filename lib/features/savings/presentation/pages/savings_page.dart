@@ -1,13 +1,14 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
+import '../../../../core/widgets/aurora_background.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
-import '../../../../core/widgets/glass_button.dart';
 import '../../data/models/savings_model.dart';
 import '../../data/providers/savings_providers.dart';
 
@@ -19,21 +20,7 @@ class SavingsPage extends ConsumerStatefulWidget {
 }
 
 class _SavingsPageState extends ConsumerState<SavingsPage> with SingleTickerProviderStateMixin {
-  late TabController _tabController;
-  String _searchQuery = '';
-  int _activeTab = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  int _activeFilter = 0; // 0: All, 1: Active, 2: Matured
 
   @override
   Widget build(BuildContext context) {
@@ -42,267 +29,427 @@ class _SavingsPageState extends ConsumerState<SavingsPage> with SingleTickerProv
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
-      body: SafeArea(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Savings',
-                        style: theme.textTheme.headlineLarge?.copyWith(
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.8,
-                          fontSize: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        'Track recurring savings plans',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
-                      ),
-                    ],
-                  ),
-                  GlassButton(
-                    label: 'NEW',
-                    width: 80,
-                    height: 44,
-                    fontSize: 12,
-                    icon: Icons.add_rounded,
-                    color: AppColors.success,
-                    onTap: () => context.push('/savings/new'),
-                  ),
-                ],
-              ),
-            ).animate().fadeIn(duration: 300.ms).slideX(begin: -0.05, end: 0),
-
-            const SizedBox(height: 20),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.fillDark : AppColors.fillLight,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: TextField(
-                  onChanged: (v) => setState(() => _searchQuery = v),
-                  decoration: InputDecoration(
-                    hintText: 'Search savings plans...',
-                    hintStyle: theme.textTheme.bodySmall?.copyWith(fontSize: 15),
-                    prefixIcon: Icon(Icons.search_rounded, size: 22, color: theme.textTheme.bodySmall?.color),
-                    border: InputBorder.none,
-                    enabledBorder: InputBorder.none,
-                    focusedBorder: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-                  ),
-                ),
-              ),
-            ).animate().fadeIn(delay: 100.ms),
-
-            const SizedBox(height: 20),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Container(
-                height: 40,
-                decoration: BoxDecoration(
-                  color: isDark ? AppColors.fillDark : AppColors.fillLight,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: TabBar(
-                  controller: _tabController,
-                  onTap: (i) => setState(() => _activeTab = i),
-                  indicator: BoxDecoration(
-                    color: isDark ? AppColors.elevatedDark : Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
-                        blurRadius: 8,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  indicatorSize: TabBarIndicatorSize.tab,
-                  indicatorPadding: const EdgeInsets.all(3),
-                  labelColor: theme.textTheme.bodyLarge?.color,
-                  unselectedLabelColor: theme.textTheme.bodySmall?.color,
-                  labelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, letterSpacing: -0.3),
-                  unselectedLabelStyle: const TextStyle(fontSize: 13, fontWeight: FontWeight.w400, letterSpacing: -0.3),
-                  dividerColor: Colors.transparent,
-                  tabs: const [Tab(text: 'All'), Tab(text: 'Active'), Tab(text: 'Completed')],
-                ),
-              ),
-            ).animate().fadeIn(delay: 150.ms),
-
-            const SizedBox(height: 20),
-
-            Expanded(
-              child: savingsAsync.when(
-                data: (savings) {
-                  var filtered = savings.where((s) {
-                    if (_activeTab == 1 && s.status != 'active') return false;
-                    if (_activeTab == 2 && s.status != 'completed') return false;
-                    if (_searchQuery.isNotEmpty) {
-                      final q = _searchQuery.toLowerCase();
-                      return s.memberName.toLowerCase().contains(q);
-                    }
-                    return true;
-                  }).toList();
-
-                  if (filtered.isEmpty) return _buildEmpty(theme);
-
-                  return ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: filtered.length,
-                    itemBuilder: (ctx, i) => Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: _SavingsListItem(saving: filtered[i])
-                        .animate().fadeIn(delay: (50 * i).ms).slideX(begin: 0.03, end: 0),
-                    ),
-                  );
-                },
-                loading: () => ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: 4,
-                  itemBuilder: (_, __) => const Padding(
-                    padding: EdgeInsets.only(bottom: 12),
-                    child: ShimmerCard(height: 140),
-                  ),
-                ),
-                error: (e, _) => Center(child: Text('Error: $e', style: theme.textTheme.bodySmall)),
-              ),
-            ),
+      backgroundColor: isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF2F2F7),
+      body: AuroraBackground(
+        child: CustomScrollView(
+          physics: const BouncingScrollPhysics(),
+          slivers: [
+            _buildAppBar(context, theme, isDark),
+            SliverToBoxAdapter(child: _buildWealthSummary(savingsAsync, theme, isDark)),
+            _buildFilters(theme, isDark),
+            _buildSavingsList(savingsAsync, theme, isDark),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildEmpty(ThemeData theme) {
+  Widget _buildAppBar(BuildContext context, ThemeData theme, bool isDark) {
+    return SliverAppBar(
+      expandedHeight: 120,
+      floating: true,
+      pinned: true,
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(),
+        titlePadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+        centerTitle: false,
+        title: Text(
+          'Savings Vault',
+          style: theme.textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.w900,
+            letterSpacing: -1,
+            color: theme.colorScheme.onSurface,
+          ),
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 16),
+          child: IconButton(
+            onPressed: () => context.push('/savings/new'),
+            icon: const Icon(Icons.add_rounded, size: 28),
+            style: IconButton.styleFrom(
+              backgroundColor: AppColors.success.withValues(alpha: 0.1),
+              foregroundColor: AppColors.success,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildWealthSummary(AsyncValue<List<SavingsModel>> savingsAsync, ThemeData theme, bool isDark) {
+    return savingsAsync.when(
+      data: (savings) {
+        final totalSaved = savings.fold(0.0, (sum, s) => sum + s.currentAmount);
+        final totalTarget = savings.fold(0.0, (sum, s) => sum + s.targetAmount);
+        final progress = totalTarget > 0 ? totalSaved / totalTarget : 0.0;
+
+        return Padding(
+          padding: const EdgeInsets.all(24),
+          child: GlassCard(
+            padding: EdgeInsets.zero,
+            child: Stack(
+              children: [
+                Positioned(
+                  top: -50, right: -20,
+                  child: Container(
+                    width: 150, height: 150,
+                    decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.success.withValues(alpha: 0.1)),
+                    child: BackdropFilter(filter: ImageFilter.blur(sigmaX: 40, sigmaY: 40), child: const SizedBox()),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(28),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('GLOBAL WEALTH', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1.5, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface.withValues(alpha: 0.6))),
+                              const SizedBox(height: 8),
+                              ShaderMask(
+                                shaderCallback: (bounds) => LinearGradient(
+                                  colors: [theme.colorScheme.onSurface, AppColors.success],
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                ).createShader(bounds),
+                                child: Text(
+                                  AppFormatters.formatCurrency(totalSaved),
+                                  style: theme.textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -1.5, color: Colors.white),
+                                ),
+                              ),
+                            ],
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              color: AppColors.success.withValues(alpha: 0.15),
+                              shape: BoxShape.circle,
+                              border: Border.all(color: AppColors.success.withValues(alpha: 0.3)),
+                              boxShadow: [BoxShadow(color: AppColors.success.withValues(alpha: 0.2), blurRadius: 12, offset: const Offset(0, 4))],
+                            ),
+                            child: const Icon(Icons.trending_up_rounded, color: AppColors.success, size: 32),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 32),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('Maturity Goal', style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
+                          Text(AppFormatters.formatCompactCurrency(totalTarget), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Stack(
+                        children: [
+                          Container(
+                            height: 8,
+                            width: double.infinity,
+                            decoration: BoxDecoration(color: theme.colorScheme.onSurface.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(4)),
+                          ),
+                          AnimatedContainer(
+                            duration: const Duration(seconds: 1),
+                            height: 8,
+                            width: (MediaQuery.of(context).size.width - 104) * progress,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(colors: [AppColors.success, Color(0xFF34C759)]),
+                              borderRadius: BorderRadius.circular(4),
+                              boxShadow: [BoxShadow(color: AppColors.success.withValues(alpha: 0.4), blurRadius: 6, offset: const Offset(0, 2))],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ).animate().fadeIn().slideY(begin: 0.1);
+      },
+      loading: () => const Padding(padding: EdgeInsets.all(24), child: ShimmerCard(height: 180)),
+      error: (_, __) => const SizedBox(),
+    );
+  }
+
+  Widget _buildFilters(ThemeData theme, bool isDark) {
+    return SliverPersistentHeader(
+      pinned: true,
+      delegate: _FilterDelegate(
+        child: ClipRect(
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            child: Container(
+              color: theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
+              padding: const EdgeInsets.symmetric(vertical: 12),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    _buildFilterPill('All Vaults', 0, theme),
+                    const SizedBox(width: 12),
+                    _buildFilterPill('Active Plans', 1, theme),
+                    const SizedBox(width: 12),
+                    _buildFilterPill('Matured', 2, theme),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFilterPill(String label, int index, ThemeData theme) {
+    final isSelected = _activeFilter == index;
+    final isDark = theme.brightness == Brightness.dark;
+    
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() => _activeFilter = index);
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 250),
+        padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
+        decoration: BoxDecoration(
+          gradient: isSelected 
+              ? LinearGradient(colors: [theme.colorScheme.primary, theme.colorScheme.primary.withValues(blue: 255)])
+              : null,
+          color: !isSelected ? (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03)) : null,
+          borderRadius: BorderRadius.circular(999),
+          border: Border.all(color: isSelected ? Colors.transparent : theme.dividerColor.withValues(alpha: 0.1)),
+          boxShadow: isSelected ? [BoxShadow(color: theme.colorScheme.primary.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 4))] : [],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+            fontSize: 13,
+            letterSpacing: 0.3,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSavingsList(AsyncValue<List<SavingsModel>> savingsAsync, ThemeData theme, bool isDark) {
+    return savingsAsync.when(
+      data: (savings) {
+        final filtered = savings.where((s) {
+          if (_activeFilter == 1 && s.status != 'active') return false;
+          if (_activeFilter == 2 && s.status != 'completed') return false;
+          return true;
+        }).toList();
+
+        if (filtered.isEmpty) {
+          return SliverFillRemaining(child: _buildEmptyState(theme));
+        }
+
+        return SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          sliver: SliverList(
+            delegate: SliverChildBuilderDelegate(
+              (context, index) {
+                final saving = filtered[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: GestureDetector(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      context.push('/savings/${saving.id}');
+                    },
+                    child: _PremiumSavingCard(saving: saving),
+                  ),
+                );
+              },
+              childCount: filtered.length,
+            ),
+          ),
+        );
+      },
+      loading: () => SliverPadding(
+        padding: const EdgeInsets.all(24),
+        sliver: SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) => const Padding(padding: EdgeInsets.only(bottom: 16), child: ShimmerCard(height: 160)),
+            childCount: 3,
+          ),
+        ),
+      ),
+      error: (e, _) => SliverFillRemaining(child: Center(child: Text('Error: $e'))),
+    );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.savings_outlined, size: 64, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.25)),
-          const SizedBox(height: 20),
-          Text('No savings plans', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+          Icon(Icons.savings_outlined, size: 80, color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+          const SizedBox(height: 24),
+          Text('No Savings Found', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          Text('Create a new plan to get started.', style: theme.textTheme.bodySmall),
+          Text('Your financial future starts with a single deposit.', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
         ],
       ),
     );
   }
 }
 
-class _SavingsListItem extends StatelessWidget {
+class _PremiumSavingCard extends StatelessWidget {
   final SavingsModel saving;
-  const _SavingsListItem({required this.saving});
+  const _PremiumSavingCard({required this.saving});
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final progress = (saving.currentAmount / saving.targetAmount).clamp(0.0, 1.0);
-    final statusType = saving.status == 'active'
-        ? StatusType.active
-        : saving.status == 'completed'
-            ? StatusType.completed
-            : StatusType.pending;
-
+    final progress = (saving.targetAmount > 0) ? (saving.currentAmount / saving.targetAmount).clamp(0.0, 1.0) : 0.0;
+    
     return GlassCard(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
           Row(
             children: [
               Container(
-                width: 48, height: 48,
+                width: 56, height: 56,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [AppColors.success.withValues(alpha: 0.15), AppColors.success.withValues(alpha: 0.05)],
+                    colors: [AppColors.success.withValues(alpha: 0.25), AppColors.success.withValues(alpha: 0.1)],
+                    begin: Alignment.topLeft, end: Alignment.bottomRight,
                   ),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: AppColors.success.withValues(alpha: 0.3), width: 1),
+                  boxShadow: [BoxShadow(color: AppColors.success.withValues(alpha: 0.15), blurRadius: 12, offset: const Offset(0, 4))],
                 ),
-                child: Center(
-                  child: Text(
-                    saving.memberName[0].toUpperCase(),
-                    style: const TextStyle(color: AppColors.success, fontSize: 20, fontWeight: FontWeight.w700),
-                  ),
-                ),
+                child: const Icon(Icons.account_balance_wallet_rounded, color: AppColors.success, size: 28),
               ),
-              const SizedBox(width: 14),
+              const SizedBox(width: 16),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      saving.memberName,
-                      style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 16),
-                    ),
+                    Text(saving.memberName, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                     const SizedBox(height: 2),
                     Text(
-                      '${AppFormatters.formatCurrency(saving.monthlyDeposit)} / Month',
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                      '${AppFormatters.formatCurrency(saving.monthlyDeposit)} Recurring',
+                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700, color: theme.colorScheme.primary),
                     ),
                   ],
                 ),
               ),
-              StatusBadge(label: saving.status.toUpperCase(), type: statusType, glow: false),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  _buildMaturityBadge(saving, theme),
+                  const SizedBox(height: 8),
+                  Icon(Icons.chevron_right_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.2)),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 18),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(999),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 6,
-              backgroundColor: theme.brightness == Brightness.dark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.black.withValues(alpha: 0.04),
-              valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
-            ),
-          ),
-          const SizedBox(height: 18),
+          const SizedBox(height: 24),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _InfoChip(label: 'Saved', value: AppFormatters.formatCurrency(saving.currentAmount)),
-              _InfoChip(label: 'Target', value: AppFormatters.formatCompactCurrency(saving.targetAmount)),
-              _InfoChip(label: 'Progress', value: '${(progress * 100).toInt()}%'),
+              _buildMiniMetric('Saved', AppFormatters.formatCurrency(saving.currentAmount), theme),
+              _buildMiniMetric('Target', AppFormatters.formatCompactCurrency(saving.targetAmount), theme),
+              _buildMiniMetric('Yield', '${saving.interestRate}%', theme, color: AppColors.success),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Stack(
+            children: [
+              Container(
+                height: 6,
+                width: double.infinity,
+                decoration: BoxDecoration(color: theme.colorScheme.onSurface.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(3)),
+              ),
+              AnimatedContainer(
+                duration: const Duration(seconds: 1),
+                height: 6,
+                width: (MediaQuery.of(context).size.width - 88) * progress,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(colors: [AppColors.success, Color(0xFF34C759)]),
+                  borderRadius: BorderRadius.circular(3),
+                  boxShadow: [BoxShadow(color: AppColors.success.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 2))],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              const Icon(Icons.event_rounded, size: 14, color: Colors.orange),
+              const SizedBox(width: 6),
+              Text(
+                'Matures on ${AppFormatters.formatDate(saving.maturityDate)}',
+                style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: Colors.orange),
+              ),
+              const Spacer(),
+              Text('${(progress * 100).toInt()}%', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
             ],
           ),
         ],
+      ),
+    ).animate().fadeIn().slideX(begin: 0.05);
+  }
+
+  Widget _buildMiniMetric(String label, String value, ThemeData theme, {Color? color}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800, color: color)),
+      ],
+    );
+  }
+
+  Widget _buildMaturityBadge(SavingsModel saving, ThemeData theme) {
+    final isMatured = saving.status == 'completed';
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: (isMatured ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Text(
+        isMatured ? 'MATURED' : 'ACTIVE',
+        style: TextStyle(
+          fontSize: 10,
+          fontWeight: FontWeight.w900,
+          color: isMatured ? AppColors.success : AppColors.primary,
+        ),
       ),
     );
   }
 }
 
-class _InfoChip extends StatelessWidget {
-  final String label;
-  final String value;
-  const _InfoChip({required this.label, required this.value});
+class _FilterDelegate extends SliverPersistentHeaderDelegate {
+  final Widget child;
+  _FilterDelegate({required this.child});
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 11)),
-        const SizedBox(height: 2),
-        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 14)),
-      ],
-    );
-  }
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) => child;
+
+  @override
+  double get maxExtent => 60;
+  @override
+  double get minExtent => 60;
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) => true;
 }

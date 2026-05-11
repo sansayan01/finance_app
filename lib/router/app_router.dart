@@ -16,6 +16,7 @@ import '../core/widgets/hud_navigation.dart';
 import '../features/loans/presentation/pages/loan_detail_page.dart';
 import '../features/loans/presentation/pages/new_loan_page.dart';
 import '../features/savings/presentation/pages/new_recurring_saving_page.dart';
+import '../features/savings/presentation/pages/saving_detail_page.dart';
 import '../features/users/presentation/pages/users_page.dart';
 import '../features/users/presentation/pages/new_user_page.dart';
 import '../features/users/presentation/pages/user_details_page.dart';
@@ -99,6 +100,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/savings/new',
             builder: (context, state) => const NewRecurringSavingPage(),
+          ),
+          GoRoute(
+            path: '/savings/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return SavingDetailPage(savingId: id);
+            },
           ),
           GoRoute(
             path: '/users',
