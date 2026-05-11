@@ -5,6 +5,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
 import 'features/settings/data/providers/brand_provider.dart';
 import 'router/app_router.dart';
+import 'features/chatbot/presentation/widgets/floating_chatbot.dart';
 
 class MicroFlowApp extends ConsumerWidget {
   const MicroFlowApp({super.key});
@@ -32,6 +33,14 @@ class MicroFlowApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       routerConfig: router,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            if (child != null) child,
+            const FloatingChatbot(),
+          ],
+        );
+      },
     );
   }
 }

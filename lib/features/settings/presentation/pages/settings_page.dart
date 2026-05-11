@@ -9,6 +9,7 @@ import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../data/providers/brand_provider.dart';
 import '../providers/settings_provider.dart';
+import '../../../chatbot/presentation/providers/chat_config_provider.dart';
 
 class SettingsPage extends ConsumerStatefulWidget {
   const SettingsPage({super.key});
@@ -160,6 +161,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       onTap: () => _showBrandingDialog(context, ref),
                     ),
                     _ActionRow(
+                      title: 'AI Chatbot Config',
+                      subtitle: 'Configure NVIDIA NIM API & Model',
+                      icon: Icons.psychology_outlined,
+                      color: Colors.indigo,
+                      onTap: () => _showAIChatConfigDialog(context, ref),
+                    ),
+                    _ActionRow(
                       title: 'Activity Logs',
                       subtitle: 'Monitor system changes and user actions',
                       icon: Icons.history_rounded,
@@ -262,6 +270,56 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Navigator.pop(ctx);
             },
             child: const Text('Apply System-Wide'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAIChatConfigDialog(BuildContext context, WidgetRef ref) {
+    final config = ref.read(chatConfigProvider);
+    final apiKeyController = TextEditingController(text: config.apiKey);
+    final modelController = TextEditingController(text: config.modelId);
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('AI Chatbot Configuration'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: apiKeyController,
+              decoration: const InputDecoration(
+                labelText: 'NVIDIA NIM API Key',
+                hintText: 'nvapi-...',
+              ),
+              obscureText: true,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: modelController,
+              decoration: const InputDecoration(
+                labelText: 'Model ID',
+                hintText: 'meta/llama3-70b-instruct',
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              ref.read(chatConfigProvider.notifier).updateConfig(
+                    apiKey: apiKeyController.text.trim(),
+                    modelId: modelController.text.trim(),
+                  );
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('AI Configuration updated successfully')),
+              );
+            },
+            child: const Text('Save Changes'),
           ),
         ],
       ),
