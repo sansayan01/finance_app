@@ -149,7 +149,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
             ),
           ),
           // ── Fixed bottom action bar ──
-          _buildBottomBar(theme, isDark, primary),
+          _buildBottomBar(theme, isDark, primary, state),
         ],
       ),
     );
@@ -158,7 +158,7 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   // ═══════════════════════════════════════════════════
   //  BOTTOM ACTION BAR
   // ═══════════════════════════════════════════════════
-  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary) {
+  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary, NewUserState state) {
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
@@ -192,23 +192,56 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Creating User Profile...'),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.person_add_rounded, size: 18),
-              label: const Text('Create Profile', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              onPressed: state.isLoading 
+                ? null 
+                : () async {
+                    try {
+                      await ref.read(newUserProvider.notifier).createUser();
+                      
+                      if (!mounted) return;
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Row(
+                            children: [
+                              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                              SizedBox(width: 12),
+                              Text('User Profile Created Successfully'),
+                            ],
+                          ),
+                          backgroundColor: AppColors.success,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                      context.pop();
+                    } catch (e) {
+                      if (!mounted) return;
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: ${e.toString()}'),
+                          backgroundColor: theme.colorScheme.error,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                    }
+                  },
+              icon: state.isLoading 
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.person_add_rounded, size: 18),
+              label: Text(
+                state.isLoading ? 'Creating...' : 'Create Profile', 
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                disabledBackgroundColor: primary.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -271,6 +304,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   hint: 'staff@microflow.pro',
                   icon: Icons.mail_outline_rounded,
                   controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  inputFormatters: [LowerCaseTextFormatter()],
                   onChanged: (val) => ref.read(newUserProvider.notifier).updateEmail(val),
                   theme: theme, isDark: isDark,
                 ),
@@ -282,12 +317,15 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                 isNarrow: isNarrow,
                 first: _buildInputField(
                   label: 'MOBILE NUMBER',
-                  hint: 'Contact number',
+                  hint: '+91 XXXXXXXXXX',
                   icon: Icons.phone_android_outlined,
                   controller: _mobileController,
-                  keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateMobileNumber(val),
+                  keyboardType: TextInputType.phone,
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(14),
+                    _MobileFormatter(),
+                  ],
+                  onChanged: (val) => ref.read(newUserProvider.notifier).updateMobileNumber(val.replaceAll(RegExp(r'\D'), '')),
                   theme: theme, isDark: isDark,
                 ),
                 second: Column(
@@ -374,12 +412,15 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                 isNarrow: isNarrow,
                 first: _buildInputField(
                   label: 'AADHAR NUMBER',
-                  hint: '12-digit UID number',
+                  hint: 'XXXX XXXX XXXX',
                   icon: Icons.fingerprint_outlined,
                   controller: _aadharController,
                   keyboardType: TextInputType.number,
-                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateAadharNumber(val),
+                  inputFormatters: [
+                    LengthLimitingTextInputFormatter(14),
+                    _AadharFormatter(),
+                  ],
+                  onChanged: (val) => ref.read(newUserProvider.notifier).updateAadharNumber(val.replaceAll(' ', '')),
                   theme: theme, isDark: isDark,
                 ),
                 second: _buildInputField(
@@ -727,6 +768,58 @@ class _PanFormatter extends TextInputFormatter {
     return TextEditingValue(
       text: formatted,
       selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class _AadharFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digits.length > 12) digits = digits.substring(0, 12);
+
+    StringBuffer formatted = StringBuffer();
+    for (int i = 0; i < digits.length; i++) {
+      if (i > 0 && i % 4 == 0) formatted.write(' ');
+      formatted.write(digits[i]);
+    }
+
+    return TextEditingValue(
+      text: formatted.toString(),
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class _MobileFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
+    if (digits.length > 10) digits = digits.substring(0, 10);
+
+    StringBuffer formatted = StringBuffer();
+    if (digits.isNotEmpty) {
+      formatted.write('+91 ');
+      if (digits.length > 5) {
+        formatted.write('${digits.substring(0, 5)} ${digits.substring(5)}');
+      } else {
+        formatted.write(digits);
+      }
+    }
+
+    return TextEditingValue(
+      text: formatted.toString(),
+      selection: TextSelection.collapsed(offset: formatted.length),
+    );
+  }
+}
+
+class LowerCaseTextFormatter extends TextInputFormatter {
+  @override
+  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+    return TextEditingValue(
+      text: newValue.text.toLowerCase(),
+      selection: TextSelection.collapsed(offset: newValue.text.length),
     );
   }
 }

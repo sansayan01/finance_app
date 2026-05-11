@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
+import '../../../users/presentation/providers/user_list_provider.dart';
 import '../providers/new_loan_provider.dart';
 
 class NewLoanPage extends ConsumerStatefulWidget {
@@ -52,6 +53,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isNarrow = screenWidth < 600;
 
+    final usersAsync = ref.watch(userListProvider);
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
@@ -83,7 +86,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _buildFacilityDetails(state, theme, isDark, primary, false)),
+                        Expanded(flex: 3, child: _buildFacilityDetails(state, theme, isDark, primary, false, usersAsync)),
                         const SizedBox(width: 24),
                         Expanded(flex: 2, child: _buildFinancialSummary(state, theme, isDark, primary)),
                       ],
@@ -93,7 +96,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                       children: [
                         _buildFinancialSummary(state, theme, isDark, primary),
                         const SizedBox(height: 20),
-                        _buildFacilityDetails(state, theme, isDark, primary, isNarrow),
+                        _buildFacilityDetails(state, theme, isDark, primary, isNarrow, usersAsync),
                       ],
                     );
                   }
@@ -102,7 +105,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
             ),
           ),
           // ── Fixed bottom action bar ──
-          _buildBottomBar(theme, isDark, primary),
+          _buildBottomBar(theme, isDark, primary, state),
         ],
       ),
     );
@@ -111,7 +114,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  BOTTOM ACTION BAR
   // ═══════════════════════════════════════════════════
-  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary) {
+  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary, NewLoanState state) {
     return Container(
       padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
@@ -145,23 +148,56 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(
-              onPressed: () {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: const Text('Creating Loan Application...'),
-                    behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.rocket_launch_rounded, size: 18),
-              label: const Text('Deploy Loan', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+              onPressed: state.isLoading 
+                ? null 
+                : () async {
+                    try {
+                      await ref.read(newLoanProvider.notifier).createLoan();
+                      
+                      if (!mounted) return;
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: const Row(
+                            children: [
+                              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+                              SizedBox(width: 12),
+                              Text('Loan Deployed Successfully'),
+                            ],
+                          ),
+                          backgroundColor: AppColors.success,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                      context.pop();
+                    } catch (e) {
+                      if (!mounted) return;
+                      
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Error: ${e.toString()}'),
+                          backgroundColor: theme.colorScheme.error,
+                          behavior: SnackBarBehavior.floating,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                      );
+                    }
+                  },
+              icon: state.isLoading 
+                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Icon(Icons.rocket_launch_rounded, size: 18),
+              label: Text(
+                state.isLoading ? 'Deploying...' : 'Deploy Loan', 
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                disabledBackgroundColor: primary.withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -197,7 +233,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  FACILITY DETAILS FORM
   // ═══════════════════════════════════════════════════
-  Widget _buildFacilityDetails(NewLoanState state, ThemeData theme, bool isDark, Color primary, bool isNarrow) {
+  Widget _buildFacilityDetails(NewLoanState state, ThemeData theme, bool isDark, Color primary, bool isNarrow, AsyncValue<List<dynamic>> usersAsync) {
     return GlassCard(
       padding: EdgeInsets.all(isNarrow ? 18 : 24),
       child: Column(
@@ -209,12 +245,17 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           // ── Borrower ──
           _buildLabel('BORROWER ACCOUNT', theme),
           const SizedBox(height: 10),
-          _buildDropdown(
-            value: state.borrowerId,
-            hint: 'Select registered customer',
-            items: [],
-            onChanged: (val) => ref.read(newLoanProvider.notifier).updateBorrower(val),
-            theme: theme, isDark: isDark,
+          usersAsync.when(
+            data: (users) => _buildDropdown(
+              value: state.borrowerId,
+              hint: users.isEmpty ? 'No users found' : 'Select registered customer',
+              items: users.map((u) => u.id as String).toList(),
+              itemLabels: users.map((u) => u.fullName as String).toList(),
+              onChanged: (val) => ref.read(newLoanProvider.notifier).updateBorrower(val),
+              theme: theme, isDark: isDark,
+            ),
+            loading: () => const LinearProgressIndicator(),
+            error: (_, __) => _buildDropdown(value: null, hint: 'Error loading users', items: [], onChanged: (_) {}, theme: theme, isDark: isDark),
           ),
 
           const SizedBox(height: 28),
@@ -565,6 +606,7 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
     required String? value,
     required String hint,
     required List<String> items,
+    List<String>? itemLabels,
     required Function(String?) onChanged,
     required ThemeData theme,
     required bool isDark,
@@ -583,12 +625,14 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.textTheme.bodySmall?.color, size: 22),
           dropdownColor: isDark ? AppColors.elevatedDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
-          items: items.map((String item) {
+          items: List.generate(items.length, (index) {
+            final item = items[index];
+            final label = itemLabels != null ? itemLabels[index] : _capitalize(item);
             return DropdownMenuItem<String>(
               value: item,
-              child: Text(_capitalize(item), style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              child: Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
             );
-          }).toList(),
+          }),
           onChanged: onChanged,
         ),
       ),

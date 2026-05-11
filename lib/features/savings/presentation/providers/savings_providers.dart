@@ -31,3 +31,8 @@ final filteredSavingsProvider = Provider<List<SavingsModel>>((ref) {
            s.planName.toLowerCase().contains(query);
   }).toList();
 });
+
+final userSavingsProvider = FutureProvider.family<List<SavingsModel>, String>((ref, userId) async {
+  final savings = await ref.watch(allSavingsProvider.future);
+  return savings.where((s) => s.memberId == userId).toList();
+});

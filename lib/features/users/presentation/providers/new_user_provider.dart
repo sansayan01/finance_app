@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../providers/supabase_provider.dart';
 import '../../../auth/data/models/user_model.dart';
+import '../../data/repositories/user_repository.dart';
 
 class NewUserState {
   final String fullName;
@@ -11,6 +13,7 @@ class NewUserState {
   final String password;
   final String aadharNumber;
   final String panNumber;
+  final bool isLoading;
   
   NewUserState({
     this.fullName = '',
@@ -22,6 +25,7 @@ class NewUserState {
     this.password = '',
     this.aadharNumber = '',
     this.panNumber = '',
+    this.isLoading = false,
   });
 
   NewUserState copyWith({
@@ -34,6 +38,7 @@ class NewUserState {
     String? password,
     String? aadharNumber,
     String? panNumber,
+    bool? isLoading,
   }) {
     return NewUserState(
       fullName: fullName ?? this.fullName,
@@ -45,12 +50,19 @@ class NewUserState {
       password: password ?? this.password,
       aadharNumber: aadharNumber ?? this.aadharNumber,
       panNumber: panNumber ?? this.panNumber,
+      isLoading: isLoading ?? this.isLoading,
     );
   }
 }
 
+final userRepositoryProvider = Provider<UserRepository>((ref) {
+  return UserRepository(ref.watch(supabaseClientProvider));
+});
+
 class NewUserNotifier extends StateNotifier<NewUserState> {
-  NewUserNotifier() : super(NewUserState());
+  final UserRepository _repository;
+  
+  NewUserNotifier(this._repository) : super(NewUserState());
 
   void updateFullName(String value) => state = state.copyWith(fullName: value);
   void updateEmail(String value) => state = state.copyWith(email: value);
@@ -62,9 +74,30 @@ class NewUserNotifier extends StateNotifier<NewUserState> {
   void updateAadharNumber(String value) => state = state.copyWith(aadharNumber: value);
   void updatePanNumber(String value) => state = state.copyWith(panNumber: value);
 
+  Future<void> createUser() async {
+    state = state.copyWith(isLoading: true);
+    try {
+      await _repository.createUser(
+        fullName: state.fullName,
+        email: state.email,
+        phone: state.mobileNumber,
+        role: state.role,
+        aadhar: state.aadharNumber,
+        pan: state.panNumber,
+        employeeId: state.employeeId,
+        assignedZone: state.assignedZone,
+        password: state.password,
+      );
+      state = state.copyWith(isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false);
+      rethrow;
+    }
+  }
+
   void reset() => state = NewUserState();
 }
 
 final newUserProvider = StateNotifierProvider<NewUserNotifier, NewUserState>((ref) {
-  return NewUserNotifier();
+  return NewUserNotifier(ref.watch(userRepositoryProvider));
 });

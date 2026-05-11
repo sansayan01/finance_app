@@ -18,6 +18,7 @@ import '../features/loans/presentation/pages/new_loan_page.dart';
 import '../features/savings/presentation/pages/new_recurring_saving_page.dart';
 import '../features/users/presentation/pages/users_page.dart';
 import '../features/users/presentation/pages/new_user_page.dart';
+import '../features/users/presentation/pages/user_details_page.dart';
 import '../features/analytics/presentation/pages/analytics_page.dart';
 import '../features/home/presentation/pages/search_page.dart';
 import '../features/home/presentation/pages/notifications_page.dart';
@@ -106,6 +107,13 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/users/new',
             builder: (context, state) => const NewUserPage(),
+          ),
+          GoRoute(
+            path: '/users/:id',
+            builder: (context, state) {
+              final id = state.pathParameters['id']!;
+              return UserDetailsPage(userId: id);
+            },
           ),
           GoRoute(
             path: '/settings',

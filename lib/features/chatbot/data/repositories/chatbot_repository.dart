@@ -50,7 +50,12 @@ class ChatbotRepository {
       final response = await client.send(request);
       
       if (response.statusCode != 200) {
-        yield 'Error: ${response.statusCode}';
+        final errorBody = await response.stream.bytesToString();
+        if (errorBody.contains('image') || errorBody.contains('vision') || errorBody.contains('image.png')) {
+          yield 'Error: This model does not support image input. Please send text messages only.';
+        } else {
+          yield 'Error: ${response.statusCode}';
+        }
         return;
       }
 

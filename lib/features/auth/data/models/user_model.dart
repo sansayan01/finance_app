@@ -60,7 +60,7 @@ class UserModel {
 
 class ProfileModel {
   final String id;
-  final String userId;
+  final String? userId;
   final String? fullName;
   final String? phone;
   final String? pan;
@@ -76,7 +76,7 @@ class ProfileModel {
 
   ProfileModel({
     required this.id,
-    required this.userId,
+    this.userId,
     this.fullName,
     this.phone,
     this.pan,
@@ -93,8 +93,8 @@ class ProfileModel {
 
   factory ProfileModel.fromJson(Map<String, dynamic> json) {
     return ProfileModel(
-      id: json['id'] as String,
-      userId: json['user_id'] as String,
+      id: json['id']?.toString() ?? '',
+      userId: json['user_id']?.toString(),
       fullName: json['full_name'] as String?,
       phone: json['phone'] as String?,
       pan: json['pan'] as String?,

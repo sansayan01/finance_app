@@ -8,6 +8,7 @@ class GlassCard extends StatefulWidget {
   final double borderRadius;
   final bool elevated;
   final Color? backgroundColor;
+  final Color? borderColor;
   final bool enableScale;
 
   const GlassCard({
@@ -18,6 +19,7 @@ class GlassCard extends StatefulWidget {
     this.borderRadius = 24,
     this.elevated = false,
     this.backgroundColor,
+    this.borderColor,
     this.enableScale = true,
   });
 
@@ -92,10 +94,10 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
             : bgColor,
         borderRadius: BorderRadius.circular(widget.borderRadius),
         border: Border.all(
-          color: isDark
+          color: widget.borderColor ?? (isDark
               ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.03),
-          width: 0.5,
+              : Colors.black.withValues(alpha: 0.03)),
+          width: widget.borderColor != null ? 1.5 : 0.5,
         ),
         boxShadow: shadows,
       ),

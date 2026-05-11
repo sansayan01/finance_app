@@ -39,13 +39,13 @@ final filteredLoansProvider = Provider<List<LoanModel>>((ref) {
 final loanStatsProvider = Provider<AsyncValue<Map<String, dynamic>>>((ref) {
   return ref.watch(allLoansProvider).whenData((loans) {
     final active = loans.where((l) => l.status == LoanStatus.active).toList();
-    final totalOut = active.fold<double>(0, (sum, l) => sum + l.outstandingBalance);
+    final totalOut = active.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance);
     final overdue = loans.where((l) => l.status == LoanStatus.defaultStatus).toList();
     final pending = loans.where((l) => l.status == LoanStatus.pending).toList();
     
     final totalDisbursed = loans
         .where((l) => l.status == LoanStatus.active || l.status == LoanStatus.closed)
-        .fold<double>(0, (sum, l) => sum + l.amount);
+        .fold<double>(0.0, (double sum, LoanModel l) => sum + l.amount);
 
     return {
       'activeCount': active.length,
@@ -66,4 +66,9 @@ final loanDetailProvider = FutureProvider.family<LoanModel?, String>((ref, id) a
 final emiScheduleProvider = FutureProvider.family<List<EMIScheduleModel>, String>((ref, loanId) async {
   final repository = ref.watch(emiRepositoryProvider);
   return repository.getByLoanId(loanId);
+});
+
+final userLoansProvider = FutureProvider.family<List<LoanModel>, String>((ref, userId) async {
+  final loans = await ref.watch(allLoansProvider.future);
+  return loans.where((l) => l.customerId == userId).toList();
 });

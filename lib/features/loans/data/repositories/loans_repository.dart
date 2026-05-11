@@ -50,12 +50,12 @@ class LoansRepository {
       final active = loans.where((l) => l.status == LoanStatus.active).toList();
       final defaults = loans.where((l) => l.status == LoanStatus.defaultStatus).toList();
       
-      final totalOutstanding = active.fold<double>(0, (sum, l) => sum + l.outstandingBalance) +
-                               defaults.fold<double>(0, (sum, l) => sum + l.outstandingBalance);
+      final totalOutstanding = active.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance) +
+                               defaults.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance);
       
       final totalDisbursed = loans
           .where((l) => l.status == LoanStatus.active || l.status == LoanStatus.closed)
-          .fold<double>(0, (sum, l) => sum + l.amount);
+          .fold<double>(0.0, (double sum, LoanModel l) => sum + l.amount);
 
       return LoanSummary(
         totalLoans: loans.length,
@@ -64,7 +64,7 @@ class LoansRepository {
         totalOutstanding: totalOutstanding,
         totalDisbursed: totalDisbursed,
         totalCollected: 0, // Would need transaction history
-        overdueAmount: defaults.fold<double>(0, (sum, l) => sum + l.outstandingBalance),
+        overdueAmount: defaults.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance),
         parPercentage: loans.isEmpty ? 0 : (defaults.length / loans.length) * 100,
       );
     } catch (e) {
@@ -104,7 +104,35 @@ class LoansRepository {
     }
   }
 
-  Future<void> createLoan(Map<String, dynamic> data) async {
+  Future<void> createLoan({
+    required String borrowerId,
+    required double principal,
+    required double interestRate,
+    required int tenureMonths,
+    required String frequency,
+    required String collectionType,
+    required String interestLogic,
+    required DateTime firstInstallmentDate,
+    required double estimatedInstallment,
+    required double totalExposure,
+  }) async {
+    await _client.from('loans').insert({
+      'borrower_id': borrowerId,
+      'principal_amount': principal,
+      'interest_rate': interestRate,
+      'tenure_months': tenureMonths,
+      'frequency': frequency,
+      'collection_type': collectionType,
+      'interest_logic': interestLogic,
+      'first_installment_date': firstInstallmentDate.toIso8601String(),
+      'estimated_installment': estimatedInstallment,
+      'total_exposure': totalExposure,
+      'status': 'active',
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
+  Future<void> createLoanFromMap(Map<String, dynamic> data) async {
     await _client.from('loans').insert(data);
   }
 
