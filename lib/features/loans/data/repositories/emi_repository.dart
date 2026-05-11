@@ -54,9 +54,62 @@ class EMIRepository {
     }
   }
 
-  Future<void> generateSchedule(String loanId) async {
-    // In a real app, this would be a Supabase Edge Function or RPC call
-    // because complex amortization logic should be server-side.
-    await _client.rpc('generate_emi_schedule', params: {'p_loan_id': loanId});
+  Future<void> generateSchedule(String loanId, {
+    required double principal,
+    required double interestRate,
+    required int tenureMonths,
+    required String interestType,
+    required DateTime startDate,
+    required double emiAmount,
+  }) async {
+    try {
+      // Try RPC first
+      try {
+        await _client.rpc('generate_emi_schedule', params: {'p_loan_id': loanId});
+        return;
+      } catch (e) {
+        // Fallback to manual generation if RPC fails
+        final List<Map<String, dynamic>> schedule = [];
+        double balance = principal;
+        final annualRate = interestRate / 100;
+        final monthlyRate = annualRate / 12;
+
+        for (int i = 1; i <= tenureMonths; i++) {
+          double interest;
+          double principalPaid;
+
+          if (interestType == 'reducing') {
+            interest = balance * monthlyRate;
+            principalPaid = emiAmount - interest;
+          } else {
+            // Flat rate
+            interest = (principal * annualRate * (tenureMonths / 12)) / tenureMonths;
+            principalPaid = emiAmount - interest;
+          }
+
+          balance -= principalPaid;
+          if (balance < 0) balance = 0;
+
+          schedule.add({
+            'loan_id': loanId,
+            'emi_number': i,
+            'due_date': DateTime(startDate.year, startDate.month + (i - 1), startDate.day).toIso8601String(),
+            'emi_amount': emiAmount,
+            'principal': principalPaid,
+            'interest': interest,
+            'balance_after': balance,
+            'status': 'upcoming',
+          });
+        }
+
+        await _client.from('emi_schedule').insert(schedule);
+      }
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateEMIStatus(String emiId, String status) async {
+    await _client.from('emi_schedule').update({'status': status}).eq('id', emiId);
   }
 }

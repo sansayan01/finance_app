@@ -11,6 +11,8 @@ import '../../../../core/utils/formatters.dart';
 import '../providers/loan_providers.dart';
 import '../../data/models/loan_model.dart';
 import '../../data/models/emi_schedule_model.dart';
+import '../widgets/collection_sheet.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LoanDetailPage extends ConsumerWidget {
   final String loanId;
@@ -39,9 +41,35 @@ class LoanDetailPage extends ConsumerWidget {
           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         actions: [
-          IconButton(
+          PopupMenuButton<String>(
             icon: Icon(Icons.more_horiz_rounded, color: theme.colorScheme.onSurface),
-            onPressed: () {},
+            onSelected: (value) {
+              if (value == 'settle') {
+                // Implement settlement logic
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'settle',
+                child: Row(
+                  children: [
+                    Icon(Icons.handshake_outlined, size: 18),
+                    SizedBox(width: 12),
+                    Text('Settle Loan'),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: 'reschedule',
+                child: Row(
+                  children: [
+                    Icon(Icons.event_repeat_rounded, size: 18),
+                    SizedBox(width: 12),
+                    Text('Reschedule'),
+                  ],
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -61,7 +89,7 @@ class LoanDetailPage extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.lg),
                 _buildRepaymentJourney(loan, scheduleAsync, theme, isDark, primary),
                 const SizedBox(height: AppSpacing.lg),
-                _buildRepaymentSchedule(loan, scheduleAsync, theme),
+                _buildRepaymentSchedule(ref, loan, scheduleAsync, theme),
                 const SizedBox(height: AppSpacing.lg),
                 _buildAdminContext(loan, theme, primary),
                 const SizedBox(height: 100),
@@ -72,14 +100,71 @@ class LoanDetailPage extends ConsumerWidget {
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (err, stack) => Center(child: Text('Error: $err', style: theme.textTheme.bodySmall)),
       ),
-      floatingActionButton: loanAsync.value?.status == LoanStatus.active
-          ? FloatingActionButton.extended(
-              onPressed: () {},
-              icon: const Icon(Icons.payments_outlined),
-              label: const Text('Record Payment', style: TextStyle(fontWeight: FontWeight.w600)),
-            )
-          : null,
+      floatingActionButton: loanAsync.when(
+        data: (loan) {
+          if (loan == null || loan.status != LoanStatus.active) return null;
+          return scheduleAsync.when(
+            data: (schedule) {
+              if (schedule.isEmpty) return null;
+              final nextEmi = schedule.firstWhere(
+                (e) => e.status != EMIStatus.paid,
+                orElse: () => schedule.first,
+              );
+              return FloatingActionButton.extended(
+                onPressed: () => _showCollectionSheet(context, loan, nextEmi),
+                icon: const Icon(Icons.payments_outlined),
+                label: const Text('Collect Next EMI', style: TextStyle(fontWeight: FontWeight.w600)),
+              );
+            },
+            loading: () => null,
+            error: (_, __) => null,
+          );
+        },
+        loading: () => null,
+        error: (_, __) => null,
+      ),
     );
+  }
+
+  void _showCollectionSheet(BuildContext context, LoanModel loan, EMIScheduleModel emi) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => CollectionSheet(loan: loan, emi: emi),
+    );
+  }
+
+  Future<void> _sendReminder(LoanModel loan, EMIScheduleModel emi) async {
+    final phone = loan.customerPhone ?? '';
+    final message = Uri.encodeComponent(
+      'Hi ${loan.customerName}, this is a reminder for your loan ${loan.loanNumber}. '
+      'Your EMI of ${AppFormatters.formatCurrency(emi.emiAmount)} is due on ${AppFormatters.formatDate(emi.dueDate)}. '
+      'Please ensure the payment is made on time to avoid penalties.'
+    );
+    final url = 'https://wa.me/$phone?text=$message';
+    
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    }
+  }
+
+  Future<void> _generateSchedule(WidgetRef ref, LoanModel loan) async {
+    try {
+      final repository = ref.read(emiRepositoryProvider);
+      await repository.generateSchedule(
+        loan.id,
+        principal: loan.amount,
+        interestRate: loan.interestRate,
+        tenureMonths: loan.tenureMonths,
+        interestType: loan.interestType.name,
+        startDate: loan.firstEmiDate ?? DateTime.now().add(const Duration(days: 30)),
+        emiAmount: loan.emiAmount,
+      );
+      ref.invalidate(emiScheduleProvider(loan.id));
+    } catch (e) {
+      // Handle error
+    }
   }
 
   Widget _buildHeader(LoanModel loan, ThemeData theme) {
@@ -207,7 +292,7 @@ class LoanDetailPage extends ConsumerWidget {
     ).animate().fadeIn(delay: 200.ms);
   }
 
-  Widget _buildRepaymentSchedule(LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme) {
+  Widget _buildRepaymentSchedule(WidgetRef ref, LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme) {
     return GlassCard(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
       child: Column(
@@ -224,7 +309,21 @@ class LoanDetailPage extends ConsumerWidget {
                 return Center(
                   child: Padding(
                     padding: const EdgeInsets.all(AppSpacing.xl),
-                    child: Text('No schedule generated', style: theme.textTheme.bodySmall),
+                    child: Column(
+                      children: [
+                        Text('No schedule generated', style: theme.textTheme.bodySmall),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () => _generateSchedule(ref, loan),
+                          icon: const Icon(Icons.auto_fix_high_rounded, size: 18),
+                          label: const Text('Generate Now'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: theme.colorScheme.primary,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 );
               }
@@ -241,6 +340,7 @@ class LoanDetailPage extends ConsumerWidget {
                     DataColumn(label: Text('DUE DATE', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
                     DataColumn(label: Text('AMOUNT', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
                     DataColumn(label: Text('STATUS', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
+                    DataColumn(label: Text('ACTION', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w900))),
                   ],
                   rows: schedule.map((emi) {
                     return DataRow(
@@ -260,6 +360,11 @@ class LoanDetailPage extends ConsumerWidget {
                         DataCell(StatusBadge(
                           label: emi.status.name,
                           type: _getEMIStatusType(emi.status),
+                        )),
+                        DataCell(IconButton(
+                          icon: Icon(Icons.send_rounded, size: 18, color: theme.colorScheme.primary),
+                          onPressed: () => _sendReminder(loan, emi),
+                          tooltip: 'Send Reminder',
                         )),
                       ],
                     );
