@@ -18,7 +18,8 @@ class TransactionsPage extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Timeline', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text('Timeline',
+            style: TextStyle(fontWeight: FontWeight.w800)),
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -30,9 +31,13 @@ class TransactionsPage extends ConsumerWidget {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.history_rounded, size: 64, color: AppColors.textTertiaryLight.withValues(alpha: 0.2)),
+                  Icon(Icons.history_rounded,
+                      size: 64,
+                      color:
+                          AppColors.textTertiaryLight.withValues(alpha: 0.2)),
                   const SizedBox(height: 16),
-                  Text('No transactions found', style: theme.textTheme.bodyLarge),
+                  Text('No transactions found',
+                      style: theme.textTheme.bodyLarge),
                 ],
               ),
             );
@@ -45,7 +50,10 @@ class TransactionsPage extends ConsumerWidget {
               return Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _TransactionTimelineTile(transaction: tx),
-              ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.05, end: 0);
+              )
+                  .animate()
+                  .fadeIn(delay: (index * 50).ms)
+                  .slideY(begin: 0.05, end: 0);
             },
           );
         },
@@ -64,21 +72,27 @@ class _TransactionTimelineTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isDeposit = transaction.type == TransactionType.emiPayment || transaction.type == TransactionType.savingsDeposit;
-    final color = isDeposit ? (isDark ? AppColors.successDark : AppColors.success) : (isDark ? AppColors.errorDark : AppColors.error);
+    final isDeposit = transaction.type == TransactionType.emiPayment ||
+        transaction.type == TransactionType.savingsDeposit;
+    final color = isDeposit
+        ? (isDark ? AppColors.successDark : AppColors.success)
+        : (isDark ? AppColors.errorDark : AppColors.error);
 
     return GlassCard(
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
             ),
             child: Icon(
-              isDeposit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded,
+              isDeposit
+                  ? Icons.arrow_downward_rounded
+                  : Icons.arrow_upward_rounded,
               color: color,
               size: 22,
             ),
@@ -89,8 +103,10 @@ class _TransactionTimelineTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  transaction.description ?? transaction.type.name.toUpperCase(),
-                  style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
+                  transaction.description ??
+                      transaction.type.name.toUpperCase(),
+                  style: theme.textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
                 ),
                 const SizedBox(height: 4),
                 Text(

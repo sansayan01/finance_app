@@ -11,8 +11,10 @@ class UserRepository {
         .from('profiles')
         .select()
         .order('created_at', ascending: false);
-    
-    return (response as List).map((json) => ProfileModel.fromJson(json)).toList();
+
+    return (response as List)
+        .map((json) => ProfileModel.fromJson(json))
+        .toList();
   }
 
   Future<void> createUser({
@@ -29,7 +31,7 @@ class UserRepository {
     // In a production app with Supabase, creating an AUTH user requires an Edge Function
     // or Service Role. For now, we will create the PROFILE record.
     // If the user needs to LOGIN, they should be created via the Auth flow or a backend function.
-    
+
     await _client.from('profiles').insert({
       'full_name': fullName,
       'email': email,
@@ -49,7 +51,7 @@ class UserRepository {
   Future<Map<String, int>> getUserStats() async {
     final response = await _client.from('profiles').select('role');
     final roles = (response as List).map((e) => e['role'] as String).toList();
-    
+
     final stats = {
       'total': roles.length,
       'admins': roles.where((r) => r == UserRole.executiveAdmin.name).length,
@@ -57,7 +59,7 @@ class UserRepository {
       'staff': roles.where((r) => r == UserRole.fieldStaff.name).length,
       'members': roles.where((r) => r == UserRole.retailMember.name).length,
     };
-    
+
     return stats;
   }
 }

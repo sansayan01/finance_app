@@ -6,9 +6,9 @@ import 'package:flutter/material.dart';
 class SmokeyBackground extends StatefulWidget {
   final Widget child;
   final Color color;
-  
+
   const SmokeyBackground({
-    super.key, 
+    super.key,
     required this.child,
     this.color = const Color(0xFF1E40AF),
   });
@@ -17,7 +17,8 @@ class SmokeyBackground extends StatefulWidget {
   State<SmokeyBackground> createState() => _SmokeyBackgroundState();
 }
 
-class _SmokeyBackgroundState extends State<SmokeyBackground> with SingleTickerProviderStateMixin {
+class _SmokeyBackgroundState extends State<SmokeyBackground>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -84,7 +85,7 @@ class _SmokeyPainter extends CustomPainter {
     for (int i = 1; i <= 5; i++) {
       final dx = 50 * cos(i * 0.8 * time + i);
       final dy = 50 * sin(i * 1.2 * time + i * 2);
-      
+
       final opacity = 0.05 + (0.05 * sin(time + i));
       paint.color = color.withValues(alpha: opacity);
 
@@ -102,5 +103,6 @@ class _SmokeyPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant _SmokeyPainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(covariant _SmokeyPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

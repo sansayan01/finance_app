@@ -32,7 +32,8 @@ class SystemSettings {
     return SystemSettings(
       defaultLoanInterest: defaultLoanInterest ?? this.defaultLoanInterest,
       defaultSavingsYield: defaultSavingsYield ?? this.defaultSavingsYield,
-      latePenaltyPercentage: latePenaltyPercentage ?? this.latePenaltyPercentage,
+      latePenaltyPercentage:
+          latePenaltyPercentage ?? this.latePenaltyPercentage,
       enableNotifications: enableNotifications ?? this.enableNotifications,
       biometricAuth: biometricAuth ?? this.biometricAuth,
       currency: currency ?? this.currency,
@@ -87,7 +88,8 @@ class SystemSettingsNotifier extends StateNotifier<SystemSettings> {
   Future<void> toggleBiometric(bool value) async {
     if (value) {
       final auth = LocalAuthentication();
-      final canAuth = await auth.canCheckBiometrics || await auth.isDeviceSupported();
+      final canAuth =
+          await auth.canCheckBiometrics || await auth.isDeviceSupported();
       if (canAuth) {
         try {
           final didAuth = await auth.authenticate(
@@ -107,16 +109,17 @@ class SystemSettingsNotifier extends StateNotifier<SystemSettings> {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('biometricAuth', value);
   }
-  
+
   void _log(String param, String oldVal, String newVal) {
     _ref.read(activityLogRepositoryProvider).log(
-      action: 'System Parameter Updated',
-      details: 'Changed $param from $oldVal to $newVal',
-      type: ActivityType.systemUpdate,
-    );
+          action: 'System Parameter Updated',
+          details: 'Changed $param from $oldVal to $newVal',
+          type: ActivityType.systemUpdate,
+        );
   }
 }
 
-final settingsProvider = StateNotifierProvider<SystemSettingsNotifier, SystemSettings>((ref) {
+final settingsProvider =
+    StateNotifierProvider<SystemSettingsNotifier, SystemSettings>((ref) {
   return SystemSettingsNotifier(ref);
 });

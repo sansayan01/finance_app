@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
-
 class ProgressGauge extends StatefulWidget {
   final double value;
   final double size;
@@ -84,9 +83,10 @@ class _ProgressGaugeState extends State<ProgressGauge>
                 painter: _GaugePainter(
                   value: _animation.value.clamp(0.0, 1.0),
                   strokeWidth: widget.strokeWidth,
-                  progressColor: widget.progressColor ?? Theme.of(context).colorScheme.primary,
-                  backgroundColor:
-                      widget.backgroundColor ?? Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                  progressColor: widget.progressColor ??
+                      Theme.of(context).colorScheme.primary,
+                  backgroundColor: widget.backgroundColor ??
+                      Theme.of(context).dividerColor.withValues(alpha: 0.2),
                 ),
               ),
               if (widget.center != null) widget.center!,
@@ -166,8 +166,7 @@ class _GaugePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GaugePainter oldDelegate) =>
-      value != oldDelegate.value ||
-      progressColor != oldDelegate.progressColor;
+      value != oldDelegate.value || progressColor != oldDelegate.progressColor;
 }
 
 class LinearProgressBar extends StatefulWidget {
@@ -216,7 +215,8 @@ class _LinearProgressBarState extends State<LinearProgressBar>
   void didUpdateWidget(LinearProgressBar oldWidget) {
     super.didUpdateWidget(oldWidget);
     if (oldWidget.value != widget.value) {
-      _animation = Tween<double>(begin: _animation.value, end: widget.value).animate(
+      _animation =
+          Tween<double>(begin: _animation.value, end: widget.value).animate(
         CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
       );
       _controller.reset();
@@ -232,7 +232,8 @@ class _LinearProgressBarState extends State<LinearProgressBar>
 
   @override
   Widget build(BuildContext context) {
-    final radius = widget.borderRadius ?? BorderRadius.circular(widget.height / 2);
+    final radius =
+        widget.borderRadius ?? BorderRadius.circular(widget.height / 2);
 
     return AnimatedBuilder(
       animation: _animation,
@@ -240,7 +241,8 @@ class _LinearProgressBarState extends State<LinearProgressBar>
         return Container(
           height: widget.height,
           decoration: BoxDecoration(
-            color: widget.backgroundColor ?? Theme.of(context).dividerColor.withValues(alpha: 0.2),
+            color: widget.backgroundColor ??
+                Theme.of(context).dividerColor.withValues(alpha: 0.2),
             borderRadius: radius,
           ),
           child: ClipRRect(
@@ -252,14 +254,18 @@ class _LinearProgressBarState extends State<LinearProgressBar>
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      (widget.progressColor ?? Theme.of(context).colorScheme.primary).withValues(alpha: 0.8),
-                      widget.progressColor ?? Theme.of(context).colorScheme.primary,
+                      (widget.progressColor ??
+                              Theme.of(context).colorScheme.primary)
+                          .withValues(alpha: 0.8),
+                      widget.progressColor ??
+                          Theme.of(context).colorScheme.primary,
                     ],
                   ),
                   borderRadius: radius,
                   boxShadow: [
                     BoxShadow(
-                      color: (widget.progressColor ?? Theme.of(context).colorScheme.primary)
+                      color: (widget.progressColor ??
+                              Theme.of(context).colorScheme.primary)
                           .withValues(alpha: 0.4),
                       blurRadius: 8,
                       offset: const Offset(0, 2),

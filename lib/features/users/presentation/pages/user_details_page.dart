@@ -34,15 +34,16 @@ class UserDetailsPage extends ConsumerWidget {
         children: [
           // Background Aurora effect
           const _AuroraBackground(),
-          
+
           userAsync.when(
             data: (user) {
-              if (user == null) return const Center(child: Text('User not found'));
-              
+              if (user == null) {
+                return const Center(child: Text('User not found'));
+              }
+
               return loansAsync.when(
                 data: (loans) => savingsAsync.when(
                   data: (savings) {
-                    
                     return CustomScrollView(
                       physics: const BouncingScrollPhysics(),
                       slivers: [
@@ -59,17 +60,20 @@ class UserDetailsPage extends ConsumerWidget {
                                   _buildTrustScoreGauge(user, theme, isDark),
                                 ],
                                 const SizedBox(height: 32),
-                                _buildPortfolioHub(loans, savings, theme, isDark),
+                                _buildPortfolioHub(
+                                    loans, savings, theme, isDark),
                                 if (loans.isNotEmpty) ...[
                                   const SizedBox(height: 32),
-                                  _buildRepaymentdiscipline(loans, theme, isDark),
+                                  _buildRepaymentdiscipline(
+                                      loans, theme, isDark),
                                 ],
                                 const SizedBox(height: 32),
                                 _buildKYCVault(user, theme, isDark),
                                 const SizedBox(height: 32),
                                 _buildMemberQRPass(user, theme, isDark),
                                 const SizedBox(height: 32),
-                                _buildActivityTimeline(loans, savings, theme, isDark),
+                                _buildActivityTimeline(
+                                    loans, savings, theme, isDark),
                               ],
                             ),
                           ),
@@ -87,7 +91,7 @@ class UserDetailsPage extends ConsumerWidget {
             loading: () => const _LoadingState(),
             error: (e, __) => Center(child: Text('User Error: $e')),
           ),
-          
+
           // Floating Action Bar at bottom
           _buildFloatingActionIsland(context, theme, isDark),
         ],
@@ -95,7 +99,8 @@ class UserDetailsPage extends ConsumerWidget {
     );
   }
 
-  Widget _buildSliverAppBar(BuildContext context, WidgetRef ref, ProfileModel user, ThemeData theme) {
+  Widget _buildSliverAppBar(
+      BuildContext context, WidgetRef ref, ProfileModel user, ThemeData theme) {
     return SliverAppBar(
       expandedHeight: 0,
       collapsedHeight: 64,
@@ -113,7 +118,8 @@ class UserDetailsPage extends ConsumerWidget {
       ),
       title: Text(
         user.fullName ?? 'Member Profile',
-        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5),
+        style: const TextStyle(
+            fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: -0.5),
       ),
       actions: [
         PopupMenuButton<String>(
@@ -123,7 +129,8 @@ class UserDetailsPage extends ConsumerWidget {
               _showEditSheet(context, ref, user);
             }
           },
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           itemBuilder: (context) => [
             const PopupMenuItem(
               value: 'edit',
@@ -131,7 +138,8 @@ class UserDetailsPage extends ConsumerWidget {
                 children: [
                   Icon(Icons.edit_rounded, size: 20),
                   SizedBox(width: 12),
-                  Text('Edit Profile', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text('Edit Profile',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -141,7 +149,8 @@ class UserDetailsPage extends ConsumerWidget {
                 children: [
                   Icon(Icons.ios_share_rounded, size: 20),
                   SizedBox(width: 12),
-                  Text('Export Statement', style: TextStyle(fontWeight: FontWeight.w600)),
+                  Text('Export Statement',
+                      style: TextStyle(fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -150,9 +159,12 @@ class UserDetailsPage extends ConsumerWidget {
               value: 'deactivate',
               child: Row(
                 children: [
-                  Icon(Icons.no_accounts_rounded, size: 20, color: Colors.red[400]),
+                  Icon(Icons.no_accounts_rounded,
+                      size: 20, color: Colors.red[400]),
                   const SizedBox(width: 12),
-                  Text('Deactivate Member', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.red[400])),
+                  Text('Deactivate Member',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w600, color: Colors.red[400])),
                 ],
               ),
             ),
@@ -174,7 +186,7 @@ class UserDetailsPage extends ConsumerWidget {
 
   Widget _buildIdentityHeader(ProfileModel user, ThemeData theme, bool isDark) {
     final primary = theme.colorScheme.primary;
-    
+
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -195,7 +207,8 @@ class UserDetailsPage extends ConsumerWidget {
           Positioned(
             right: -10,
             top: -10,
-            child: Icon(Icons.shield_rounded, size: 100, color: primary.withValues(alpha: 0.03)),
+            child: Icon(Icons.shield_rounded,
+                size: 100, color: primary.withValues(alpha: 0.03)),
           ),
           Padding(
             padding: const EdgeInsets.all(20),
@@ -204,20 +217,27 @@ class UserDetailsPage extends ConsumerWidget {
                 Hero(
                   tag: 'user_avatar_${user.id}',
                   child: Container(
-                    width: 76, height: 76,
+                    width: 76,
+                    height: 76,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         colors: [primary, primary.withValues(alpha: 0.7)],
                       ),
                       boxShadow: [
-                        BoxShadow(color: primary.withValues(alpha: 0.3), blurRadius: 15, spreadRadius: -2),
+                        BoxShadow(
+                            color: primary.withValues(alpha: 0.3),
+                            blurRadius: 15,
+                            spreadRadius: -2),
                       ],
                     ),
                     child: Center(
                       child: Text(
                         user.fullName?[0].toUpperCase() ?? '?',
-                        style: const TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w900),
                       ),
                     ),
                   ),
@@ -232,30 +252,45 @@ class UserDetailsPage extends ConsumerWidget {
                           Flexible(
                             child: Text(
                               user.fullName ?? 'Unknown',
-                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.8),
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -0.8),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 8),
-                          Icon(Icons.verified_user_rounded, size: 18, color: isDark ? AppColors.successDark : AppColors.success),
+                          Icon(Icons.verified_user_rounded,
+                              size: 18,
+                              color: isDark
+                                  ? AppColors.successDark
+                                  : AppColors.success),
                         ],
                       ),
                       const SizedBox(height: 2),
                       Text(
                         'Member ID: MF-${user.id.substring(0, 8).toUpperCase()}',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5),
+                        style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 0.5),
                       ),
                       const SizedBox(height: 10),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: primary.withValues(alpha: 0.15),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: primary.withValues(alpha: 0.2)),
+                          border:
+                              Border.all(color: primary.withValues(alpha: 0.2)),
                         ),
                         child: Text(
                           user.role?.name.toUpperCase() ?? 'RETAIL MEMBER',
-                          style: TextStyle(color: primary, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 1),
+                          style: TextStyle(
+                              color: primary,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1),
                         ),
                       ),
                     ],
@@ -269,11 +304,12 @@ class UserDetailsPage extends ConsumerWidget {
     ).animate().fadeIn(duration: 500.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildTrustScoreGauge(ProfileModel user, ThemeData theme, bool isDark) {
+  Widget _buildTrustScoreGauge(
+      ProfileModel user, ThemeData theme, bool isDark) {
     final primary = theme.colorScheme.primary;
     // Real score logic would go here, using a default based on history
-    const score = 785.0; 
-    
+    const score = 785.0;
+
     return GlassCard(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -284,17 +320,25 @@ class UserDetailsPage extends ConsumerWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Platform Trust Score', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
-                  Text('Performance-based Credit Rating', style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+                  Text('Platform Trust Score',
+                      style: theme.textTheme.titleSmall
+                          ?.copyWith(fontWeight: FontWeight.w800)),
+                  Text('Performance-based Credit Rating',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
                 ],
               ),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.success.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('ACTIVE', style: TextStyle(color: AppColors.success, fontSize: 11, fontWeight: FontWeight.w900)),
+                child: const Text('ACTIVE',
+                    style: TextStyle(
+                        color: AppColors.success,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w900)),
               ),
             ],
           ),
@@ -314,11 +358,17 @@ class UserDetailsPage extends ConsumerWidget {
                     const SizedBox(height: 30),
                     Text(
                       '${score.toInt()}',
-                      style: theme.textTheme.headlineLarge?.copyWith(fontWeight: FontWeight.w900, fontSize: 42, letterSpacing: -1),
+                      style: theme.textTheme.headlineLarge?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 42,
+                          letterSpacing: -1),
                     ),
                     Text(
                       'OF 900',
-                      style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800, fontSize: 10, letterSpacing: 2),
+                      style: theme.textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 10,
+                          letterSpacing: 2),
                     ),
                   ],
                 ),
@@ -327,20 +377,28 @@ class UserDetailsPage extends ConsumerWidget {
           ),
         ],
       ),
-    ).animate().fadeIn(delay: 100.ms).scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+    )
+        .animate()
+        .fadeIn(delay: 100.ms)
+        .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
   }
 
-  Widget _buildPortfolioHub(List<LoanModel> loans, List<SavingsModel> savings, ThemeData theme, bool isDark) {
+  Widget _buildPortfolioHub(List<LoanModel> loans, List<SavingsModel> savings,
+      ThemeData theme, bool isDark) {
     final active = loans.where((l) => l.status == LoanStatus.active).toList();
-    final totalOut = active.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance);
-    final totalSavings = savings.fold<double>(0.0, (double sum, SavingsModel s) => sum + s.targetAmount);
+    final totalOut = active.fold<double>(
+        0.0, (double sum, LoanModel l) => sum + l.outstandingBalance);
+    final totalSavings = savings.fold<double>(
+        0.0, (double sum, SavingsModel s) => sum + s.targetAmount);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 16),
-          child: Text('Portfolio Overview', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          child: Text('Portfolio Overview',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
         ),
         Row(
           children: [
@@ -371,7 +429,8 @@ class UserDetailsPage extends ConsumerWidget {
     ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildPortfolioCard(String label, String value, String subValue, IconData icon, Color color, ThemeData theme) {
+  Widget _buildPortfolioCard(String label, String value, String subValue,
+      IconData icon, Color color, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -384,17 +443,24 @@ class UserDetailsPage extends ConsumerWidget {
         children: [
           Icon(icon, color: color, size: 24),
           const SizedBox(height: 16),
-          Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900)),
+          Text(value,
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 2),
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, fontWeight: FontWeight.w700)),
+          Text(label,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontSize: 11, fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          Text(subValue, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.w900)),
+          Text(subValue,
+              style: TextStyle(
+                  color: color, fontSize: 10, fontWeight: FontWeight.w900)),
         ],
       ),
     );
   }
 
-  Widget _buildRepaymentdiscipline(List<LoanModel> loans, ThemeData theme, bool isDark) {
+  Widget _buildRepaymentdiscipline(
+      List<LoanModel> loans, ThemeData theme, bool isDark) {
     return GlassCard(
       padding: const EdgeInsets.all(24),
       child: Column(
@@ -403,8 +469,11 @@ class UserDetailsPage extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Repayment Discipline', style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w800)),
-              Icon(Icons.bar_chart_rounded, size: 20, color: theme.colorScheme.primary),
+              Text('Repayment Discipline',
+                  style: theme.textTheme.titleSmall
+                      ?.copyWith(fontWeight: FontWeight.w800)),
+              Icon(Icons.bar_chart_rounded,
+                  size: 20, color: theme.colorScheme.primary),
             ],
           ),
           const SizedBox(height: 24),
@@ -431,7 +500,8 @@ class UserDetailsPage extends ConsumerWidget {
           Center(
             child: Text(
               'Historical Collection Performance',
-              style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w600),
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontSize: 10, fontWeight: FontWeight.w600),
             ),
           ),
         ],
@@ -448,7 +518,8 @@ class UserDetailsPage extends ConsumerWidget {
           color: color,
           width: 12,
           borderRadius: BorderRadius.circular(4),
-          backDrawRodData: BackgroundBarChartRodData(show: true, toY: 15, color: color.withValues(alpha: 0.05)),
+          backDrawRodData: BackgroundBarChartRodData(
+              show: true, toY: 15, color: color.withValues(alpha: 0.05)),
         ),
       ],
     );
@@ -460,17 +531,22 @@ class UserDetailsPage extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 16),
-          child: Text('Document & KYC Vault', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          child: Text('Document & KYC Vault',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
         ),
         GlassCard(
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              _buildKYCItem('AADHAR CARD', user.aadhar ?? 'Not provided', Icons.badge_rounded, theme),
+              _buildKYCItem('AADHAR CARD', user.aadhar ?? 'Not provided',
+                  Icons.badge_rounded, theme),
               const Divider(height: 24, thickness: 0.5),
-              _buildKYCItem('PAN CARD', user.pan ?? 'Not provided', Icons.credit_card_rounded, theme),
+              _buildKYCItem('PAN CARD', user.pan ?? 'Not provided',
+                  Icons.credit_card_rounded, theme),
               const Divider(height: 24, thickness: 0.5),
-              _buildKYCItem('PHONE VERIFIED', user.phone ?? 'Not provided', Icons.phone_android_rounded, theme),
+              _buildKYCItem('PHONE VERIFIED', user.phone ?? 'Not provided',
+                  Icons.phone_android_rounded, theme),
             ],
           ),
         ),
@@ -478,11 +554,13 @@ class UserDetailsPage extends ConsumerWidget {
     ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildKYCItem(String label, String value, IconData icon, ThemeData theme) {
+  Widget _buildKYCItem(
+      String label, String value, IconData icon, ThemeData theme) {
     return Row(
       children: [
         Container(
-          width: 40, height: 40,
+          width: 40,
+          height: 40,
           decoration: BoxDecoration(
             color: theme.colorScheme.primary.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(12),
@@ -494,9 +572,15 @@ class UserDetailsPage extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w800, letterSpacing: 1)),
+              Text(label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1)),
               const SizedBox(height: 2),
-              Text(value, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
+              Text(value,
+                  style: theme.textTheme.bodyLarge
+                      ?.copyWith(fontWeight: FontWeight.w700, fontSize: 16)),
             ],
           ),
         ),
@@ -514,7 +598,9 @@ class UserDetailsPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Member QR Pass', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+                Text('Member QR Pass',
+                    style: theme.textTheme.titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),
                 Text(
                   'Scan this code to instantly pull up profile or record collections.',
@@ -522,7 +608,8 @@ class UserDetailsPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: theme.colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -530,9 +617,15 @@ class UserDetailsPage extends ConsumerWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Icon(Icons.qr_code_scanner_rounded, size: 16, color: theme.colorScheme.primary),
+                      Icon(Icons.qr_code_scanner_rounded,
+                          size: 16, color: theme.colorScheme.primary),
                       const SizedBox(width: 8),
-                      Text('ENCRYPTED ID', style: TextStyle(color: theme.colorScheme.primary, fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                      Text('ENCRYPTED ID',
+                          style: TextStyle(
+                              color: theme.colorScheme.primary,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1)),
                     ],
                   ),
                 ),
@@ -557,7 +650,8 @@ class UserDetailsPage extends ConsumerWidget {
     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildActivityTimeline(List<LoanModel> loans, List<SavingsModel> savings, ThemeData theme, bool isDark) {
+  Widget _buildActivityTimeline(List<LoanModel> loans,
+      List<SavingsModel> savings, ThemeData theme, bool isDark) {
     final hasActivity = loans.isNotEmpty || savings.isNotEmpty;
 
     return Column(
@@ -565,39 +659,59 @@ class UserDetailsPage extends ConsumerWidget {
       children: [
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 16),
-          child: Text('Recent History', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          child: Text('Recent History',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
         ),
         GlassCard(
           padding: const EdgeInsets.symmetric(vertical: 8),
-          child: !hasActivity 
-            ? const Padding(
-                padding: EdgeInsets.all(24),
-                child: Center(
-                  child: Column(
-                    children: [
-                      Icon(Icons.history_toggle_off_rounded, size: 32, color: Colors.grey),
-                      SizedBox(height: 12),
-                      Text('No transaction activity recorded yet.', style: TextStyle(color: Colors.grey, fontSize: 13, fontWeight: FontWeight.w600)),
-                    ],
+          child: !hasActivity
+              ? const Padding(
+                  padding: EdgeInsets.all(24),
+                  child: Center(
+                    child: Column(
+                      children: [
+                        Icon(Icons.history_toggle_off_rounded,
+                            size: 32, color: Colors.grey),
+                        SizedBox(height: 12),
+                        Text('No transaction activity recorded yet.',
+                            style: TextStyle(
+                                color: Colors.grey,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600)),
+                      ],
+                    ),
                   ),
+                )
+              : Column(
+                  children: [
+                    // Real items would be mapped from a transaction provider
+                    // For now, only show real items if lists are populated
+                    if (loans.isNotEmpty)
+                      _buildTimelineItem(
+                          'Loan Account Created',
+                          'Portfolio initialized',
+                          'System Log',
+                          Icons.add_moderator_rounded,
+                          theme.colorScheme.primary,
+                          theme),
+                    if (savings.isNotEmpty)
+                      _buildTimelineItem(
+                          'Savings Plan Active',
+                          'Contribution window open',
+                          'System Log',
+                          Icons.savings_rounded,
+                          AppColors.success,
+                          theme),
+                  ],
                 ),
-              )
-            : Column(
-                children: [
-                  // Real items would be mapped from a transaction provider
-                  // For now, only show real items if lists are populated
-                  if (loans.isNotEmpty)
-                    _buildTimelineItem('Loan Account Created', 'Portfolio initialized', 'System Log', Icons.add_moderator_rounded, theme.colorScheme.primary, theme),
-                  if (savings.isNotEmpty)
-                    _buildTimelineItem('Savings Plan Active', 'Contribution window open', 'System Log', Icons.savings_rounded, AppColors.success, theme),
-                ],
-              ),
         ),
       ],
     ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildTimelineItem(String title, String desc, String time, IconData icon, Color color, ThemeData theme) {
+  Widget _buildTimelineItem(String title, String desc, String time,
+      IconData icon, Color color, ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
@@ -615,22 +729,30 @@ class UserDetailsPage extends ConsumerWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
-                Text(desc, style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+                Text(title,
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(fontWeight: FontWeight.w800, fontSize: 14)),
+                Text(desc,
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
               ],
             ),
           ),
-          Text(time, style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, fontWeight: FontWeight.w600)),
+          Text(time,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );
   }
 
-  Widget _buildFloatingActionIsland(BuildContext context, ThemeData theme, bool isDark) {
+  Widget _buildFloatingActionIsland(
+      BuildContext context, ThemeData theme, bool isDark) {
     final primary = theme.colorScheme.primary;
-    
+
     return Positioned(
-      left: 24, right: 24, bottom: 32,
+      left: 24,
+      right: 24,
+      bottom: 32,
       child: GlassCard(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
         borderRadius: 24,
@@ -646,7 +768,8 @@ class UserDetailsPage extends ConsumerWidget {
             ),
             const SizedBox(width: 8),
             Container(
-              height: 40, width: 1,
+              height: 40,
+              width: 1,
               color: theme.dividerColor.withValues(alpha: 0.2),
             ),
             const SizedBox(width: 8),
@@ -676,7 +799,9 @@ class _LoadingState extends StatelessWidget {
         children: [
           CircularProgressIndicator(),
           SizedBox(height: 16),
-          Text('Synchronizing Profile...', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.grey)),
+          Text('Synchronizing Profile...',
+              style:
+                  TextStyle(fontWeight: FontWeight.w600, color: Colors.grey)),
         ],
       ),
     );
@@ -689,7 +814,11 @@ class _ActionIslandButton extends StatelessWidget {
   final Color color;
   final VoidCallback onTap;
 
-  const _ActionIslandButton({required this.label, required this.icon, required this.color, required this.onTap});
+  const _ActionIslandButton(
+      {required this.label,
+      required this.icon,
+      required this.color,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -705,7 +834,11 @@ class _ActionIslandButton extends StatelessWidget {
             const SizedBox(width: 10),
             Text(
               label,
-              style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 13, letterSpacing: -0.2),
+              style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 13,
+                  letterSpacing: -0.2),
             ),
           ],
         ),
@@ -738,14 +871,14 @@ class _GaugePainter extends CustomPainter {
     final activeSweep = (score / 900) * math.pi;
     paint.color = color;
     canvas.drawArc(rect, startAngle, activeSweep, false, paint);
-    
+
     // Dot at the end
     final angle = startAngle + activeSweep;
     final center = Offset(size.width / 2, size.height);
     final radius = size.width / 2;
     final x = center.dx + radius * math.cos(angle);
     final y = center.dy + radius * math.sin(angle);
-    
+
     final dotPaint = Paint()..color = Colors.white;
     canvas.drawCircle(Offset(x, y), 5, dotPaint);
   }
@@ -763,25 +896,38 @@ class _AuroraBackground extends StatelessWidget {
     return Stack(
       children: [
         Positioned(
-          top: -100, right: -50,
+          top: -100,
+          right: -50,
           child: Container(
-            width: 300, height: 300,
+            width: 300,
+            height: 300,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: primary.withValues(alpha: 0.05),
             ),
           ),
-        ).animate(onPlay: (c) => c.repeat()).moveY(begin: 0, end: 30, duration: 4.seconds, curve: Curves.easeInOut).moveX(begin: 0, end: -20, duration: 5.seconds, curve: Curves.easeInOut),
+        )
+            .animate(onPlay: (c) => c.repeat())
+            .moveY(
+                begin: 0, end: 30, duration: 4.seconds, curve: Curves.easeInOut)
+            .moveX(
+                begin: 0,
+                end: -20,
+                duration: 5.seconds,
+                curve: Curves.easeInOut),
         Positioned(
-          bottom: 100, left: -100,
+          bottom: 100,
+          left: -100,
           child: Container(
-            width: 400, height: 400,
+            width: 400,
+            height: 400,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.success.withValues(alpha: 0.03),
             ),
           ),
-        ).animate(onPlay: (c) => c.repeat()).moveY(begin: 0, end: -40, duration: 6.seconds, curve: Curves.easeInOut),
+        ).animate(onPlay: (c) => c.repeat()).moveY(
+            begin: 0, end: -40, duration: 6.seconds, curve: Curves.easeInOut),
       ],
     );
   }
@@ -830,20 +976,23 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
         'aadhar': _aadharController.text,
         'pan': _panController.text,
       });
-      
+
       ref.invalidate(userListProvider);
       ref.invalidate(userDetailsProvider(widget.user.id));
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.success),
+          const SnackBar(
+              content: Text('Profile updated successfully'),
+              backgroundColor: AppColors.success),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Update failed: $e'), backgroundColor: Colors.red),
+          SnackBar(
+              content: Text('Update failed: $e'), backgroundColor: Colors.red),
         );
       }
     } finally {
@@ -858,9 +1007,12 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
 
     return Container(
       padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom + 
-                MediaQuery.of(context).padding.bottom + 42,
-        top: 24, left: 24, right: 24,
+        bottom: MediaQuery.of(context).viewInsets.bottom +
+            MediaQuery.of(context).padding.bottom +
+            42,
+        top: 24,
+        left: 24,
+        right: 24,
       ),
       decoration: BoxDecoration(
         color: theme.scaffoldBackgroundColor,
@@ -875,7 +1027,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
           children: [
             Center(
               child: Container(
-                width: 40, height: 4,
+                width: 40,
+                height: 4,
                 decoration: BoxDecoration(
                   color: theme.dividerColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(2),
@@ -885,7 +1038,8 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
             const SizedBox(height: 24),
             Text(
               'Edit Profile',
-              style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -1),
+              style: theme.textTheme.headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -1),
             ),
             const SizedBox(height: 8),
             Text(
@@ -893,13 +1047,17 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
               style: theme.textTheme.bodySmall,
             ),
             const SizedBox(height: 32),
-            _buildTextField('Full Name', _nameController, Icons.person_rounded, theme),
+            _buildTextField(
+                'Full Name', _nameController, Icons.person_rounded, theme),
             const SizedBox(height: 16),
-            _buildTextField('Mobile Number', _phoneController, Icons.phone_rounded, theme),
+            _buildTextField(
+                'Mobile Number', _phoneController, Icons.phone_rounded, theme),
             const SizedBox(height: 16),
-            _buildTextField('Aadhar Number', _aadharController, Icons.badge_rounded, theme),
+            _buildTextField(
+                'Aadhar Number', _aadharController, Icons.badge_rounded, theme),
             const SizedBox(height: 16),
-            _buildTextField('PAN Card', _panController, Icons.credit_card_rounded, theme),
+            _buildTextField(
+                'PAN Card', _panController, Icons.credit_card_rounded, theme),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -909,12 +1067,19 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
                   backgroundColor: primary,
                   foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 18),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
                   elevation: 0,
                 ),
-                child: _isLoading 
-                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : const Text('Save Changes', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                child: _isLoading
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : const Text('Save Changes',
+                        style: TextStyle(
+                            fontWeight: FontWeight.w900, fontSize: 16)),
               ),
             ),
           ],
@@ -923,18 +1088,22 @@ class _EditProfileSheetState extends ConsumerState<_EditProfileSheet> {
     );
   }
 
-  Widget _buildTextField(String label, TextEditingController controller, IconData icon, ThemeData theme) {
+  Widget _buildTextField(String label, TextEditingController controller,
+      IconData icon, ThemeData theme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5)),
+        Text(label,
+            style: theme.textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w800, fontSize: 11, letterSpacing: 0.5)),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
           decoration: InputDecoration(
             prefixIcon: Icon(icon, size: 20, color: theme.colorScheme.primary),
             filled: true,
-            fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+            fillColor: theme.colorScheme.surfaceContainerHighest
+                .withValues(alpha: 0.3),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,

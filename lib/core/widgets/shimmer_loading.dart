@@ -19,7 +19,8 @@ class ShimmerLoading extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
       baseColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
-      highlightColor: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7),
+      highlightColor:
+          isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7),
       child: Container(
         width: width,
         height: height,
@@ -47,7 +48,8 @@ class ShimmerCard extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Shimmer.fromColors(
       baseColor: isDark ? const Color(0xFF2C2C2E) : const Color(0xFFE5E5EA),
-      highlightColor: isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7),
+      highlightColor:
+          isDark ? const Color(0xFF3A3A3C) : const Color(0xFFF2F2F7),
       child: Container(
         width: width,
         height: height,
@@ -167,8 +169,16 @@ class _SkeletonLoaderState extends State<SkeletonLoader>
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: isDark
-                  ? const [Color(0xFF2C2C2E), Color(0xFF3A3A3C), Color(0xFF2C2C2E)]
-                  : const [Color(0xFFE5E5EA), Color(0xFFF2F2F7), Color(0xFFE5E5EA)],
+                  ? const [
+                      Color(0xFF2C2C2E),
+                      Color(0xFF3A3A3C),
+                      Color(0xFF2C2C2E)
+                    ]
+                  : const [
+                      Color(0xFFE5E5EA),
+                      Color(0xFFF2F2F7),
+                      Color(0xFFE5E5EA)
+                    ],
               stops: [
                 0.0,
                 0.5 + _animation.value * 0.25,

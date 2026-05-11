@@ -14,7 +14,7 @@ class NewUserState {
   final String aadharNumber;
   final String panNumber;
   final bool isLoading;
-  
+
   NewUserState({
     this.fullName = '',
     this.email = '',
@@ -61,18 +61,23 @@ final userRepositoryProvider = Provider<UserRepository>((ref) {
 
 class NewUserNotifier extends StateNotifier<NewUserState> {
   final UserRepository _repository;
-  
+
   NewUserNotifier(this._repository) : super(NewUserState());
 
   void updateFullName(String value) => state = state.copyWith(fullName: value);
   void updateEmail(String value) => state = state.copyWith(email: value);
-  void updateMobileNumber(String value) => state = state.copyWith(mobileNumber: value);
+  void updateMobileNumber(String value) =>
+      state = state.copyWith(mobileNumber: value);
   void updateRole(UserRole role) => state = state.copyWith(role: role);
-  void updateEmployeeId(String value) => state = state.copyWith(employeeId: value);
-  void updateAssignedZone(String value) => state = state.copyWith(assignedZone: value);
+  void updateEmployeeId(String value) =>
+      state = state.copyWith(employeeId: value);
+  void updateAssignedZone(String value) =>
+      state = state.copyWith(assignedZone: value);
   void updatePassword(String value) => state = state.copyWith(password: value);
-  void updateAadharNumber(String value) => state = state.copyWith(aadharNumber: value);
-  void updatePanNumber(String value) => state = state.copyWith(panNumber: value);
+  void updateAadharNumber(String value) =>
+      state = state.copyWith(aadharNumber: value);
+  void updatePanNumber(String value) =>
+      state = state.copyWith(panNumber: value);
 
   Future<void> createUser() async {
     state = state.copyWith(isLoading: true);
@@ -98,6 +103,7 @@ class NewUserNotifier extends StateNotifier<NewUserState> {
   void reset() => state = NewUserState();
 }
 
-final newUserProvider = StateNotifierProvider<NewUserNotifier, NewUserState>((ref) {
+final newUserProvider =
+    StateNotifierProvider<NewUserNotifier, NewUserState>((ref) {
   return NewUserNotifier(ref.watch(userRepositoryProvider));
 });

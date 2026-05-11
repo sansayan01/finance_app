@@ -44,7 +44,8 @@ final pendingDepositsProvider = FutureProvider<List<SavingsModel>>((ref) async {
   return repository.getPendingDeposits(limit: 10);
 });
 
-final recentTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+final recentTransactionsProvider =
+    FutureProvider<List<TransactionModel>>((ref) async {
   final repository = ref.watch(transactionsRepositoryProvider);
   return repository.getRecentTransactions(limit: 10);
 });
@@ -59,12 +60,14 @@ final dashboardLoansProvider = FutureProvider<List<LoanModel>>((ref) async {
   return repository.getActiveLoans(limit: 5);
 });
 
-final dashboardSavingsProvider = FutureProvider<List<SavingsModel>>((ref) async {
+final dashboardSavingsProvider =
+    FutureProvider<List<SavingsModel>>((ref) async {
   final repository = ref.watch(savingsRepositoryProvider);
   return repository.getActiveSavingsPlans(limit: 4);
 });
 
-final dashboardTransactionsProvider = FutureProvider<List<TransactionModel>>((ref) async {
+final dashboardTransactionsProvider =
+    FutureProvider<List<TransactionModel>>((ref) async {
   final repository = ref.watch(transactionsRepositoryProvider);
   return repository.getRecentTransactions(limit: 3);
 });

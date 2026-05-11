@@ -49,10 +49,14 @@ class EMIScheduleModel {
         (e) => e.name == json['status'] || _toSnake(e.name) == json['status'],
         orElse: () => EMIStatus.upcoming,
       ),
-      paidOn: json['paid_on'] != null ? DateTime.parse(json['paid_on'] as String) : null,
+      paidOn: json['paid_on'] != null
+          ? DateTime.parse(json['paid_on'] as String)
+          : null,
       paymentMode: json['payment_mode'] != null
           ? PaymentMode.values.firstWhere(
-              (e) => e.name == json['payment_mode'] || _toSnake(e.name) == json['payment_mode'],
+              (e) =>
+                  e.name == json['payment_mode'] ||
+                  _toSnake(e.name) == json['payment_mode'],
               orElse: () => PaymentMode.cash,
             )
           : null,
@@ -64,7 +68,8 @@ class EMIScheduleModel {
   }
 
   static String _toSnake(String s) {
-    return s.replaceAllMapped(RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}');
+    return s.replaceAllMapped(
+        RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}');
   }
 
   Map<String, dynamic> toJson() {

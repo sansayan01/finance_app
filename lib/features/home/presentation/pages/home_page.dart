@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/progress_gauge.dart';
 import '../../../../core/widgets/status_badge.dart';
 import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
@@ -50,27 +49,27 @@ class HomePage extends ConsumerWidget {
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
               child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(context, ref),
-                const SizedBox(height: 28),
-                _buildHeroCard(context, ref),
-                const SizedBox(height: 28),
-                _buildQuickActions(context),
-                const SizedBox(height: 28),
-                _buildActiveLoansSection(context, ref),
-                const SizedBox(height: 28),
-                _buildSavingsSection(context, ref),
-                const SizedBox(height: 28),
-                _buildRecentTransactions(context, ref),
-              ],
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildHeader(context, ref),
+                  const SizedBox(height: 28),
+                  _buildHeroCard(context, ref),
+                  const SizedBox(height: 28),
+                  _buildQuickActions(context),
+                  const SizedBox(height: 28),
+                  _buildActiveLoansSection(context, ref),
+                  const SizedBox(height: 28),
+                  _buildSavingsSection(context, ref),
+                  const SizedBox(height: 28),
+                  _buildRecentTransactions(context, ref),
+                ],
+              ),
             ),
           ),
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
   Widget _buildHeader(BuildContext context, WidgetRef ref) {
     final user = ref.watch(currentUserProvider);
@@ -112,12 +111,15 @@ class HomePage extends ConsumerWidget {
                   Text(
                     greeting,
                     style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                      color: theme.textTheme.bodySmall?.color
+                          ?.withValues(alpha: 0.6),
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   const SizedBox(width: 6),
-                  Icon(greetingIcon, size: 14, color: theme.colorScheme.primary.withValues(alpha: 0.6)),
+                  Icon(greetingIcon,
+                      size: 14,
+                      color: theme.colorScheme.primary.withValues(alpha: 0.6)),
                 ],
               ),
               const SizedBox(height: 4),
@@ -155,118 +157,139 @@ class HomePage extends ConsumerWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return loanSummaryAsync.when(
-      data: (summary) {
-        final collected = todayStatsAsync.valueOrNull?['collected'] as double? ?? 0.0;
-        return GlassCard(
-          elevated: true,
-          padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          child: Stack(
-            clipBehavior: Clip.none,
-            children: [
-              // Action Menu - Positioned to the top right to save vertical space
-              Positioned(
-                top: -8,
-                right: -12,
-                child: PopupMenuButton<String>(
-                  icon: Icon(Icons.more_horiz, color: theme.textTheme.bodySmall?.color, size: 24),
-                  padding: EdgeInsets.zero,
-                  onSelected: (value) {
-                    if (value == 'refresh') {
-                      ref.invalidate(loanSummaryProvider);
-                      ref.invalidate(todayStatsProvider);
-                    } else if (value == 'analytics') {
-                      context.push('/analytics');
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'refresh',
-                      child: Row(
-                        children: [
-                          Icon(Icons.refresh_rounded, size: 20),
-                          SizedBox(width: 12),
-                          Text('Refresh Dashboard'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'analytics',
-                      child: Row(
-                        children: [
-                          Icon(Icons.analytics_outlined, size: 20),
-                          SizedBox(width: 12),
-                          Text('View Analytics'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+    return loanSummaryAsync
+        .when(
+          data: (summary) {
+            final collected =
+                todayStatsAsync.valueOrNull?['collected'] as double? ?? 0.0;
+            return GlassCard(
+              elevated: true,
+              padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
+              child: Stack(
+                clipBehavior: Clip.none,
                 children: [
-                  Text(
-                    AppFormatters.formatCompactCurrency(summary.totalOutstanding),
-                    style: theme.textTheme.displaySmall?.copyWith(
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: -1.2,
-                      fontSize: 36,
+                  // Action Menu - Positioned to the top right to save vertical space
+                  Positioned(
+                    top: -8,
+                    right: -12,
+                    child: PopupMenuButton<String>(
+                      icon: Icon(Icons.more_horiz,
+                          color: theme.textTheme.bodySmall?.color, size: 24),
+                      padding: EdgeInsets.zero,
+                      onSelected: (value) {
+                        if (value == 'refresh') {
+                          ref.invalidate(loanSummaryProvider);
+                          ref.invalidate(todayStatsProvider);
+                        } else if (value == 'analytics') {
+                          context.push('/analytics');
+                        }
+                      },
+                      itemBuilder: (context) => [
+                        const PopupMenuItem(
+                          value: 'refresh',
+                          child: Row(
+                            children: [
+                              Icon(Icons.refresh_rounded, size: 20),
+                              SizedBox(width: 12),
+                              Text('Refresh Dashboard'),
+                            ],
+                          ),
+                        ),
+                        const PopupMenuItem(
+                          value: 'analytics',
+                          child: Row(
+                            children: [
+                              Icon(Icons.analytics_outlined, size: 20),
+                              SizedBox(width: 12),
+                              Text('View Analytics'),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'Total Outstanding',
-                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
-                  ),
-                  const SizedBox(height: 24),
-                  Row(
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Expanded(
-                        child: _HeroStat(
-                          label: 'Active Members',
-                          value: summary.activeLoans.toString(),
-                          icon: Icons.people_rounded,
-                          color: isDark ? AppColors.accentDark : AppColors.accentLight,
-                          onTap: () => context.push('/users'),
+                      Text(
+                        AppFormatters.formatCompactCurrency(
+                            summary.totalOutstanding),
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.2,
+                          fontSize: 36,
                         ),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _HeroStat(
-                          label: "Today's Collection",
-                          value: AppFormatters.formatCompactCurrency(collected),
-                          icon: Icons.payments_rounded,
-                          color: isDark ? AppColors.successDark : AppColors.success,
-                          onTap: () {},
-                        ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Total Outstanding',
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(fontSize: 14),
                       ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: _HeroStat(
-                          label: 'PAR Rate',
-                          value: '${summary.parPercentage.toStringAsFixed(1)}%',
-                          icon: Icons.trending_down_rounded,
-                          color: summary.parPercentage > 5 ? (isDark ? AppColors.errorDark : AppColors.error) : (isDark ? AppColors.warningDark : AppColors.warning),
-                          onTap: () => context.push('/analytics'),
-                        ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _HeroStat(
+                              label: 'Active Members',
+                              value: summary.activeLoans.toString(),
+                              icon: Icons.people_rounded,
+                              color: isDark
+                                  ? AppColors.accentDark
+                                  : AppColors.accentLight,
+                              onTap: () => context.push('/users'),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _HeroStat(
+                              label: "Today's Collection",
+                              value: AppFormatters.formatCompactCurrency(
+                                  collected),
+                              icon: Icons.payments_rounded,
+                              color: isDark
+                                  ? AppColors.successDark
+                                  : AppColors.success,
+                              onTap: () {},
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: _HeroStat(
+                              label: 'PAR Rate',
+                              value:
+                                  '${summary.parPercentage.toStringAsFixed(1)}%',
+                              icon: Icons.trending_down_rounded,
+                              color: summary.parPercentage > 5
+                                  ? (isDark
+                                      ? AppColors.errorDark
+                                      : AppColors.error)
+                                  : (isDark
+                                      ? AppColors.warningDark
+                                      : AppColors.warning),
+                              onTap: () => context.push('/analytics'),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ],
               ),
-            ],
+            );
+          },
+          loading: () => const ShimmerCard(height: 220),
+          error: (_, __) => GlassCard(
+            padding: const EdgeInsets.all(24),
+            child: Center(
+              child: Text('Unable to load dashboard',
+                  style: theme.textTheme.bodySmall),
+            ),
           ),
-        );
-      },
-      loading: () => const ShimmerCard(height: 220),
-      error: (_, __) => GlassCard(
-        padding: const EdgeInsets.all(24),
-        child: Center(
-          child: Text('Unable to load dashboard', style: theme.textTheme.bodySmall),
-        ),
-      ),
-    ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.06, end: 0);
+        )
+        .animate()
+        .fadeIn(delay: 100.ms)
+        .slideY(begin: 0.06, end: 0);
   }
 
   Widget _buildQuickActions(BuildContext context) {
@@ -278,7 +301,8 @@ class HomePage extends ConsumerWidget {
       children: [
         Text(
           'Quick Actions',
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 16),
         Row(
@@ -314,7 +338,9 @@ class HomePage extends ConsumerWidget {
               child: _QuickActionBtn(
                 icon: Icons.history_rounded,
                 label: 'Timeline',
-                color: isDark ? AppColors.orange.withValues(alpha: 0.8) : AppColors.orange,
+                color: isDark
+                    ? AppColors.orange.withValues(alpha: 0.8)
+                    : AppColors.orange,
                 onTap: () => context.push('/transactions'),
               ),
             ),
@@ -336,12 +362,14 @@ class HomePage extends ConsumerWidget {
           children: [
             Text(
               'Active Loans',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
             GestureDetector(
               onTap: onViewAllLoans,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
@@ -364,27 +392,34 @@ class HomePage extends ConsumerWidget {
               return GlassCard(
                 padding: const EdgeInsets.all(32),
                 child: Center(
-                  child: Text('No active loans', style: theme.textTheme.bodySmall),
+                  child:
+                      Text('No active loans', style: theme.textTheme.bodySmall),
                 ),
               );
             }
             return Column(
-              children: loans.take(3).map((loan) => Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _LoanCard(loan: loan),
-              )).toList(),
+              children: loans
+                  .take(3)
+                  .map((loan) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _LoanCard(loan: loan),
+                      ))
+                  .toList(),
             );
           },
           loading: () => Column(
-            children: List.generate(2, (_) => const Padding(
-              padding: EdgeInsets.only(bottom: 12),
-              child: ShimmerCard(height: 160),
-            )),
+            children: List.generate(
+                2,
+                (_) => const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: ShimmerCard(height: 160),
+                    )),
           ),
           error: (_, __) => GlassCard(
             padding: const EdgeInsets.all(32),
             child: Center(
-              child: Text('Unable to load loans', style: theme.textTheme.bodySmall),
+              child: Text('Unable to load loans',
+                  style: theme.textTheme.bodySmall),
             ),
           ),
         ),
@@ -394,64 +429,288 @@ class HomePage extends ConsumerWidget {
 
   Widget _buildSavingsSection(BuildContext context, WidgetRef ref) {
     final savingsAsync = ref.watch(dashboardSavingsProvider);
+    final summaryAsync = ref.watch(savingsSummaryProvider);
+    final pendingAsync = ref.watch(pendingDepositsProvider);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final successColor = isDark ? AppColors.successDark : AppColors.success;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // Section Header with Create Button
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Savings Progress',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              'Savings Dashboard',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
-            GestureDetector(
-              onTap: onViewAllSavings,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(999),
-                ),
-                child: Text(
-                  'View All',
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: theme.colorScheme.primary,
-                    fontWeight: FontWeight.w600,
+            Row(
+              children: [
+                GestureDetector(
+                  onTap: () => context.push('/savings/new'),
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          successColor.withValues(alpha: 0.9),
+                          successColor.withValues(alpha: 0.7)
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.add, size: 14, color: Colors.white),
+                        const SizedBox(width: 4),
+                        Text(
+                          'New Plan',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 8),
+                GestureDetector(
+                  onTap: onViewAllSavings,
+                  child: Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: successColor.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      'View All',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        color: successColor,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
         const SizedBox(height: 16),
+
+        // Summary Hero Card
+        summaryAsync.when(
+          data: (summary) => GlassCard(
+            padding: const EdgeInsets.all(20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _SavingsStat(
+                    label: 'Total Savings',
+                    value: AppFormatters.formatCompactCurrency(
+                        summary.totalSavings),
+                    icon: Icons.account_balance_wallet_outlined,
+                    color: successColor,
+                  ),
+                ),
+                Container(
+                    height: 40,
+                    width: 1,
+                    color: theme.dividerColor.withValues(alpha: 0.2)),
+                Expanded(
+                  child: _SavingsStat(
+                    label: 'Active Accounts',
+                    value: summary.activeAccounts.toString(),
+                    icon: Icons.people_outline,
+                    color: AppColors.primary,
+                  ),
+                ),
+                Container(
+                    height: 40,
+                    width: 1,
+                    color: theme.dividerColor.withValues(alpha: 0.2)),
+                Expanded(
+                  child: _SavingsStat(
+                    label: 'Interest Earned',
+                    value: AppFormatters.formatCompactCurrency(
+                        summary.interestEarned),
+                    icon: Icons.trending_up_outlined,
+                    color: AppColors.accentLight,
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.05, end: 0),
+          loading: () => const ShimmerCard(height: 100),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Active Savings Plans
         savingsAsync.when(
           data: (savings) {
             if (savings.isEmpty) {
               return GlassCard(
                 padding: const EdgeInsets.all(32),
                 child: Center(
-                  child: Text('No active savings plans', style: theme.textTheme.bodySmall),
+                  child: Column(
+                    children: [
+                      Icon(Icons.savings_outlined,
+                          size: 48,
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.5)),
+                      const SizedBox(height: 12),
+                      Text('No active savings plans',
+                          style: theme.textTheme.bodySmall),
+                      const SizedBox(height: 8),
+                      TextButton(
+                        onPressed: () => context.push('/savings/new'),
+                        child: const Text('Create First Plan'),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
-            return Row(
-              children: savings.take(2).map((saving) => Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(right: saving == savings.last ? 0 : 12),
-                  child: _SavingsCard(saving: saving),
-                ),
-              )).toList(),
+            return Column(
+              children: savings
+                  .take(3)
+                  .map((saving) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _SavingsCard(saving: saving),
+                      ))
+                  .toList(),
             );
           },
-          loading: () => const ShimmerStatsRow(itemCount: 2),
+          loading: () => Column(
+            children: List.generate(
+                2,
+                (_) => const Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: ShimmerCard(height: 180),
+                    )),
+          ),
           error: (_, __) => GlassCard(
             padding: const EdgeInsets.all(32),
             child: Center(
-              child: Text('Unable to load savings', style: theme.textTheme.bodySmall),
+              child: Text('Unable to load savings',
+                  style: theme.textTheme.bodySmall),
             ),
           ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // Upcoming Maturities
+        pendingAsync.when(
+          data: (pending) {
+            final upcoming = pending
+                .where((s) =>
+                    s.maturityDate.difference(DateTime.now()).inDays <= 30)
+                .toList();
+            if (upcoming.isEmpty) return const SizedBox.shrink();
+
+            return GlassCard(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.event_available_outlined,
+                          size: 18, color: AppColors.orange),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Maturities This Month',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.orange,
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppColors.orange.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${upcoming.length} plans',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            fontSize: 11,
+                            color: AppColors.orange,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  ...upcoming.take(2).map((s) => Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 36,
+                              height: 36,
+                              decoration: BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    AppColors.orange.withValues(alpha: 0.15),
+                                    AppColors.orange.withValues(alpha: 0.05)
+                                  ],
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(Icons.person_outline,
+                                  size: 18, color: AppColors.orange),
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    s.memberName,
+                                    style: theme.textTheme.bodyMedium
+                                        ?.copyWith(fontWeight: FontWeight.w600),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  Text(
+                                    'Maturing on ${AppFormatters.formatDate(s.maturityDate)}',
+                                    style: theme.textTheme.bodySmall
+                                        ?.copyWith(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              AppFormatters.formatCurrency(s.targetAmount),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.orange,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
+                ],
+              ),
+            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0);
+          },
+          loading: () => const SizedBox.shrink(),
+          error: (_, __) => const SizedBox.shrink(),
         ),
       ],
     ).animate().fadeIn(delay: 500.ms).slideY(begin: 0.05, end: 0);
@@ -469,12 +728,14 @@ class HomePage extends ConsumerWidget {
           children: [
             Text(
               'Recent Transactions',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w700),
             ),
             GestureDetector(
               onTap: () => context.push('/transactions'),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 decoration: BoxDecoration(
                   color: AppColors.orange.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
@@ -497,7 +758,8 @@ class HomePage extends ConsumerWidget {
               return GlassCard(
                 padding: const EdgeInsets.all(32),
                 child: Center(
-                  child: Text('No recent transactions', style: theme.textTheme.bodySmall),
+                  child: Text('No recent transactions',
+                      style: theme.textTheme.bodySmall),
                 ),
               );
             }
@@ -525,7 +787,8 @@ class HomePage extends ConsumerWidget {
           error: (_, __) => GlassCard(
             padding: const EdgeInsets.all(32),
             child: Center(
-              child: Text('Unable to load transactions', style: theme.textTheme.bodySmall),
+              child: Text('Unable to load transactions',
+                  style: theme.textTheme.bodySmall),
             ),
           ),
         ),
@@ -533,27 +796,44 @@ class HomePage extends ConsumerWidget {
     ).animate().fadeIn(delay: 600.ms).slideY(begin: 0.05, end: 0);
   }
 
-  Widget _buildTransactionItem(BuildContext context, TransactionModel transaction) {
+  Widget _buildTransactionItem(
+      BuildContext context, TransactionModel transaction) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final isDeposit = transaction.type == TransactionType.emiPayment || transaction.type == TransactionType.savingsDeposit;
-    final icon = isDeposit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
-    final iconColor = isDeposit ? (isDark ? AppColors.successDark : AppColors.success) : (isDark ? AppColors.errorDark : AppColors.error);
+    final isDeposit = transaction.type == TransactionType.emiPayment ||
+        transaction.type == TransactionType.savingsDeposit;
+    final icon =
+        isDeposit ? Icons.arrow_downward_rounded : Icons.arrow_upward_rounded;
+    final iconColor = isDeposit
+        ? (isDark ? AppColors.successDark : AppColors.success)
+        : (isDark ? AppColors.errorDark : AppColors.error);
 
     String title;
     switch (transaction.type) {
-      case TransactionType.emiPayment: title = 'EMI Payment - ${transaction.memberName}'; break;
-      case TransactionType.loanDisbursement: title = 'Loan Disbursement - ${transaction.memberName}'; break;
-      case TransactionType.savingsDeposit: title = 'Savings Deposit - ${transaction.memberName}'; break;
-      case TransactionType.savingsWithdrawal: title = 'Savings Withdrawal - ${transaction.memberName}'; break;
-      case TransactionType.penalty: title = 'Penalty - ${transaction.memberName}'; break;
-      default: title = transaction.description ?? 'Transaction';
+      case TransactionType.emiPayment:
+        title = 'EMI Payment - ${transaction.memberName}';
+        break;
+      case TransactionType.loanDisbursement:
+        title = 'Loan Disbursement - ${transaction.memberName}';
+        break;
+      case TransactionType.savingsDeposit:
+        title = 'Savings Deposit - ${transaction.memberName}';
+        break;
+      case TransactionType.savingsWithdrawal:
+        title = 'Savings Withdrawal - ${transaction.memberName}';
+        break;
+      case TransactionType.penalty:
+        title = 'Penalty - ${transaction.memberName}';
+        break;
+      default:
+        title = transaction.description ?? 'Transaction';
     }
 
     return Row(
       children: [
         Container(
-          width: 44, height: 44,
+          width: 44,
+          height: 44,
           decoration: BoxDecoration(
             color: iconColor.withValues(alpha: 0.08),
             borderRadius: BorderRadius.circular(14),
@@ -607,16 +887,22 @@ class _HeaderIconBtn extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        width: 44, height: 44,
+        width: 44,
+        height: 44,
         decoration: BoxDecoration(
-          color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.03),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.06)
+              : Colors.black.withValues(alpha: 0.03),
           borderRadius: BorderRadius.circular(14),
           border: Border.all(
-            color: isDark ? Colors.white.withValues(alpha: 0.06) : Colors.black.withValues(alpha: 0.04),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.06)
+                : Colors.black.withValues(alpha: 0.04),
             width: 0.5,
           ),
         ),
-        child: Icon(icon, size: 22, color: Theme.of(context).textTheme.bodyLarge?.color),
+        child: Icon(icon,
+            size: 22, color: Theme.of(context).textTheme.bodyLarge?.color),
       ),
     );
   }
@@ -654,9 +940,12 @@ class _HeroStat extends StatelessWidget {
           children: [
             Icon(icon, color: color, size: 20),
             const SizedBox(height: 10),
-            Text(value, style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700, color: color)),
+            Text(value,
+                style: theme.textTheme.titleSmall
+                    ?.copyWith(fontWeight: FontWeight.w700, color: color)),
             const SizedBox(height: 2),
-            Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10)),
+            Text(label,
+                style: theme.textTheme.labelSmall?.copyWith(fontSize: 10)),
             const SizedBox(height: 8),
             SparklineChart(
               data: const [10, 15, 8, 22, 18, 25, 20], // Mock trend data
@@ -674,7 +963,11 @@ class _QuickActionBtn extends StatelessWidget {
   final String label;
   final Color color;
   final VoidCallback onTap;
-  const _QuickActionBtn({required this.icon, required this.label, required this.color, required this.onTap});
+  const _QuickActionBtn(
+      {required this.icon,
+      required this.label,
+      required this.color,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -686,12 +979,16 @@ class _QuickActionBtn extends StatelessWidget {
       child: Column(
         children: [
           Container(
-            width: 48, height: 48,
+            width: 48,
+            height: 48,
             decoration: BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [color.withValues(alpha: 0.15), color.withValues(alpha: 0.05)],
+                colors: [
+                  color.withValues(alpha: 0.15),
+                  color.withValues(alpha: 0.05)
+                ],
               ),
               borderRadius: BorderRadius.circular(16),
             ),
@@ -700,7 +997,8 @@ class _QuickActionBtn extends StatelessWidget {
           const SizedBox(height: 10),
           Text(
             label,
-            style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodySmall
+                ?.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
           ),
         ],
@@ -731,7 +1029,8 @@ class _LoanCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 48, height: 48,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -777,7 +1076,8 @@ class _LoanCard extends StatelessWidget {
                   ],
                 ),
               ),
-              StatusBadge(label: loan.status.name.toUpperCase(), type: statusType),
+              StatusBadge(
+                  label: loan.status.name.toUpperCase(), type: statusType),
             ],
           ),
           const SizedBox(height: 18),
@@ -789,16 +1089,24 @@ class _LoanCard extends StatelessWidget {
               backgroundColor: theme.brightness == Brightness.dark
                   ? Colors.white.withValues(alpha: 0.06)
                   : Colors.black.withValues(alpha: 0.04),
-              valueColor: AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
+              valueColor:
+                  AlwaysStoppedAnimation<Color>(theme.colorScheme.primary),
             ),
           ),
           const SizedBox(height: 18),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _LoanStat(label: 'Principal', value: AppFormatters.formatCompactCurrency(loan.amount)),
-              _LoanStat(label: 'EMI', value: AppFormatters.formatCurrency(loan.emiAmount)),
-              _LoanStat(label: 'Outstanding', value: AppFormatters.formatCompactCurrency(loan.outstandingBalance)),
+              _LoanStat(
+                  label: 'Principal',
+                  value: AppFormatters.formatCompactCurrency(loan.amount)),
+              _LoanStat(
+                  label: 'EMI',
+                  value: AppFormatters.formatCurrency(loan.emiAmount)),
+              _LoanStat(
+                  label: 'Outstanding',
+                  value: AppFormatters.formatCompactCurrency(
+                      loan.outstandingBalance)),
             ],
           ),
         ],
@@ -820,7 +1128,9 @@ class _LoanStat extends StatelessWidget {
       children: [
         Text(label, style: theme.textTheme.labelSmall?.copyWith(fontSize: 11)),
         const SizedBox(height: 2),
-        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700, fontSize: 14)),
+        Text(value,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w700, fontSize: 14)),
       ],
     );
   }
@@ -836,15 +1146,22 @@ class _SavingsCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
     final successColor = isDark ? AppColors.successDark : AppColors.success;
     final progress = saving.currentAmount / saving.targetAmount;
+    final daysRemaining = saving.maturityDate.difference(DateTime.now()).inDays;
+    final isCompleted = progress >= 1.0;
+    final isNearMaturity = daysRemaining <= 30;
+
     return GlassCard(
       padding: const EdgeInsets.all(20),
+      onTap: () {},
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Header: Avatar, Name, Status
           Row(
             children: [
               Container(
-                width: 40, height: 40,
+                width: 48,
+                height: 48,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
@@ -854,58 +1171,277 @@ class _SavingsCard extends StatelessWidget {
                       successColor.withValues(alpha: 0.05),
                     ],
                   ),
-                  borderRadius: BorderRadius.circular(14),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Icon(Icons.savings_rounded, color: successColor, size: 20),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  saving.memberName,
-                  style: theme.textTheme.bodyLarge?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    fontSize: 15,
+                child: Center(
+                  child: Text(
+                    saving.memberName.isNotEmpty
+                        ? saving.memberName[0].toUpperCase()
+                        : '?',
+                    style: TextStyle(
+                      color: successColor,
+                      fontSize: 20,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      saving.memberName,
+                      style: theme.textTheme.bodyLarge?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 16,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      saving.planName.isNotEmpty
+                          ? saving.planName
+                          : 'Recurring Savings',
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: isCompleted
+                      ? successColor.withValues(alpha: 0.12)
+                      : isNearMaturity
+                          ? AppColors.orange.withValues(alpha: 0.12)
+                          : theme.colorScheme.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  isCompleted
+                      ? 'COMPLETED'
+                      : isNearMaturity
+                          ? 'MATURING'
+                          : saving.status.toUpperCase(),
+                  style: theme.textTheme.labelSmall?.copyWith(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: isCompleted
+                        ? successColor
+                        : isNearMaturity
+                            ? AppColors.orange
+                            : theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 18),
+
+          // Progress Bar (linear - consistent with loans)
+          ClipRRect(
+            borderRadius: BorderRadius.circular(999),
+            child: LinearProgressIndicator(
+              value: progress.clamp(0.0, 1.0),
+              minHeight: 8,
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.06)
+                  : Colors.black.withValues(alpha: 0.04),
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isCompleted ? successColor : theme.colorScheme.primary,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Progress Stats Row
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '${(progress * 100).toInt()}% Complete',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: isCompleted ? successColor : null,
+                ),
+              ),
+              Text(
+                '${AppFormatters.formatCompactCurrency(saving.targetAmount - saving.currentAmount)} remaining',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  fontSize: 11,
+                  color: theme.textTheme.bodySmall?.color,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Center(
-            child: ProgressGauge(
-              value: progress.clamp(0.0, 1.0),
-              size: 64,
-              strokeWidth: 5,
-              progressColor: AppColors.success,
-              center: Text(
-                '${(progress * 100).toInt()}%',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 13,
+
+          // Metrics Grid
+          Row(
+            children: [
+              Expanded(
+                child: _SavingsMetric(
+                  label: 'Current',
+                  value:
+                      AppFormatters.formatCompactCurrency(saving.currentAmount),
+                  icon: Icons.account_balance_outlined,
+                  color: successColor,
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Center(
-            child: Text(
-              AppFormatters.formatCurrency(saving.currentAmount),
-              style: TextStyle(
-                color: successColor,
-                fontSize: 18,
-                fontWeight: FontWeight.w800,
-                letterSpacing: -0.5,
+              const SizedBox(width: 12),
+              Expanded(
+                child: _SavingsMetric(
+                  label: 'Monthly',
+                  value: AppFormatters.formatCompactCurrency(
+                      saving.monthlyDeposit),
+                  icon: Icons.calendar_today_outlined,
+                  color: AppColors.primary,
+                ),
               ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _SavingsMetric(
+                  label: daysRemaining > 0 ? '$daysRemaining days' : 'Matured',
+                  value: AppFormatters.formatPercent(saving.interestRate),
+                  icon: daysRemaining > 0
+                      ? Icons.hourglass_empty_outlined
+                      : Icons.check_circle_outlined,
+                  color:
+                      daysRemaining > 0 ? AppColors.accentLight : successColor,
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 12),
+
+          // Sparkline Trend
+          Row(
+            children: [
+              Expanded(
+                child: SparklineChart(
+                  data: _generateSavingsTrend(saving),
+                  color: successColor,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: successColor.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.trending_up, size: 12, color: successColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      '+${saving.interestRate.toStringAsFixed(1)}%',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: successColor,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<double> _generateSavingsTrend(SavingsModel saving) {
+    // Generate mock trend data based on current progress
+    final baseAmount = saving.currentAmount * 0.3;
+    final growth = (saving.currentAmount - baseAmount) / 6;
+    return List.generate(7,
+        (i) => baseAmount + (growth * i) + (i * saving.monthlyDeposit * 0.5));
+  }
+}
+
+class _SavingsStat extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _SavingsStat({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 20),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w800,
+            color: color,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: theme.textTheme.labelSmall?.copyWith(fontSize: 10),
+        ),
+      ],
+    );
+  }
+}
+
+class _SavingsMetric extends StatelessWidget {
+  final String label;
+  final String value;
+  final IconData icon;
+  final Color color;
+
+  const _SavingsMetric({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Container(
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.06),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: color, size: 16),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              fontSize: 13,
+              color: color,
             ),
           ),
-          const SizedBox(height: 2),
-          Center(
-            child: Text(
-              'of ${AppFormatters.formatCompactCurrency(saving.targetAmount)}',
-              style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
-            ),
+          Text(
+            label,
+            style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
           ),
         ],
       ),

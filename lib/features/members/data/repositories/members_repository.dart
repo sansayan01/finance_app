@@ -11,14 +11,16 @@ class MembersRepository {
       var request = _client.from('members').select();
 
       if (query != null && query.isNotEmpty) {
-        request = request.or('full_name.ilike.%$query%,phone.ilike.%$query%,member_id.ilike.%$query%');
+        request = request.or(
+            'full_name.ilike.%$query%,phone.ilike.%$query%,member_id.ilike.%$query%');
       }
 
-      final response = await request
-          .order('created_at', ascending: false)
-          .limit(limit);
+      final response =
+          await request.order('created_at', ascending: false).limit(limit);
 
-      return (response as List).map((json) => MemberModel.fromJson(json)).toList();
+      return (response as List)
+          .map((json) => MemberModel.fromJson(json))
+          .toList();
     } catch (e) {
       // If table is missing, return empty list instead of crashing
       return [];
@@ -32,7 +34,8 @@ class MembersRepository {
 
       return MemberSummary(
         totalMembers: members.length,
-        activeMembers: members.where((m) => m['kyc_status'] == 'verified').length,
+        activeMembers:
+            members.where((m) => m['kyc_status'] == 'verified').length,
         pendingKYC: members.where((m) => m['kyc_status'] == 'pending').length,
       );
     } catch (e) {

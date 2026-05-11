@@ -115,12 +115,17 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
 
   Widget _buildLogo(Color primary) {
     return Container(
-      width: 88, height: 88,
+      width: 88,
+      height: 88,
       decoration: BoxDecoration(
         gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(28),
         boxShadow: [
-          BoxShadow(color: primary.withValues(alpha: 0.35), blurRadius: 28, offset: const Offset(0, 10), spreadRadius: -4),
+          BoxShadow(
+              color: primary.withValues(alpha: 0.35),
+              blurRadius: 28,
+              offset: const Offset(0, 10),
+              spreadRadius: -4),
         ],
       ),
       child: const Icon(Icons.app_registration, size: 40, color: Colors.white),
@@ -147,7 +152,8 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
     );
   }
 
-  Widget _buildForm(bool isLoading, ThemeData theme, bool isDark, Color primary) {
+  Widget _buildForm(
+      bool isLoading, ThemeData theme, bool isDark, Color primary) {
     return Container(
       padding: const EdgeInsets.all(28),
       decoration: BoxDecoration(
@@ -213,13 +219,22 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 labelText: 'Password',
                 prefixIcon: const Icon(Icons.lock_outlined, size: 22),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 22),
-                  onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                  icon: Icon(
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 22),
+                  onPressed: () =>
+                      setState(() => _obscurePassword = !_obscurePassword),
                 ),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Password is required';
-                if (value.length < 8) return 'Password must be at least 8 characters';
+                if (value == null || value.isEmpty) {
+                  return 'Password is required';
+                }
+                if (value.length < 8) {
+                  return 'Password must be at least 8 characters';
+                }
                 return null;
               },
             ),
@@ -231,13 +246,22 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
                 labelText: 'Confirm Password',
                 prefixIcon: const Icon(Icons.lock_outlined, size: 22),
                 suffixIcon: IconButton(
-                  icon: Icon(_obscureConfirmPassword ? Icons.visibility_outlined : Icons.visibility_off_outlined, size: 22),
-                  onPressed: () => setState(() => _obscureConfirmPassword = !_obscureConfirmPassword),
+                  icon: Icon(
+                      _obscureConfirmPassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
+                      size: 22),
+                  onPressed: () => setState(
+                      () => _obscureConfirmPassword = !_obscureConfirmPassword),
                 ),
               ),
               validator: (value) {
-                if (value == null || value.isEmpty) return 'Please confirm your password';
-                if (value != _passwordController.text) return 'Passwords do not match';
+                if (value == null || value.isEmpty) {
+                  return 'Please confirm your password';
+                }
+                if (value != _passwordController.text) {
+                  return 'Passwords do not match';
+                }
                 return null;
               },
             ),
@@ -254,16 +278,21 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
           onTap: () => setState(() => _agreedToTerms = !_agreedToTerms),
           child: AnimatedContainer(
             duration: AppSpacing.animationFast,
-            width: 24, height: 24,
+            width: 24,
+            height: 24,
             decoration: BoxDecoration(
               color: _agreedToTerms ? primary : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: _agreedToTerms ? primary : (theme.textTheme.bodySmall?.color ?? Colors.grey),
+                color: _agreedToTerms
+                    ? primary
+                    : (theme.textTheme.bodySmall?.color ?? Colors.grey),
                 width: 1.5,
               ),
             ),
-            child: _agreedToTerms ? const Icon(Icons.check, size: 16, color: Colors.white) : null,
+            child: _agreedToTerms
+                ? const Icon(Icons.check, size: 16, color: Colors.white)
+                : null,
           ),
         ),
         const SizedBox(width: 12),
@@ -284,8 +313,16 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
       child: ElevatedButton(
         onPressed: isLoading ? null : _handleSignUp,
         child: isLoading
-            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-            : const Text('Create Account', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, letterSpacing: -0.3)),
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                    strokeWidth: 2.5, color: Colors.white))
+            : const Text('Create Account',
+                style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 16,
+                    letterSpacing: -0.3)),
       ),
     );
   }
@@ -297,7 +334,9 @@ class _SignUpPageState extends ConsumerState<SignUpPage> {
         Text('Already have an account?', style: theme.textTheme.bodyMedium),
         TextButton(
           onPressed: widget.onSignInTap,
-          child: Text('Sign In', style: TextStyle(color: primary, fontWeight: FontWeight.w700, fontSize: 15)),
+          child: Text('Sign In',
+              style: TextStyle(
+                  color: primary, fontWeight: FontWeight.w700, fontSize: 15)),
         ),
       ],
     );

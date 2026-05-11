@@ -31,15 +31,16 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     final isDark = theme.brightness == Brightness.dark;
     final primary = theme.colorScheme.primary;
 
-    final canCreate = currentUser?.role == UserRole.executiveAdmin || currentUser?.role == UserRole.manager;
+    final canCreate = currentUser?.role == UserRole.executiveAdmin ||
+        currentUser?.role == UserRole.manager;
 
     final usersAsync = ref.watch(userListProvider);
     final statsAsync = ref.watch(userStatsProvider);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-      floatingActionButton: _isSelectionMode 
-          ? null 
+      floatingActionButton: _isSelectionMode
+          ? null
           : (canCreate
               ? FloatingActionButton.extended(
                   onPressed: () async {
@@ -50,10 +51,18 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                   backgroundColor: primary,
                   foregroundColor: Colors.white,
                   elevation: 4,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  icon: const Icon(Icons.person_add_alt_1_rounded, size: 22, color: Colors.white),
-                  label: const Text('Add User', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 15, letterSpacing: -0.3, color: Colors.white)),
-                ).animate().scale(delay: 500.ms, duration: 400.ms, curve: Curves.easeOutBack)
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(20)),
+                  icon: const Icon(Icons.person_add_alt_1_rounded,
+                      size: 22, color: Colors.white),
+                  label: const Text('Add User',
+                      style: TextStyle(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                          letterSpacing: -0.3,
+                          color: Colors.white)),
+                ).animate().scale(
+                  delay: 500.ms, duration: 400.ms, curve: Curves.easeOutBack)
               : null),
       body: Stack(
         children: [
@@ -65,10 +74,10 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                 ref.invalidate(userStatsProvider);
               },
               child: CustomScrollView(
-                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics()),
                 slivers: [
                   _buildSliverAppBar(theme, isDark),
-                  
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -78,7 +87,8 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                           const SizedBox(height: 12),
                           _buildHeader(theme),
                           const SizedBox(height: 28),
-                          _buildStatsCarousel(statsAsync, theme, isDark, primary),
+                          _buildStatsCarousel(
+                              statsAsync, theme, isDark, primary),
                           const SizedBox(height: 32),
                           _buildSearchAndFilters(theme, primary),
                           const SizedBox(height: 16),
@@ -88,12 +98,15 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                       ),
                     ),
                   ),
-
                   usersAsync.when(
                     data: (users) {
                       final filteredUsers = users.where((u) {
-                        final matchesSearch = u.fullName?.toLowerCase().contains(_searchQuery.toLowerCase()) ?? true;
-                        final matchesRole = _filterRole == null || u.role == _filterRole;
+                        final matchesSearch = u.fullName
+                                ?.toLowerCase()
+                                .contains(_searchQuery.toLowerCase()) ??
+                            true;
+                        final matchesRole =
+                            _filterRole == null || u.role == _filterRole;
                         return matchesSearch && matchesRole;
                       }).toList();
 
@@ -127,7 +140,9 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                                       setState(() {
                                         if (_selectedUsers.contains(user.id)) {
                                           _selectedUsers.remove(user.id);
-                                          if (_selectedUsers.isEmpty) _isSelectionMode = false;
+                                          if (_selectedUsers.isEmpty) {
+                                            _isSelectionMode = false;
+                                          }
                                         } else {
                                           _selectedUsers.add(user.id);
                                         }
@@ -137,9 +152,14 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                                     }
                                   },
                                 )
-                                  .animate()
-                                  .fadeIn(duration: 400.ms, delay: (index * 30).ms)
-                                  .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad),
+                                    .animate()
+                                    .fadeIn(
+                                        duration: 400.ms,
+                                        delay: (index * 30).ms)
+                                    .slideY(
+                                        begin: 0.1,
+                                        end: 0,
+                                        curve: Curves.easeOutQuad),
                               );
                             },
                             childCount: filteredUsers.length,
@@ -147,16 +167,16 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                         ),
                       );
                     },
-                    loading: () => const SliverFillRemaining(child: Center(child: CircularProgressIndicator())),
-                    error: (e, __) => SliverFillRemaining(child: Center(child: Text('Error: $e'))),
+                    loading: () => const SliverFillRemaining(
+                        child: Center(child: CircularProgressIndicator())),
+                    error: (e, __) => SliverFillRemaining(
+                        child: Center(child: Text('Error: $e'))),
                   ),
                 ],
               ),
             ),
           ),
-          
-          if (_isSelectionMode)
-            _buildSelectionActions(theme, primary),
+          if (_isSelectionMode) _buildSelectionActions(theme, primary),
         ],
       ),
     );
@@ -175,7 +195,7 @@ class _UsersPageState extends ConsumerState<UsersPage> {
           color: theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
         ),
       ),
-      leading: _isSelectionMode 
+      leading: _isSelectionMode
           ? IconButton(
               icon: const Icon(Icons.close_rounded),
               onPressed: () => setState(() {
@@ -184,8 +204,9 @@ class _UsersPageState extends ConsumerState<UsersPage> {
               }),
             )
           : null,
-      title: _isSelectionMode 
-          ? Text('${_selectedUsers.length} Selected', style: const TextStyle(fontWeight: FontWeight.w900))
+      title: _isSelectionMode
+          ? Text('${_selectedUsers.length} Selected',
+              style: const TextStyle(fontWeight: FontWeight.w900))
           : null,
       actions: [
         if (!_isSelectionMode)
@@ -206,7 +227,11 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       children: [
         Text(
           'COMMAND CENTER',
-          style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2, fontSize: 10, color: theme.colorScheme.primary),
+          style: theme.textTheme.bodySmall?.copyWith(
+              fontWeight: FontWeight.w900,
+              letterSpacing: 2,
+              fontSize: 10,
+              color: theme.colorScheme.primary),
         ).animate().fadeIn(duration: 400.ms).slideX(begin: -0.1, end: 0),
         const SizedBox(height: 4),
         Text(
@@ -221,55 +246,64 @@ class _UsersPageState extends ConsumerState<UsersPage> {
     );
   }
 
-  Widget _buildStatsCarousel(AsyncValue statsAsync, ThemeData theme, bool isDark, Color primary) {
-    return statsAsync.when(
-      data: (stats) => SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        physics: const BouncingScrollPhysics(),
-        child: Row(
-          children: [
-            _StatCard(
-              label: 'Total', 
-              value: stats['total'].toString(), 
-              icon: Icons.people_rounded, 
-              color: primary,
-              isSelected: _filterRole == null,
-              onTap: () => setState(() => _filterRole = null),
+  Widget _buildStatsCarousel(
+      AsyncValue statsAsync, ThemeData theme, bool isDark, Color primary) {
+    return statsAsync
+        .when(
+          data: (stats) => SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            child: Row(
+              children: [
+                _StatCard(
+                  label: 'Total',
+                  value: stats['total'].toString(),
+                  icon: Icons.people_rounded,
+                  color: primary,
+                  isSelected: _filterRole == null,
+                  onTap: () => setState(() => _filterRole = null),
+                ),
+                const SizedBox(width: 12),
+                _StatCard(
+                  label: 'Admins',
+                  value: stats['admins'].toString(),
+                  icon: Icons.shield_rounded,
+                  color: isDark ? AppColors.accentDark : AppColors.accent,
+                  isSelected: _filterRole == UserRole.executiveAdmin,
+                  onTap: () =>
+                      setState(() => _filterRole = UserRole.executiveAdmin),
+                ),
+                const SizedBox(width: 12),
+                _StatCard(
+                  label: 'Staff',
+                  value: stats['staff'].toString(),
+                  icon: Icons.support_agent_rounded,
+                  color: isDark ? AppColors.warningDark : AppColors.orange,
+                  isSelected: _filterRole == UserRole.fieldStaff,
+                  onTap: () =>
+                      setState(() => _filterRole = UserRole.fieldStaff),
+                ),
+                const SizedBox(width: 12),
+                _StatCard(
+                  label: 'Members',
+                  value: stats['members'].toString(),
+                  icon: Icons.groups_rounded,
+                  color: isDark ? AppColors.successDark : AppColors.success,
+                  isSelected: _filterRole == UserRole.retailMember,
+                  onTap: () =>
+                      setState(() => _filterRole = UserRole.retailMember),
+                ),
+                const SizedBox(width: 12),
+              ],
             ),
-            const SizedBox(width: 12),
-            _StatCard(
-              label: 'Admins', 
-              value: stats['admins'].toString(), 
-              icon: Icons.shield_rounded, 
-              color: isDark ? AppColors.accentDark : AppColors.accent,
-              isSelected: _filterRole == UserRole.executiveAdmin,
-              onTap: () => setState(() => _filterRole = UserRole.executiveAdmin),
-            ),
-            const SizedBox(width: 12),
-            _StatCard(
-              label: 'Staff', 
-              value: stats['staff'].toString(), 
-              icon: Icons.support_agent_rounded, 
-              color: isDark ? AppColors.warningDark : AppColors.orange,
-              isSelected: _filterRole == UserRole.fieldStaff,
-              onTap: () => setState(() => _filterRole = UserRole.fieldStaff),
-            ),
-            const SizedBox(width: 12),
-            _StatCard(
-              label: 'Members', 
-              value: stats['members'].toString(), 
-              icon: Icons.groups_rounded, 
-              color: isDark ? AppColors.successDark : AppColors.success,
-              isSelected: _filterRole == UserRole.retailMember,
-              onTap: () => setState(() => _filterRole = UserRole.retailMember),
-            ),
-            const SizedBox(width: 12),
-          ],
-        ),
-      ),
-      loading: () => const SizedBox(height: 100, child: Center(child: CircularProgressIndicator())),
-      error: (_, __) => const Text('Error loading stats'),
-    ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0);
+          ),
+          loading: () => const SizedBox(
+              height: 100, child: Center(child: CircularProgressIndicator())),
+          error: (_, __) => const Text('Error loading stats'),
+        )
+        .animate()
+        .fadeIn(delay: 200.ms)
+        .slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildSearchAndFilters(ThemeData theme, Color primary) {
@@ -282,7 +316,8 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       ),
       child: Row(
         children: [
-          Icon(Icons.search_rounded, size: 22, color: theme.textTheme.bodySmall?.color),
+          Icon(Icons.search_rounded,
+              size: 22, color: theme.textTheme.bodySmall?.color),
           const SizedBox(width: 12),
           Expanded(
             child: TextField(
@@ -311,21 +346,21 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       child: Row(
         children: [
           _FilterChip(
-            label: 'All Roles', 
-            isSelected: _filterRole == null, 
+            label: 'All Roles',
+            isSelected: _filterRole == null,
             onTap: () => setState(() => _filterRole = null),
             primary: primary,
           ),
           const SizedBox(width: 8),
           ...UserRole.values.map((role) => Padding(
-            padding: const EdgeInsets.only(right: 8),
-            child: _FilterChip(
-              label: role.name[0].toUpperCase() + role.name.substring(1), 
-              isSelected: _filterRole == role, 
-              onTap: () => setState(() => _filterRole = role),
-              primary: primary,
-            ),
-          )),
+                padding: const EdgeInsets.only(right: 8),
+                child: _FilterChip(
+                  label: role.name[0].toUpperCase() + role.name.substring(1),
+                  isSelected: _filterRole == role,
+                  onTap: () => setState(() => _filterRole = role),
+                  primary: primary,
+                ),
+              )),
         ],
       ),
     ).animate().fadeIn(delay: 400.ms);
@@ -333,17 +368,29 @@ class _UsersPageState extends ConsumerState<UsersPage> {
 
   Widget _buildSelectionActions(ThemeData theme, Color primary) {
     return Positioned(
-      left: 24, right: 24, bottom: 32,
+      left: 24,
+      right: 24,
+      bottom: 32,
       child: GlassCard(
         padding: const EdgeInsets.all(16),
         borderRadius: 24,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _SelectionAction(icon: Icons.message_rounded, label: 'Notify', onTap: () {}),
-            _SelectionAction(icon: Icons.block_rounded, label: 'Deactivate', onTap: () {}, color: Colors.red),
-            _SelectionAction(icon: Icons.verified_user_rounded, label: 'Verify', onTap: () {}, color: AppColors.success),
-            _SelectionAction(icon: Icons.ios_share_rounded, label: 'Export', onTap: () {}),
+            _SelectionAction(
+                icon: Icons.message_rounded, label: 'Notify', onTap: () {}),
+            _SelectionAction(
+                icon: Icons.block_rounded,
+                label: 'Deactivate',
+                onTap: () {},
+                color: Colors.red),
+            _SelectionAction(
+                icon: Icons.verified_user_rounded,
+                label: 'Verify',
+                onTap: () {},
+                color: AppColors.success),
+            _SelectionAction(
+                icon: Icons.ios_share_rounded, label: 'Export', onTap: () {}),
           ],
         ),
       ),
@@ -355,11 +402,16 @@ class _UsersPageState extends ConsumerState<UsersPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.person_search_rounded, size: 64, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.2)),
+          Icon(Icons.person_search_rounded,
+              size: 64,
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.2)),
           const SizedBox(height: 20),
-          Text('No matching users found', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text('No matching users found',
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
-          Text('Try adjusting your search or filters.', style: theme.textTheme.bodySmall),
+          Text('Try adjusting your search or filters.',
+              style: theme.textTheme.bodySmall),
         ],
       ),
     ).animate().fadeIn(delay: 100.ms);
@@ -374,8 +426,8 @@ class _UserListItem extends ConsumerWidget {
   final VoidCallback onLongPress;
 
   const _UserListItem({
-    required this.user, 
-    required this.isSelectionMode, 
+    required this.user,
+    required this.isSelectionMode,
     required this.isSelected,
     required this.onTap,
     required this.onLongPress,
@@ -386,7 +438,7 @@ class _UserListItem extends ConsumerWidget {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     final loansAsync = ref.watch(userLoansProvider(user.id));
-    
+
     return InkWell(
       onTap: onTap,
       onLongPress: onLongPress,
@@ -401,11 +453,15 @@ class _UserListItem extends ConsumerWidget {
                 Hero(
                   tag: 'user_avatar_${user.id}',
                   child: Container(
-                    width: 52, height: 52,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
-                      colors: [primary.withValues(alpha: 0.8), primary.withValues(alpha: 0.4)],
+                        colors: [
+                          primary.withValues(alpha: 0.8),
+                          primary.withValues(alpha: 0.4)
+                        ],
                       ),
                     ),
                     child: Stack(
@@ -413,18 +469,25 @@ class _UserListItem extends ConsumerWidget {
                         Center(
                           child: Text(
                             user.fullName?[0].toUpperCase() ?? '?',
-                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18),
                           ),
                         ),
                         if (user.role == UserRole.retailMember)
                           Positioned(
-                            right: 0, bottom: 0,
+                            right: 0,
+                            bottom: 0,
                             child: Container(
-                              width: 14, height: 14,
+                              width: 14,
+                              height: 14,
                               decoration: BoxDecoration(
                                 color: AppColors.success,
                                 shape: BoxShape.circle,
-                                border: Border.all(color: theme.scaffoldBackgroundColor, width: 2),
+                                border: Border.all(
+                                    color: theme.scaffoldBackgroundColor,
+                                    width: 2),
                               ),
                             ),
                           ),
@@ -439,34 +502,44 @@ class _UserListItem extends ConsumerWidget {
                     children: [
                       Text(
                         user.fullName ?? 'Unknown User',
-                        style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.2),
+                        style: theme.textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w900, letterSpacing: -0.2),
                         overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 2),
                       Row(
                         children: [
-                          Icon(Icons.phone_rounded, size: 10, color: theme.textTheme.bodySmall?.color),
+                          Icon(Icons.phone_rounded,
+                              size: 10,
+                              color: theme.textTheme.bodySmall?.color),
                           const SizedBox(width: 4),
                           Text(
                             user.phone ?? 'No contact',
-                            style: theme.textTheme.bodySmall?.copyWith(fontSize: 11, fontWeight: FontWeight.w600),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                                fontSize: 11, fontWeight: FontWeight.w600),
                           ),
                         ],
                       ),
                       const SizedBox(height: 8),
                       loansAsync.when(
                         data: (loans) {
-                          final active = loans.where((l) => l.status == LoanStatus.active).length;
+                          final active = loans
+                              .where((l) => l.status == LoanStatus.active)
+                              .length;
                           if (active == 0) return const SizedBox.shrink();
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 6, vertical: 2),
                             decoration: BoxDecoration(
                               color: AppColors.orange.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               '$active ACTIVE LOANS',
-                              style: const TextStyle(color: AppColors.orange, fontSize: 8, fontWeight: FontWeight.w900),
+                              style: const TextStyle(
+                                  color: AppColors.orange,
+                                  fontSize: 8,
+                                  fontWeight: FontWeight.w900),
                             ),
                           );
                         },
@@ -479,9 +552,11 @@ class _UserListItem extends ConsumerWidget {
                 if (!isSelectionMode)
                   Row(
                     children: [
-                      _buildQuickAction(Icons.call_rounded, () => _launchCaller(user.phone), theme),
+                      _buildQuickAction(Icons.call_rounded,
+                          () => _launchCaller(user.phone), theme),
                       const SizedBox(width: 8),
-                      _buildQuickAction(Icons.chat_bubble_rounded, () => _launchWhatsApp(user.phone), theme),
+                      _buildQuickAction(Icons.chat_bubble_rounded,
+                          () => _launchWhatsApp(user.phone), theme),
                     ],
                   )
                 else
@@ -533,7 +608,11 @@ class _FilterChip extends StatelessWidget {
   final VoidCallback onTap;
   final Color primary;
 
-  const _FilterChip({required this.label, required this.isSelected, required this.onTap, required this.primary});
+  const _FilterChip(
+      {required this.label,
+      required this.isSelected,
+      required this.onTap,
+      required this.primary});
 
   @override
   Widget build(BuildContext context) {
@@ -546,7 +625,8 @@ class _FilterChip extends StatelessWidget {
         decoration: BoxDecoration(
           color: isSelected ? primary : Colors.transparent,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? primary : primary.withValues(alpha: 0.2)),
+          border: Border.all(
+              color: isSelected ? primary : primary.withValues(alpha: 0.2)),
         ),
         child: Text(
           label,
@@ -567,7 +647,11 @@ class _SelectionAction extends StatelessWidget {
   final VoidCallback onTap;
   final Color? color;
 
-  const _SelectionAction({required this.icon, required this.label, required this.onTap, this.color});
+  const _SelectionAction(
+      {required this.icon,
+      required this.label,
+      required this.onTap,
+      this.color});
 
   @override
   Widget build(BuildContext context) {
@@ -579,7 +663,9 @@ class _SelectionAction extends StatelessWidget {
         children: [
           Icon(icon, color: primary),
           const SizedBox(height: 4),
-          Text(label, style: TextStyle(color: primary, fontSize: 10, fontWeight: FontWeight.w700)),
+          Text(label,
+              style: TextStyle(
+                  color: primary, fontSize: 10, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -595,9 +681,9 @@ class _StatCard extends StatelessWidget {
   final VoidCallback onTap;
 
   const _StatCard({
-    required this.label, 
-    required this.value, 
-    required this.icon, 
+    required this.label,
+    required this.value,
+    required this.icon,
     required this.color,
     this.isSelected = false,
     required this.onTap,
@@ -614,15 +700,22 @@ class _StatCard extends StatelessWidget {
         width: 100,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isSelected ? color.withValues(alpha: 0.15) : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.1),
+          color: isSelected
+              ? color.withValues(alpha: 0.15)
+              : theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? color.withValues(alpha: 0.3) : Colors.transparent),
+          border: Border.all(
+              color: isSelected
+                  ? color.withValues(alpha: 0.3)
+                  : Colors.transparent),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 32, height: 32,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
@@ -630,8 +723,12 @@ class _StatCard extends StatelessWidget {
               child: Icon(icon, color: color, size: 16),
             ),
             const SizedBox(height: 12),
-            Text(value, style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, fontSize: 20)),
-            Text(label, style: theme.textTheme.bodySmall?.copyWith(fontSize: 10, fontWeight: FontWeight.w800)),
+            Text(value,
+                style: theme.textTheme.headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w900, fontSize: 20)),
+            Text(label,
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(fontSize: 10, fontWeight: FontWeight.w800)),
           ],
         ),
       ),
@@ -648,25 +745,31 @@ class _AuroraBackground extends StatelessWidget {
     return Stack(
       children: [
         Positioned(
-          top: -150, right: -100,
+          top: -150,
+          right: -100,
           child: Container(
-            width: 400, height: 400,
+            width: 400,
+            height: 400,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: primary.withValues(alpha: 0.05),
             ),
           ),
-        ).animate(onPlay: (c) => c.repeat()).moveY(begin: 0, end: 50, duration: 8.seconds, curve: Curves.easeInOut),
+        ).animate(onPlay: (c) => c.repeat()).moveY(
+            begin: 0, end: 50, duration: 8.seconds, curve: Curves.easeInOut),
         Positioned(
-          bottom: -100, left: -50,
+          bottom: -100,
+          left: -50,
           child: Container(
-            width: 350, height: 350,
+            width: 350,
+            height: 350,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: AppColors.success.withValues(alpha: 0.03),
             ),
           ),
-        ).animate(onPlay: (c) => c.repeat()).moveY(begin: 0, end: -30, duration: 7.seconds, curve: Curves.easeInOut),
+        ).animate(onPlay: (c) => c.repeat()).moveY(
+            begin: 0, end: -30, duration: 7.seconds, curve: Curves.easeInOut),
       ],
     );
   }

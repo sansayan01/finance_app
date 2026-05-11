@@ -63,34 +63,49 @@ class LoanModel {
 
   factory LoanModel.fromJson(Map<String, dynamic> json) {
     // Handle Supabase join format (support both profiles and customers aliases)
-    final profilesJson = (json['profiles'] ?? json['customers']) as Map<String, dynamic>?;
+    final profilesJson =
+        (json['profiles'] ?? json['customers']) as Map<String, dynamic>?;
     final staffJson = json['staff'] as Map<String, dynamic>?;
 
     return LoanModel(
       id: json['id'] as String,
-      customerId: json['customer_id'] as String? ?? json['borrower_id'] as String? ?? '',
+      customerId: json['customer_id'] as String? ??
+          json['borrower_id'] as String? ??
+          '',
       planId: json['plan_id'] as String?,
       staffId: json['staff_id'] as String?,
-      loanNumber: json['loan_number'] as String? ?? json['id'].toString().substring(0, 8).toUpperCase(),
+      loanNumber: json['loan_number'] as String? ??
+          json['id'].toString().substring(0, 8).toUpperCase(),
       amount: (json['amount'] ?? json['principal_amount'] ?? 0.0).toDouble(),
       interestRate: (json['interest_rate'] ?? 0.0).toDouble(),
       tenureMonths: json['tenure_months'] as int? ?? 12,
-      emiAmount: (json['emi_amount'] ?? json['estimated_installment'] ?? 0.0).toDouble(),
+      emiAmount: (json['emi_amount'] ?? json['estimated_installment'] ?? 0.0)
+          .toDouble(),
       totalInterest: (json['total_interest'] ?? 0.0).toDouble(),
-      totalRepayable: (json['total_repayable'] ?? json['total_exposure'] ?? 0.0).toDouble(),
-      outstandingBalance: (json['outstanding_balance'] ?? json['total_exposure'] ?? 0.0).toDouble(),
+      totalRepayable:
+          (json['total_repayable'] ?? json['total_exposure'] ?? 0.0).toDouble(),
+      outstandingBalance:
+          (json['outstanding_balance'] ?? json['total_exposure'] ?? 0.0)
+              .toDouble(),
       interestType: InterestType.values.firstWhere(
-        (e) => e.name == json['interest_type'] || _toSnake(e.name) == json['interest_type'],
+        (e) =>
+            e.name == json['interest_type'] ||
+            _toSnake(e.name) == json['interest_type'],
         orElse: () => InterestType.flat,
       ),
       disbursementDate: json['disbursement_date'] != null
           ? DateTime.parse(json['disbursement_date'] as String)
           : null,
-      firstEmiDate: (json['first_emi_date'] ?? json['first_installment_date']) != null
-          ? DateTime.parse((json['first_emi_date'] ?? json['first_installment_date']) as String)
-          : null,
+      firstEmiDate:
+          (json['first_emi_date'] ?? json['first_installment_date']) != null
+              ? DateTime.parse((json['first_emi_date'] ??
+                  json['first_installment_date']) as String)
+              : null,
       status: LoanStatus.values.firstWhere(
-        (e) => e.name == json['status'] || _toSnake(e.name) == json['status'] || (json['status'] == 'defaulted' && e == LoanStatus.defaultStatus),
+        (e) =>
+            e.name == json['status'] ||
+            _toSnake(e.name) == json['status'] ||
+            (json['status'] == 'defaulted' && e == LoanStatus.defaultStatus),
         orElse: () => LoanStatus.draft,
       ),
       purpose: json['purpose'] as String?,
@@ -99,7 +114,7 @@ class LoanModel {
       approvedBy: json['approved_by'] as String?,
       rejectedBy: json['rejected_by'] as String?,
       rejectionReason: json['rejection_reason'] as String?,
-      createdAt: json['created_at'] != null 
+      createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
           : DateTime.now(),
       updatedAt: json['updated_at'] != null
@@ -112,7 +127,8 @@ class LoanModel {
   }
 
   static String _toSnake(String s) {
-    return s.replaceAllMapped(RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}');
+    return s.replaceAllMapped(
+        RegExp(r'([A-Z])'), (match) => '_${match.group(1)!.toLowerCase()}');
   }
 
   Map<String, dynamic> toJson() {

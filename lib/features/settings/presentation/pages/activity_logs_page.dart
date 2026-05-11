@@ -34,7 +34,8 @@ class ActivityLogsPage extends ConsumerWidget {
                 ),
                 title: Text(
                   'Activity Logs',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 centerTitle: true,
                 floating: true,
@@ -47,12 +48,14 @@ class ActivityLogsPage extends ConsumerWidget {
                     children: [
                       Text(
                         'System Audit Trail',
-                        style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900, letterSpacing: -0.5),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         'Monitoring all administrative and financial actions.',
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 14),
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(fontSize: 14),
                       ),
                     ],
                   ),
@@ -63,7 +66,10 @@ class ActivityLogsPage extends ConsumerWidget {
                   padding: const EdgeInsets.fromLTRB(24, 0, 24, 100),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
-                      (context, index) => _LogItem(log: logs[index], isFirst: index == 0, isLast: index == logs.length - 1)
+                      (context, index) => _LogItem(
+                              log: logs[index],
+                              isFirst: index == 0,
+                              isLast: index == logs.length - 1)
                           .animate()
                           .fadeIn(delay: (50 * index).ms)
                           .slideX(begin: 0.05, end: 0),
@@ -100,7 +106,8 @@ class _LogItem extends StatelessWidget {
   final bool isFirst;
   final bool isLast;
 
-  const _LogItem({required this.log, required this.isFirst, required this.isLast});
+  const _LogItem(
+      {required this.log, required this.isFirst, required this.isLast});
 
   @override
   Widget build(BuildContext context) {
@@ -140,9 +147,14 @@ class _LogItem extends StatelessWidget {
             width: 40,
             child: Column(
               children: [
-                if (!isFirst) Container(width: 2, height: 12, color: typeColor.withValues(alpha: 0.2)),
+                if (!isFirst)
+                  Container(
+                      width: 2,
+                      height: 12,
+                      color: typeColor.withValues(alpha: 0.2)),
                 Container(
-                  width: 32, height: 32,
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: typeColor.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
@@ -150,7 +162,10 @@ class _LogItem extends StatelessWidget {
                   ),
                   child: Icon(typeIcon, size: 16, color: typeColor),
                 ),
-                if (!isLast) Expanded(child: Container(width: 2, color: typeColor.withValues(alpha: 0.2))),
+                if (!isLast)
+                  Expanded(
+                      child: Container(
+                          width: 2, color: typeColor.withValues(alpha: 0.2))),
               ],
             ),
           ),
@@ -170,37 +185,51 @@ class _LogItem extends StatelessWidget {
                         Expanded(
                           child: Text(
                             log.action,
-                            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.3),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -0.3),
                           ),
                         ),
                         Text(
                           DateFormat('HH:mm').format(log.timestamp),
-                          style: theme.textTheme.labelSmall?.copyWith(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5)),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withValues(alpha: 0.5)),
                         ),
                       ],
                     ),
                     const SizedBox(height: 6),
                     Text(
                       log.details,
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.4),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(fontSize: 13, height: 1.4),
                     ),
                     const SizedBox(height: 12),
                     Row(
                       children: [
                         Container(
-                          width: 18, height: 18,
-                          decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(4)),
-                          child: const Icon(Icons.person, size: 12, color: AppColors.primary),
+                          width: 18,
+                          height: 18,
+                          decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(4)),
+                          child: const Icon(Icons.person,
+                              size: 12, color: AppColors.primary),
                         ),
                         const SizedBox(width: 6),
                         Text(
                           log.userName,
-                          style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primary),
                         ),
                         const Spacer(),
                         Text(
                           DateFormat('MMM dd').format(log.timestamp),
-                          style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.4)),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                              fontSize: 10,
+                              color: theme.textTheme.bodySmall?.color
+                                  ?.withValues(alpha: 0.4)),
                         ),
                       ],
                     ),

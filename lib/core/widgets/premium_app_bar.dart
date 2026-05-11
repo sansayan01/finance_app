@@ -60,7 +60,8 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
                     if (subtitle != null)
                       Text(
                         subtitle!,
-                        style: theme.textTheme.bodySmall?.copyWith(fontSize: 12),
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(fontSize: 12),
                       ),
                   ],
                 )

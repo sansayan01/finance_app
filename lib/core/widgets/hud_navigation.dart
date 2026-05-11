@@ -94,7 +94,9 @@ class HUDNavigation extends StatelessWidget {
               isSelected ? item.activeIcon : item.icon,
               color: isSelected
                   ? primary
-                  : (isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black.withValues(alpha: 0.4)),
+                  : (isDark
+                      ? Colors.white.withValues(alpha: 0.5)
+                      : Colors.black.withValues(alpha: 0.4)),
               size: 20,
             ),
             if (isSelected) ...[

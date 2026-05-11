@@ -50,12 +50,12 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
         paymentMode: _selectedMode.name,
         notes: _notesController.text,
       );
-      
+
       // Invalidate providers to refresh UI
       ref.invalidate(emiScheduleProvider(widget.loan.id));
       ref.invalidate(loanDetailProvider(widget.loan.id));
       ref.invalidate(loansProvider);
-      
+
       if (mounted) {
         Navigator.pop(context);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -101,7 +101,8 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
                 children: [
                   Text(
                     'Record Payment',
-                    style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+                    style: theme.textTheme.headlineSmall
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                   Text(
                     'EMI #${widget.emi.emiNumber} · ${widget.loan.loanNumber}',
@@ -116,30 +117,33 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
             ],
           ),
           const SizedBox(height: AppSpacing.xl),
-          
           Text(
             'COLLECTION AMOUNT',
-            style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
+            style: theme.textTheme.labelSmall
+                ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
           ),
           const SizedBox(height: 8),
           TextField(
             controller: _amountController,
             keyboardType: TextInputType.number,
-            style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.w900, color: primary),
+            style: theme.textTheme.headlineMedium
+                ?.copyWith(fontWeight: FontWeight.w900, color: primary),
             decoration: InputDecoration(
               prefixText: '₹ ',
-              prefixStyle: theme.textTheme.headlineSmall?.copyWith(color: primary, fontWeight: FontWeight.w900),
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              prefixStyle: theme.textTheme.headlineSmall
+                  ?.copyWith(color: primary, fontWeight: FontWeight.w900),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
               filled: true,
-              fillColor: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+              fillColor: theme.colorScheme.surfaceContainerHighest
+                  .withValues(alpha: 0.3),
             ),
           ),
-          
           const SizedBox(height: AppSpacing.lg),
-          
           Text(
             'PAYMENT MODE',
-            style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
+            style: theme.textTheme.labelSmall
+                ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
           ),
           const SizedBox(height: 12),
           Row(
@@ -148,15 +152,15 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
               const SizedBox(width: 12),
               _buildModeOption(PaymentMode.upi, Icons.qr_code_2_rounded),
               const SizedBox(width: 12),
-              _buildModeOption(PaymentMode.bankTransfer, Icons.account_balance_rounded),
+              _buildModeOption(
+                  PaymentMode.bankTransfer, Icons.account_balance_rounded),
             ],
           ),
-          
           const SizedBox(height: AppSpacing.lg),
-          
           Text(
             'NOTES (OPTIONAL)',
-            style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
+            style: theme.textTheme.labelSmall
+                ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: 1),
           ),
           const SizedBox(height: 8),
           TextField(
@@ -164,12 +168,11 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
             maxLines: 2,
             decoration: InputDecoration(
               hintText: 'Add a note about this collection...',
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
+              border:
+                  OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),
-          
           const SizedBox(height: AppSpacing.xl),
-          
           SizedBox(
             width: double.infinity,
             height: 56,
@@ -178,12 +181,19 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 elevation: 0,
               ),
               child: _isSubmitting
-                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-                  : const Text('Confirm Collection', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                          color: Colors.white, strokeWidth: 2))
+                  : const Text('Confirm Collection',
+                      style:
+                          TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
             ),
           ),
         ],
@@ -202,16 +212,22 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16),
           decoration: BoxDecoration(
-            color: isSelected ? primary.withValues(alpha: 0.1) : Colors.transparent,
+            color: isSelected
+                ? primary.withValues(alpha: 0.1)
+                : Colors.transparent,
             border: Border.all(
-              color: isSelected ? primary : theme.dividerColor.withValues(alpha: 0.2),
+              color: isSelected
+                  ? primary
+                  : theme.dividerColor.withValues(alpha: 0.2),
               width: 2,
             ),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Column(
             children: [
-              Icon(icon, color: isSelected ? primary : theme.colorScheme.onSurface, size: 24),
+              Icon(icon,
+                  color: isSelected ? primary : theme.colorScheme.onSurface,
+                  size: 24),
               const SizedBox(height: 8),
               Text(
                 mode.name.toUpperCase(),

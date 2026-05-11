@@ -4,6 +4,7 @@ import '../../data/repositories/loans_repository.dart';
 import 'loan_providers.dart';
 
 enum InterestLogic { reducingBalance, flat }
+
 enum CollectionType { daily, weekly, monthly, yearly }
 
 class NewLoanState {
@@ -115,20 +116,25 @@ class NewLoanState {
 class NewLoanNotifier extends StateNotifier<NewLoanState> {
   final LoansRepository _repository;
   final Ref _ref;
-  
+
   NewLoanNotifier(this._repository, this._ref) : super(NewLoanState());
 
   void updateBorrower(String? id) => state = state.copyWith(borrowerId: id);
-  void updatePrincipal(double amount) => state = state.copyWith(principalAmount: amount);
-  void updateInterestRate(double rate) => state = state.copyWith(interestRate: rate);
+  void updatePrincipal(double amount) =>
+      state = state.copyWith(principalAmount: amount);
+  void updateInterestRate(double rate) =>
+      state = state.copyWith(interestRate: rate);
   void updateTenure(int months) => state = state.copyWith(tenureMonths: months);
-  void updateCollectionType(CollectionType type) => state = state.copyWith(collectionType: type);
-  void updateInterestLogic(InterestLogic logic) => state = state.copyWith(interestLogic: logic);
-  void updateFirstInstallmentDate(DateTime date) => state = state.copyWith(firstInstallmentDate: date);
-  
+  void updateCollectionType(CollectionType type) =>
+      state = state.copyWith(collectionType: type);
+  void updateInterestLogic(InterestLogic logic) =>
+      state = state.copyWith(interestLogic: logic);
+  void updateFirstInstallmentDate(DateTime date) =>
+      state = state.copyWith(firstInstallmentDate: date);
+
   Future<void> createLoan() async {
     if (state.borrowerId == null) throw Exception('Please select a borrower');
-    
+
     state = state.copyWith(isLoading: true);
     try {
       await _repository.createLoan(
@@ -139,14 +145,15 @@ class NewLoanNotifier extends StateNotifier<NewLoanState> {
         frequency: state.collectionType.name,
         collectionType: state.collectionType.name,
         interestLogic: state.interestLogic.name,
-        firstInstallmentDate: state.firstInstallmentDate ?? DateTime.now().add(const Duration(days: 30)),
+        firstInstallmentDate: state.firstInstallmentDate ??
+            DateTime.now().add(const Duration(days: 30)),
         estimatedInstallment: state.estimatedInstallment,
         totalExposure: state.totalExposure,
       );
-      
+
       // Force refresh the loans list
       _ref.invalidate(loansProvider);
-      
+
       state = state.copyWith(isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false);
@@ -157,6 +164,7 @@ class NewLoanNotifier extends StateNotifier<NewLoanState> {
   void reset() => state = NewLoanState();
 }
 
-final newLoanProvider = StateNotifierProvider<NewLoanNotifier, NewLoanState>((ref) {
+final newLoanProvider =
+    StateNotifierProvider<NewLoanNotifier, NewLoanState>((ref) {
   return NewLoanNotifier(ref.watch(loansRepositoryProvider), ref);
 });

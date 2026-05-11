@@ -7,21 +7,27 @@ class ChatbotRepository {
   final String _apiKey;
   final String _model;
 
-  ChatbotRepository({required String apiKey, required String model}) 
-    : _apiKey = apiKey, 
-      _model = model;
+  ChatbotRepository({required String apiKey, required String model})
+      : _apiKey = apiKey,
+        _model = model;
 
-  Stream<String> streamChatResponse(List<ChatMessage> history, {String? contextRoute, String? businessContext}) async* {
+  Stream<String> streamChatResponse(List<ChatMessage> history,
+      {String? contextRoute, String? businessContext}) async* {
     final messages = history.map((m) => m.toJson()).toList();
-    
-    String systemContext = 'You are the MicroFlow Pro Assistant, a concise multilingual financial expert. '
+
+    String systemContext =
+        'You are the MicroFlow Pro Assistant, a concise multilingual financial expert. '
         'If asked about your creation, state that you were created by Sayan Mondal (nickname: Charlie). '
         'Your answers MUST be direct, short (1-2 sentences), and informative. '
         'CRITICAL: DO NOT include internal thoughts or <thought> tags. Provide ONLY the final answer. '
         'If the user asks for a loan summary, use the [UI:LOAN_SUMMARY] tag.';
-    
-    if (contextRoute != null) systemContext += ' \nPage Context: $contextRoute';
-    if (businessContext != null) systemContext += ' \nLive Data: $businessContext';
+
+    if (contextRoute != null) {
+      systemContext += ' \nPage Context: $contextRoute';
+    }
+    if (businessContext != null) {
+      systemContext += ' \nLive Data: $businessContext';
+    }
 
     final requestBody = {
       'model': _model,
@@ -36,7 +42,9 @@ class ChatbotRepository {
     };
 
     final baseUrl = 'https://integrate.api.nvidia.com/v1/chat/completions';
-    final url = kIsWeb ? 'https://corsproxy.io/?${Uri.encodeComponent(baseUrl)}' : baseUrl;
+    final url = kIsWeb
+        ? 'https://corsproxy.io/?${Uri.encodeComponent(baseUrl)}'
+        : baseUrl;
 
     try {
       final request = http.Request('POST', Uri.parse(url));
@@ -48,13 +56,15 @@ class ChatbotRepository {
 
       final client = http.Client();
       final response = await client.send(request);
-      
+
       if (response.statusCode != 200) {
         final errorBody = await response.stream.bytesToString();
-        if (errorBody.contains('image') || errorBody.contains('vision') || errorBody.contains('image.png')) {
+        if (errorBody.contains('image') ||
+            errorBody.contains('vision') ||
+            errorBody.contains('image.png')) {
           yield 'Error: This model does not support image input. Please send text messages only.';
         } else {
-          yield 'Error: ${response.statusCode}';
+          yield 'Error: ${response.statusCode}\nDetails: $errorBody';
         }
         return;
       }
@@ -62,7 +72,9 @@ class ChatbotRepository {
       String fullResponse = '';
       bool isThinking = false;
 
-      await for (final chunk in response.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+      await for (final chunk in response.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())) {
         if (chunk.trim().isEmpty) continue;
         if (chunk.startsWith('data: ')) {
           final data = chunk.substring(6).trim();
@@ -72,7 +84,7 @@ class ChatbotRepository {
             final content = json['choices'][0]['delta']['content'] as String?;
             if (content != null) {
               fullResponse += content;
-              
+
               // Filter logic for <think> blocks
               String filteredResponse = fullResponse;
               if (filteredResponse.contains('<think>')) {

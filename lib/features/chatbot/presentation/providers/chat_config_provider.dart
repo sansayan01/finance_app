@@ -25,10 +25,11 @@ class ChatConfigNotifier extends StateNotifier<ChatConfig> {
   static const _apiKeyKey = 'chatbot_api_key';
   static const _modelIdKey = 'chatbot_model_id';
 
-  ChatConfigNotifier() : super(ChatConfig(
-    apiKey: '',
-    modelId: 'meta/llama3-70b-instruct',
-  )) {
+  ChatConfigNotifier()
+      : super(ChatConfig(
+          apiKey: '',
+          modelId: 'meta/llama-3.1-70b-instruct',
+        )) {
     _loadConfig();
   }
 
@@ -36,11 +37,12 @@ class ChatConfigNotifier extends StateNotifier<ChatConfig> {
     final prefs = await SharedPreferences.getInstance();
     state = state.copyWith(
       apiKey: prefs.getString(_apiKeyKey) ?? '',
-      modelId: prefs.getString(_modelIdKey) ?? 'meta/llama3-70b-instruct',
+      modelId: prefs.getString(_modelIdKey) ?? 'meta/llama-3.1-70b-instruct',
     );
   }
 
-  Future<void> updateConfig({required String apiKey, required String modelId}) async {
+  Future<void> updateConfig(
+      {required String apiKey, required String modelId}) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_apiKeyKey, apiKey);
     await prefs.setString(_modelIdKey, modelId);
@@ -48,6 +50,7 @@ class ChatConfigNotifier extends StateNotifier<ChatConfig> {
   }
 }
 
-final chatConfigProvider = StateNotifierProvider<ChatConfigNotifier, ChatConfig>((ref) {
+final chatConfigProvider =
+    StateNotifierProvider<ChatConfigNotifier, ChatConfig>((ref) {
   return ChatConfigNotifier();
 });

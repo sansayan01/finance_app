@@ -17,7 +17,8 @@ class ActivityLogRepository {
       final currentUser = _client.auth.currentUser;
       await _client.from('activity_logs').insert({
         'user_id': userId ?? currentUser?.id ?? 'system',
-        'user_name': userName ?? currentUser?.userMetadata?['full_name'] ?? 'System',
+        'user_name':
+            userName ?? currentUser?.userMetadata?['full_name'] ?? 'System',
         'action': action,
         'details': details,
         'type': type.name,
@@ -34,7 +35,7 @@ class ActivityLogRepository {
         .select()
         .order('timestamp', ascending: false)
         .limit(100);
-    
+
     return (response as List).map((e) => ActivityLogModel.fromJson(e)).toList();
   }
 }

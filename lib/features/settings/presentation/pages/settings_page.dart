@@ -63,7 +63,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ).animate().fadeIn(delay: 50.ms).slideY(begin: 0.04, end: 0),
               const SizedBox(height: 16),
-
               _SectionCard(
                 title: 'Appearance',
                 icon: Icons.palette_outlined,
@@ -72,45 +71,76 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     title: 'Dark Mode',
                     subtitle: 'Switch between light and dark themes',
                     value: ref.watch(themeProvider) == ThemeMode.dark,
-                    onChanged: (_) => ref.read(themeProvider.notifier).toggleTheme(),
+                    onChanged: (_) =>
+                        ref.read(themeProvider.notifier).toggleTheme(),
                   ),
                 ],
               ).animate().fadeIn(delay: 100.ms).slideY(begin: 0.04, end: 0),
               const SizedBox(height: 16),
-
               _SectionCard(
                 title: 'System Parameters',
                 icon: Icons.tune_rounded,
                 children: [
-                  _SliderRow(title: 'Default Loan Interest', value: settings.defaultLoanInterest, min: 5, max: 25, unit: '%', onChanged: notifier.updateLoanInterest),
-                  _SliderRow(title: 'Savings Maturity Yield', value: settings.defaultSavingsYield, min: 2, max: 15, unit: '%', onChanged: notifier.updateSavingsYield),
-                  _SliderRow(title: 'Late Payment Penalty', value: settings.latePenaltyPercentage, min: 0, max: 5, unit: '%', onChanged: notifier.updatePenalty),
+                  _SliderRow(
+                      title: 'Default Loan Interest',
+                      value: settings.defaultLoanInterest,
+                      min: 5,
+                      max: 25,
+                      unit: '%',
+                      onChanged: notifier.updateLoanInterest),
+                  _SliderRow(
+                      title: 'Savings Maturity Yield',
+                      value: settings.defaultSavingsYield,
+                      min: 2,
+                      max: 15,
+                      unit: '%',
+                      onChanged: notifier.updateSavingsYield),
+                  _SliderRow(
+                      title: 'Late Payment Penalty',
+                      value: settings.latePenaltyPercentage,
+                      min: 0,
+                      max: 5,
+                      unit: '%',
+                      onChanged: notifier.updatePenalty),
                 ],
               ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.04, end: 0),
               const SizedBox(height: 16),
-
               _SectionCard(
                 title: 'Security & Notifications',
                 icon: Icons.shield_outlined,
                 children: [
-                  _SwitchRow(title: 'Biometric Authentication', subtitle: 'Use fingerprint or face ID', value: settings.biometricAuth, onChanged: notifier.toggleBiometric),
-                  _SwitchRow(title: 'Notifications', subtitle: 'Late payment and maturity alerts', value: settings.enableNotifications, onChanged: notifier.toggleNotifications),
+                  _SwitchRow(
+                      title: 'Biometric Authentication',
+                      subtitle: 'Use fingerprint or face ID',
+                      value: settings.biometricAuth,
+                      onChanged: notifier.toggleBiometric),
+                  _SwitchRow(
+                      title: 'Notifications',
+                      subtitle: 'Late payment and maturity alerts',
+                      value: settings.enableNotifications,
+                      onChanged: notifier.toggleNotifications),
                 ],
               ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.04, end: 0),
               const SizedBox(height: 32),
-
               SizedBox(
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _handleSave,
                   child: _isSaving
-                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
-                      : const Text('Apply Changes', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 16, letterSpacing: -0.3)),
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2.5, color: Colors.white))
+                      : const Text('Apply Changes',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 16,
+                              letterSpacing: -0.3)),
                 ),
               ).animate().fadeIn(delay: 400.ms),
               const SizedBox(height: 24),
-
               _SectionCard(
                 title: 'Data & Privacy',
                 icon: Icons.lock_outline_rounded,
@@ -125,7 +155,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ).animate().fadeIn(delay: 450.ms),
               const SizedBox(height: 16),
-
               _SectionCard(
                 title: 'Support & Feedback',
                 icon: Icons.help_outline_rounded,
@@ -147,8 +176,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ],
               ).animate().fadeIn(delay: 500.ms),
               const SizedBox(height: 16),
-
-              if (ref.watch(currentUserProvider)?.role == UserRole.executiveAdmin) ...[
+              if (ref.watch(currentUserProvider)?.role ==
+                  UserRole.executiveAdmin) ...[
                 _SectionCard(
                   title: 'Administration',
                   icon: Icons.admin_panel_settings_outlined,
@@ -178,7 +207,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 ).animate().fadeIn(delay: 550.ms),
                 const SizedBox(height: 16),
               ],
-
               _SectionCard(
                 title: 'Danger Zone',
                 icon: Icons.warning_amber_rounded,
@@ -192,16 +220,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   ),
                 ],
               ).animate().fadeIn(delay: 600.ms),
-
               const SizedBox(height: 40),
-              
               Center(
                 child: Column(
                   children: [
                     Text(
                       '${ref.watch(brandProvider).name} v1.0.4-stable',
                       style: theme.textTheme.labelSmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                        color: theme.textTheme.bodySmall?.color
+                            ?.withValues(alpha: 0.5),
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -211,7 +238,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       children: [
                         _FooterLink(label: 'Terms of Service', onTap: () {}),
                         const SizedBox(width: 12),
-                        Container(width: 4, height: 4, decoration: BoxDecoration(color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.2), shape: BoxShape.circle)),
+                        Container(
+                            width: 4,
+                            height: 4,
+                            decoration: BoxDecoration(
+                                color: theme.textTheme.bodySmall?.color
+                                    ?.withValues(alpha: 0.2),
+                                shape: BoxShape.circle)),
                         const SizedBox(width: 12),
                         _FooterLink(label: 'Privacy Policy', onTap: () {}),
                       ],
@@ -255,12 +288,14 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const SizedBox(height: 16),
             TextField(
               controller: logoController,
-              decoration: const InputDecoration(labelText: 'Logo URL (Network Image)'),
+              decoration:
+                  const InputDecoration(labelText: 'Logo URL (Network Image)'),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               ref.read(brandProvider.notifier).updateBrand(
@@ -307,7 +342,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               ref.read(chatConfigProvider.notifier).updateConfig(
@@ -316,7 +352,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                   );
               Navigator.pop(ctx);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('AI Configuration updated successfully')),
+                const SnackBar(
+                    content: Text('AI Configuration updated successfully')),
               );
             },
             child: const Text('Save Changes'),
@@ -350,7 +387,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         title: const Text('Sign Out'),
         content: const Text('Are you sure you want to exit your session?'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(ctx), child: const Text('Cancel')),
           TextButton(
             onPressed: () {
               Navigator.pop(ctx);
@@ -368,7 +406,8 @@ class _SectionCard extends StatelessWidget {
   final String title;
   final IconData icon;
   final List<Widget> children;
-  const _SectionCard({required this.title, required this.icon, required this.children});
+  const _SectionCard(
+      {required this.title, required this.icon, required this.children});
 
   @override
   Widget build(BuildContext context) {
@@ -381,19 +420,25 @@ class _SectionCard extends StatelessWidget {
           Row(
             children: [
               Container(
-                width: 36, height: 36,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [AppColors.primary.withValues(alpha: 0.15), AppColors.primary.withValues(alpha: 0.05)],
+                    colors: [
+                      AppColors.primary.withValues(alpha: 0.15),
+                      AppColors.primary.withValues(alpha: 0.05)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, size: 20, color: AppColors.primary),
               ),
               const SizedBox(width: 12),
-              Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700)),
+              Text(title,
+                  style: theme.textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w700)),
             ],
           ),
           const SizedBox(height: 20),
@@ -411,7 +456,11 @@ class _SwitchRow extends StatelessWidget {
   final String subtitle;
   final bool value;
   final ValueChanged<bool> onChanged;
-  const _SwitchRow({required this.title, required this.subtitle, required this.value, required this.onChanged});
+  const _SwitchRow(
+      {required this.title,
+      required this.subtitle,
+      required this.value,
+      required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -424,9 +473,12 @@ class _SwitchRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+                Text(title,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600)),
                 const SizedBox(height: 2),
-                Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
+                Text(subtitle,
+                    style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
               ],
             ),
           ),
@@ -444,7 +496,13 @@ class _SliderRow extends StatelessWidget {
   final double max;
   final String unit;
   final ValueChanged<double> onChanged;
-  const _SliderRow({required this.title, required this.value, required this.min, required this.max, required this.unit, required this.onChanged});
+  const _SliderRow(
+      {required this.title,
+      required this.value,
+      required this.min,
+      required this.max,
+      required this.unit,
+      required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -457,16 +515,22 @@ class _SliderRow extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              Text(title,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
                 ),
                 child: Text(
                   '${value.toStringAsFixed(1)}$unit',
-                  style: TextStyle(color: AppColors.primary, fontWeight: FontWeight.w700, fontSize: 13),
+                  style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13),
                 ),
               ),
             ],
@@ -478,6 +542,7 @@ class _SliderRow extends StatelessWidget {
     );
   }
 }
+
 class _ActionRow extends StatelessWidget {
   final String title;
   final String subtitle;
@@ -504,7 +569,8 @@ class _ActionRow extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              width: 40, height: 40,
+              width: 40,
+              height: 40,
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
@@ -516,13 +582,19 @@ class _ActionRow extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: color)),
+                  Text(title,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600, color: color)),
                   const SizedBox(height: 2),
-                  Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
+                  Text(subtitle,
+                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 13)),
                 ],
               ),
             ),
-            Icon(Icons.chevron_right_rounded, size: 20, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.3)),
+            Icon(Icons.chevron_right_rounded,
+                size: 20,
+                color:
+                    theme.textTheme.bodySmall?.color?.withValues(alpha: 0.3)),
           ],
         ),
       ),

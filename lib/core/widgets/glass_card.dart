@@ -27,7 +27,8 @@ class GlassCard extends StatefulWidget {
   State<GlassCard> createState() => _GlassCardState();
 }
 
-class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMixin {
+class _GlassCardState extends State<GlassCard>
+    with SingleTickerProviderStateMixin {
   bool _isPressed = false;
   late final AnimationController _pressController;
   late final Animation<double> _pressAnimation;
@@ -39,7 +40,8 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
       vsync: this,
       duration: const Duration(milliseconds: 150),
     );
-    _pressAnimation = CurvedAnimation(parent: _pressController, curve: Curves.easeOutCubic);
+    _pressAnimation =
+        CurvedAnimation(parent: _pressController, curve: Curves.easeOutCubic);
   }
 
   @override
@@ -90,13 +92,16 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
       padding: widget.padding,
       decoration: BoxDecoration(
         color: _isPressed
-            ? (isDark ? bgColor.withValues(alpha: 0.9) : bgColor.withValues(alpha: 0.95))
+            ? (isDark
+                ? bgColor.withValues(alpha: 0.9)
+                : bgColor.withValues(alpha: 0.95))
             : bgColor,
         borderRadius: BorderRadius.circular(widget.borderRadius),
         border: Border.all(
-          color: widget.borderColor ?? (isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.03)),
+          color: widget.borderColor ??
+              (isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.03)),
           width: widget.borderColor != null ? 1.5 : 0.5,
         ),
         boxShadow: shadows,
@@ -123,9 +128,8 @@ class _GlassCardState extends State<GlassCard> with SingleTickerProviderStateMix
       child: AnimatedBuilder(
         animation: _pressAnimation,
         builder: (context, child) {
-          final scale = widget.enableScale
-              ? 1.0 - (_pressAnimation.value * 0.02)
-              : 1.0;
+          final scale =
+              widget.enableScale ? 1.0 - (_pressAnimation.value * 0.02) : 1.0;
           return Transform.scale(scale: scale, child: child);
         },
         child: child,

@@ -20,7 +20,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   late TextEditingController _nameController;
   late TextEditingController _phoneController;
   late TextEditingController _emailController;
-  
+
   // Password controllers
   final _currentPasswordController = TextEditingController();
   final _newPasswordController = TextEditingController();
@@ -53,18 +53,20 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isSaving = true);
-    
+
     final success = await ref.read(authProvider.notifier).updateProfile(
-      fullName: _nameController.text.trim(),
-      phone: _phoneController.text.trim(),
-      email: _emailController.text.trim(),
-    );
+          fullName: _nameController.text.trim(),
+          phone: _phoneController.text.trim(),
+          email: _emailController.text.trim(),
+        );
 
     if (mounted) {
       setState(() => _isSaving = false);
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile updated successfully'), backgroundColor: AppColors.success),
+          const SnackBar(
+              content: Text('Profile updated successfully'),
+              backgroundColor: AppColors.success),
         );
       }
     }
@@ -73,24 +75,28 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   Future<void> _handleChangePassword() async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Passwords do not match'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text('Passwords do not match'),
+            backgroundColor: Colors.red),
       );
       return;
     }
 
     if (_newPasswordController.text.length < 6) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Password must be at least 6 characters'), backgroundColor: Colors.red),
+        const SnackBar(
+            content: Text('Password must be at least 6 characters'),
+            backgroundColor: Colors.red),
       );
       return;
     }
 
     setState(() => _isChangingPassword = true);
-    
+
     final success = await ref.read(authProvider.notifier).changePassword(
-      currentPassword: _currentPasswordController.text,
-      newPassword: _newPasswordController.text,
-    );
+          currentPassword: _currentPasswordController.text,
+          newPassword: _newPasswordController.text,
+        );
 
     if (mounted) {
       setState(() => _isChangingPassword = false);
@@ -99,10 +105,13 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         _newPasswordController.clear();
         _confirmPasswordController.clear();
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Password changed successfully'), backgroundColor: AppColors.success),
+          const SnackBar(
+              content: Text('Password changed successfully'),
+              backgroundColor: AppColors.success),
         );
       } else {
-        final error = ref.read(authProvider).errorMessage ?? 'Failed to change password';
+        final error =
+            ref.read(authProvider).errorMessage ?? 'Failed to change password';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(error), backgroundColor: Colors.red),
         );
@@ -131,7 +140,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                 ),
                 title: Text(
                   'Edit Profile',
-                  style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                  style: theme.textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w800),
                 ),
                 centerTitle: true,
               ),
@@ -149,7 +159,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle(theme, 'Personal Information', Icons.person_outline),
+                              _buildSectionTitle(theme, 'Personal Information',
+                                  Icons.person_outline),
                               const SizedBox(height: 24),
                               _ProfileTextField(
                                 label: 'Full Name',
@@ -182,7 +193,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                               ),
                             ],
                           ),
-                        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.05, end: 0),
+                        )
+                            .animate()
+                            .fadeIn(duration: 400.ms)
+                            .slideY(begin: 0.05, end: 0),
 
                         const SizedBox(height: 24),
 
@@ -192,7 +206,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              _buildSectionTitle(theme, 'Security', Icons.lock_outline),
+                              _buildSectionTitle(
+                                  theme, 'Security', Icons.lock_outline),
                               const SizedBox(height: 24),
                               _ProfileTextField(
                                 label: 'Current Password',
@@ -227,8 +242,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                               ),
                             ],
                           ),
-                        ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.05, end: 0),
-                        
+                        )
+                            .animate()
+                            .fadeIn(delay: 200.ms)
+                            .slideY(begin: 0.05, end: 0),
+
                         const SizedBox(height: 100),
                       ],
                     ),
@@ -249,7 +267,8 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         const SizedBox(width: 8),
         Text(
           title,
-          style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
       ],
     );
@@ -289,19 +308,27 @@ class _ProfileTextField extends StatelessWidget {
         const SizedBox(height: 8),
         Container(
           decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+            border: Border.all(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.05)),
           ),
           child: TextFormField(
             controller: controller,
             obscureText: isPassword,
             keyboardType: keyboardType,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w600),
             decoration: InputDecoration(
-              prefixIcon: Icon(icon, size: 18, color: AppColors.primary.withValues(alpha: 0.7)),
+              prefixIcon: Icon(icon,
+                  size: 18, color: AppColors.primary.withValues(alpha: 0.7)),
               border: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              contentPadding:
+                  const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             ),
             validator: (v) => v == null || v.isEmpty ? 'Required' : null,
           ),

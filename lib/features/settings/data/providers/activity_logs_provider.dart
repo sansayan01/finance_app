@@ -2,9 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../models/activity_log_model.dart';
 import 'activity_log_repository_provider.dart';
 
-final activityLogsProvider = FutureProvider<List<ActivityLogModel>>((ref) async {
+final activityLogsProvider =
+    FutureProvider<List<ActivityLogModel>>((ref) async {
   final repo = ref.read(activityLogRepositoryProvider);
-  
+
   try {
     return await repo.fetchLogs();
   } catch (e) {

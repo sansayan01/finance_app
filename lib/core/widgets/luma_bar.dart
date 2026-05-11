@@ -29,8 +29,9 @@ class LumaBar extends StatelessWidget {
             height: 64,
             decoration: BoxDecoration(
               color: isDark
-                  ? const Color(0xFF3E3E4A).withValues(alpha: 0.85) // Visibly lighter steel grey
-                  : Colors.white.withValues(alpha: 0.9),  // Pure white
+                  ? const Color(0xFF3E3E4A)
+                      .withValues(alpha: 0.85) // Visibly lighter steel grey
+                  : Colors.white.withValues(alpha: 0.9), // Pure white
               borderRadius: BorderRadius.circular(22),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
@@ -41,7 +42,9 @@ class LumaBar extends StatelessWidget {
                 ],
               ),
               border: Border.all(
-                color: isDark ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.5),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.25)
+                    : Colors.white.withValues(alpha: 0.5),
                 width: 0.5,
               ),
               boxShadow: [
@@ -60,7 +63,8 @@ class LumaBar extends StatelessWidget {
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: List.generate(items.length, (i) => _buildItem(context, i, primary, isDark)),
+              children: List.generate(
+                  items.length, (i) => _buildItem(context, i, primary, isDark)),
             ),
           ),
         ),
@@ -68,10 +72,13 @@ class LumaBar extends StatelessWidget {
     );
   }
 
-  Widget _buildItem(BuildContext context, int index, Color primary, bool isDark) {
+  Widget _buildItem(
+      BuildContext context, int index, Color primary, bool isDark) {
     final item = items[index];
     final isSelected = currentIndex == index;
-    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.35);
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.4)
+        : Colors.black.withValues(alpha: 0.35);
 
     return GestureDetector(
       onTap: () => onTap(index),
@@ -130,15 +137,17 @@ class PremiumBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final primary = Theme.of(context).colorScheme.primary;
-    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black.withValues(alpha: 0.35);
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.4)
+        : Colors.black.withValues(alpha: 0.35);
 
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 25, sigmaY: 25),
         child: Container(
           decoration: BoxDecoration(
-            color: isDark 
-                ? const Color(0xFF3E3E4A).withValues(alpha: 0.85) 
+            color: isDark
+                ? const Color(0xFF3E3E4A).withValues(alpha: 0.85)
                 : Colors.white.withValues(alpha: 0.9),
             gradient: LinearGradient(
               begin: Alignment.topCenter,
@@ -150,7 +159,9 @@ class PremiumBottomNav extends StatelessWidget {
             ),
             border: Border(
               top: BorderSide(
-                color: isDark ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.5),
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.25)
+                    : Colors.white.withValues(alpha: 0.5),
                 width: 0.5,
               ),
             ),
@@ -161,11 +172,46 @@ class PremiumBottomNav extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
-                  _NavItem(icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded, label: 'Home', isSelected: currentIndex == 0, primary: primary, inactive: inactiveColor, onTap: () => onTap(0)),
-                  _NavItem(icon: Icons.account_balance_outlined, activeIcon: Icons.account_balance_rounded, label: 'Loans', isSelected: currentIndex == 1, primary: primary, inactive: inactiveColor, onTap: () => onTap(1)),
-                  _NavItem(icon: Icons.savings_outlined, activeIcon: Icons.savings_rounded, label: 'Savings', isSelected: currentIndex == 2, primary: primary, inactive: inactiveColor, onTap: () => onTap(2)),
-                  _NavItem(icon: Icons.people_outlined, activeIcon: Icons.people_rounded, label: 'Members', isSelected: currentIndex == 3, primary: primary, inactive: inactiveColor, onTap: () => onTap(3)),
-                  _NavItem(icon: Icons.analytics_outlined, activeIcon: Icons.analytics_rounded, label: 'Analytics', isSelected: currentIndex == 4, primary: primary, inactive: inactiveColor, onTap: () => onTap(4)),
+                  _NavItem(
+                      icon: Icons.grid_view_outlined,
+                      activeIcon: Icons.grid_view_rounded,
+                      label: 'Home',
+                      isSelected: currentIndex == 0,
+                      primary: primary,
+                      inactive: inactiveColor,
+                      onTap: () => onTap(0)),
+                  _NavItem(
+                      icon: Icons.account_balance_outlined,
+                      activeIcon: Icons.account_balance_rounded,
+                      label: 'Loans',
+                      isSelected: currentIndex == 1,
+                      primary: primary,
+                      inactive: inactiveColor,
+                      onTap: () => onTap(1)),
+                  _NavItem(
+                      icon: Icons.savings_outlined,
+                      activeIcon: Icons.savings_rounded,
+                      label: 'Savings',
+                      isSelected: currentIndex == 2,
+                      primary: primary,
+                      inactive: inactiveColor,
+                      onTap: () => onTap(2)),
+                  _NavItem(
+                      icon: Icons.people_outlined,
+                      activeIcon: Icons.people_rounded,
+                      label: 'Members',
+                      isSelected: currentIndex == 3,
+                      primary: primary,
+                      inactive: inactiveColor,
+                      onTap: () => onTap(3)),
+                  _NavItem(
+                      icon: Icons.analytics_outlined,
+                      activeIcon: Icons.analytics_rounded,
+                      label: 'Analytics',
+                      isSelected: currentIndex == 4,
+                      primary: primary,
+                      inactive: inactiveColor,
+                      onTap: () => onTap(4)),
                 ],
               ),
             ),
@@ -185,7 +231,14 @@ class _NavItem extends StatelessWidget {
   final Color inactive;
   final VoidCallback onTap;
 
-  const _NavItem({required this.icon, required this.activeIcon, required this.label, required this.isSelected, required this.primary, required this.inactive, required this.onTap});
+  const _NavItem(
+      {required this.icon,
+      required this.activeIcon,
+      required this.label,
+      required this.isSelected,
+      required this.primary,
+      required this.inactive,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -197,9 +250,15 @@ class _NavItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(isSelected ? activeIcon : icon, color: isSelected ? primary : inactive, size: 22),
+            Icon(isSelected ? activeIcon : icon,
+                color: isSelected ? primary : inactive, size: 22),
             const SizedBox(height: 2),
-            Text(label, style: TextStyle(color: isSelected ? primary : inactive, fontSize: 10, fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400)),
+            Text(label,
+                style: TextStyle(
+                    color: isSelected ? primary : inactive,
+                    fontSize: 10,
+                    fontWeight:
+                        isSelected ? FontWeight.w600 : FontWeight.w400)),
           ],
         ),
       ),

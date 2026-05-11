@@ -7,7 +7,8 @@ final userListProvider = FutureProvider<List<ProfileModel>>((ref) async {
   return repository.getUsers();
 });
 
-final userDetailsProvider = FutureProvider.family<ProfileModel?, String>((ref, id) async {
+final userDetailsProvider =
+    FutureProvider.family<ProfileModel?, String>((ref, id) async {
   final users = await ref.watch(userListProvider.future);
   try {
     return users.firstWhere((u) => u.id == id);

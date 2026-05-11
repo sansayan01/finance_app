@@ -81,12 +81,14 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
     final isNarrow = screenWidth < 600;
 
     // Hierarchy check: Only Admin and Manager can create users
-    final canCreate = currentUser?.role == UserRole.executiveAdmin || currentUser?.role == UserRole.manager;
+    final canCreate = currentUser?.role == UserRole.executiveAdmin ||
+        currentUser?.role == UserRole.manager;
 
     if (!canCreate) {
       return Scaffold(
         appBar: AppBar(title: const Text('Access Denied')),
-        body: const Center(child: Text('You do not have permission to create users.')),
+        body: const Center(
+            child: Text('You do not have permission to create users.')),
       );
     }
 
@@ -106,7 +108,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
             ref.read(newUserProvider.notifier).reset();
             context.pop();
@@ -114,7 +117,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
         ),
         title: Text(
           'New User',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          style: theme.textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
       ),
       body: Column(
@@ -122,28 +126,36 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           // ── Scrollable form body ──
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
+              padding: EdgeInsets.fromLTRB(
+                  isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isDesktop = constraints.maxWidth > 900;
-                    if (isDesktop) {
-                      return Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Expanded(flex: 3, child: _buildFormDetails(state, theme, isDark, primary, false, availableRoles)),
-                          const SizedBox(width: 24),
-                          Expanded(flex: 2, child: _buildSummary(state, theme, isDark, primary)),
-                        ],
-                      );
-                    } else {
-                      return Column(
-                        children: [
-                          _buildSummary(state, theme, isDark, primary),
-                          const SizedBox(height: 20),
-                          _buildFormDetails(state, theme, isDark, primary, isNarrow, availableRoles),
-                        ],
-                      );
-                    }
+                  if (isDesktop) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                            flex: 3,
+                            child: _buildFormDetails(state, theme, isDark,
+                                primary, false, availableRoles)),
+                        const SizedBox(width: 24),
+                        Expanded(
+                            flex: 2,
+                            child:
+                                _buildSummary(state, theme, isDark, primary)),
+                      ],
+                    );
+                  } else {
+                    return Column(
+                      children: [
+                        _buildSummary(state, theme, isDark, primary),
+                        const SizedBox(height: 20),
+                        _buildFormDetails(state, theme, isDark, primary,
+                            isNarrow, availableRoles),
+                      ],
+                    );
+                  }
                 },
               ),
             ),
@@ -158,12 +170,15 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   // ═══════════════════════════════════════════════════
   //  BOTTOM ACTION BAR
   // ═══════════════════════════════════════════════════
-  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary, NewUserState state) {
+  Widget _buildBottomBar(
+      ThemeData theme, bool isDark, Color primary, NewUserState state) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+      padding: EdgeInsets.fromLTRB(
+          20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.elevatedDark : Colors.white,
-        border: Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
+        border: Border(
+            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
@@ -182,65 +197,79 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.3)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
+              child: Text('Discard',
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(
-              onPressed: state.isLoading 
-                ? null 
-                : () async {
-                    try {
-                      await ref.read(newUserProvider.notifier).createUser();
-                      
-                      if (!mounted) return;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Row(
-                            children: [
-                              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                              SizedBox(width: 12),
-                              Text('User Profile Created Successfully'),
-                            ],
+              onPressed: state.isLoading
+                  ? null
+                  : () async {
+                      try {
+                        await ref.read(newUserProvider.notifier).createUser();
+
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.check_circle_rounded,
+                                    color: Colors.white, size: 20),
+                                SizedBox(width: 12),
+                                Text('User Profile Created Successfully'),
+                              ],
+                            ),
+                            backgroundColor: AppColors.success,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
-                          backgroundColor: AppColors.success,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                      context.pop();
-                    } catch (e) {
-                      if (!mounted) return;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error: ${e.toString()}'),
-                          backgroundColor: theme.colorScheme.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                    }
-                  },
-              icon: state.isLoading 
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.person_add_rounded, size: 18),
+                        );
+                        context.pop();
+                      } catch (e) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: ${e.toString()}'),
+                            backgroundColor: theme.colorScheme.error,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    },
+              icon: state.isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.person_add_rounded, size: 18),
               label: Text(
-                state.isLoading ? 'Creating...' : 'Create Profile', 
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                state.isLoading ? 'Creating...' : 'Create Profile',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 disabledBackgroundColor: primary.withValues(alpha: 0.6),
               ),
             ),
@@ -253,23 +282,30 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   // ═══════════════════════════════════════════════════
   //  SECTION HEADER
   // ═══════════════════════════════════════════════════
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme, Color accent) {
+  Widget _buildSectionHeader(
+      String title, IconData icon, ThemeData theme, Color accent) {
     return Row(
       children: [
         Container(
-          width: 38, height: 38,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [accent.withValues(alpha: 0.18), accent.withValues(alpha: 0.06)],
+              colors: [
+                accent.withValues(alpha: 0.18),
+                accent.withValues(alpha: 0.06)
+              ],
             ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, size: 20, color: accent),
         ),
         const SizedBox(width: 12),
-        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+        Text(title,
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
       ],
     );
   }
@@ -277,7 +313,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   // ═══════════════════════════════════════════════════
   //  FORM DETAILS
   // ═══════════════════════════════════════════════════
-  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark, Color primary, bool isNarrow, List<UserRole> availableRoles) {
+  Widget _buildFormDetails(NewUserState state, ThemeData theme, bool isDark,
+      Color primary, bool isNarrow, List<UserRole> availableRoles) {
     return Column(
       children: [
         // ── Account Details Card ──
@@ -286,9 +323,9 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Account Details', Icons.person_outline_rounded, theme, primary),
+              _buildSectionHeader('Account Details',
+                  Icons.person_outline_rounded, theme, primary),
               const SizedBox(height: 28),
-
               _buildTwoColumn(
                 isNarrow: isNarrow,
                 first: _buildInputField(
@@ -296,8 +333,10 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   hint: 'Enter legal name',
                   controller: _fullNameController,
                   textCapitalization: TextCapitalization.words,
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateFullName(val),
-                  theme: theme, isDark: isDark,
+                  onChanged: (val) =>
+                      ref.read(newUserProvider.notifier).updateFullName(val),
+                  theme: theme,
+                  isDark: isDark,
                 ),
                 second: _buildInputField(
                   label: 'EMAIL ADDRESS',
@@ -306,13 +345,13 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   controller: _emailController,
                   keyboardType: TextInputType.emailAddress,
                   inputFormatters: [LowerCaseTextFormatter()],
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateEmail(val),
-                  theme: theme, isDark: isDark,
+                  onChanged: (val) =>
+                      ref.read(newUserProvider.notifier).updateEmail(val),
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ),
-
               const SizedBox(height: 20),
-
               _buildTwoColumn(
                 isNarrow: isNarrow,
                 first: _buildInputField(
@@ -325,8 +364,11 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     LengthLimitingTextInputFormatter(14),
                     _MobileFormatter(),
                   ],
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateMobileNumber(val.replaceAll(RegExp(r'\D'), '')),
-                  theme: theme, isDark: isDark,
+                  onChanged: (val) => ref
+                      .read(newUserProvider.notifier)
+                      .updateMobileNumber(val.replaceAll(RegExp(r'\D'), '')),
+                  theme: theme,
+                  isDark: isDark,
                 ),
                 second: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,18 +383,18 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                       onChanged: (val) {
                         if (val != null) {
                           ref.read(newUserProvider.notifier).updateRole(
-                            UserRole.values.firstWhere((e) => e.name == val),
-                          );
+                                UserRole.values
+                                    .firstWhere((e) => e.name == val),
+                              );
                         }
                       },
-                      theme: theme, isDark: isDark,
+                      theme: theme,
+                      isDark: isDark,
                     ),
                   ],
                 ),
               ),
-
               const SizedBox(height: 20),
-
               _buildInputField(
                 label: 'RESIDENTIAL ADDRESS',
                 hint: 'Enter complete home address',
@@ -360,7 +402,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                 controller: _addressController,
                 textCapitalization: TextCapitalization.words,
                 onChanged: (val) {},
-                theme: theme, isDark: isDark,
+                theme: theme,
+                isDark: isDark,
               ),
             ],
           ),
@@ -374,7 +417,11 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildSectionHeader('Field Operations', Icons.corporate_fare_outlined, theme, isDark ? AppColors.warningDark : AppColors.orange),
+                _buildSectionHeader(
+                    'Field Operations',
+                    Icons.corporate_fare_outlined,
+                    theme,
+                    isDark ? AppColors.warningDark : AppColors.orange),
                 const SizedBox(height: 28),
                 _buildTwoColumn(
                   isNarrow: isNarrow,
@@ -382,16 +429,22 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     label: 'EMPLOYEE ID',
                     hint: 'Internal reference #',
                     controller: _employeeIdController,
-                    onChanged: (val) => ref.read(newUserProvider.notifier).updateEmployeeId(val),
-                    theme: theme, isDark: isDark,
+                    onChanged: (val) => ref
+                        .read(newUserProvider.notifier)
+                        .updateEmployeeId(val),
+                    theme: theme,
+                    isDark: isDark,
                   ),
                   second: _buildInputField(
                     label: 'ASSIGNED ZONE / AREA',
                     hint: 'e.g. North Sector',
                     icon: Icons.location_on_outlined,
                     controller: _zoneController,
-                    onChanged: (val) => ref.read(newUserProvider.notifier).updateAssignedZone(val),
-                    theme: theme, isDark: isDark,
+                    onChanged: (val) => ref
+                        .read(newUserProvider.notifier)
+                        .updateAssignedZone(val),
+                    theme: theme,
+                    isDark: isDark,
                   ),
                 ),
               ],
@@ -406,7 +459,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Identity Verification', Icons.badge_outlined, theme, isDark ? AppColors.successDark : AppColors.success),
+              _buildSectionHeader('Identity Verification', Icons.badge_outlined,
+                  theme, isDark ? AppColors.successDark : AppColors.success),
               const SizedBox(height: 28),
               _buildTwoColumn(
                 isNarrow: isNarrow,
@@ -420,8 +474,11 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     LengthLimitingTextInputFormatter(14),
                     _AadharFormatter(),
                   ],
-                  onChanged: (val) => ref.read(newUserProvider.notifier).updateAadharNumber(val.replaceAll(' ', '')),
-                  theme: theme, isDark: isDark,
+                  onChanged: (val) => ref
+                      .read(newUserProvider.notifier)
+                      .updateAadharNumber(val.replaceAll(' ', '')),
+                  theme: theme,
+                  isDark: isDark,
                 ),
                 second: _buildInputField(
                   label: 'PAN NUMBER',
@@ -439,7 +496,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                     ref.read(newUserProvider.notifier).updatePanNumber(val);
                     _updatePanKeyboard(val);
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ),
             ],
@@ -453,42 +511,57 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Security Credentials', Icons.key_rounded, theme, theme.colorScheme.error),
+              _buildSectionHeader('Security Credentials', Icons.key_rounded,
+                  theme, theme.colorScheme.error),
               const SizedBox(height: 28),
               _buildLabel('INITIAL PASSWORD', theme),
               const SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
                 obscureText: _obscurePassword,
-                onChanged: (val) => ref.read(newUserProvider.notifier).updatePassword(val),
+                onChanged: (val) =>
+                    ref.read(newUserProvider.notifier).updatePassword(val),
                 decoration: InputDecoration(
                   hintText: 'Minimum 8 characters',
                   filled: true,
                   fillColor: isDark ? AppColors.fillDark : AppColors.fillLight,
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-                  focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: primary, width: 1.5)),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none),
+                  enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide(color: primary, width: 1.5)),
+                  contentPadding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                      _obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined,
                       color: theme.textTheme.bodySmall?.color,
                       size: 20,
                     ),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
-                style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(fontWeight: FontWeight.w600),
               ),
               const SizedBox(height: 10),
               Row(
                 children: [
-                  Icon(Icons.info_outline_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
+                  Icon(Icons.info_outline_rounded,
+                      size: 14, color: theme.textTheme.bodySmall?.color),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
                       'User will be prompted to change password on first login.',
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 12, fontStyle: FontStyle.italic),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(fontSize: 12, fontStyle: FontStyle.italic),
                     ),
                   ),
                 ],
@@ -524,7 +597,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   // ═══════════════════════════════════════════════════
   //  SUMMARY SIDEBAR
   // ═══════════════════════════════════════════════════
-  Widget _buildSummary(NewUserState state, ThemeData theme, bool isDark, Color primary) {
+  Widget _buildSummary(
+      NewUserState state, ThemeData theme, bool isDark, Color primary) {
     final roleDisplay = _getRoleDisplayName(state.role);
     final roleDescription = _getRoleDescription(state.role);
 
@@ -535,9 +609,9 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Permission Matrix', Icons.shield_outlined, theme, primary),
+              _buildSectionHeader(
+                  'Permission Matrix', Icons.shield_outlined, theme, primary),
               const SizedBox(height: 24),
-
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
@@ -545,18 +619,26 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [primary.withValues(alpha: 0.14), primary.withValues(alpha: 0.04)],
+                    colors: [
+                      primary.withValues(alpha: 0.14),
+                      primary.withValues(alpha: 0.04)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('SELECTED ROLE', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, color: primary.withValues(alpha: 0.7))),
+                    Text('SELECTED ROLE',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: primary.withValues(alpha: 0.7))),
                     const SizedBox(height: 8),
                     Text(
                       roleDisplay,
-                      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800, fontSize: 18),
+                      style: theme.textTheme.titleMedium
+                          ?.copyWith(fontWeight: FontWeight.w800, fontSize: 18),
                     ),
                   ],
                 ),
@@ -564,37 +646,44 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               const SizedBox(height: 16),
               Text(
                 roleDescription,
-                style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.6),
+                style: theme.textTheme.bodySmall
+                    ?.copyWith(fontSize: 13, height: 1.6),
               ),
             ],
           ),
         ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.08, end: 0),
-
         const SizedBox(height: 16),
-
         GlassCard(
           padding: const EdgeInsets.all(20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 36, height: 36,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                color: isDark ? AppColors.successDark.withValues(alpha: 0.12) : AppColors.success.withValues(alpha: 0.12),
+                  color: isDark
+                      ? AppColors.successDark.withValues(alpha: 0.12)
+                      : AppColors.success.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.history_outlined, size: 18, color: isDark ? AppColors.successDark : AppColors.success),
+                child: Icon(Icons.history_outlined,
+                    size: 18,
+                    color: isDark ? AppColors.successDark : AppColors.success),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Audit Log', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text('Audit Log',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
                       'All user creation events are logged with the administrator\'s timestamp.',
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(fontSize: 13, height: 1.5),
                     ),
                   ],
                 ),
@@ -612,11 +701,13 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
   Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
+      style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
     );
   }
 
-  Widget _buildTwoColumn({required bool isNarrow, required Widget first, required Widget second}) {
+  Widget _buildTwoColumn(
+      {required bool isNarrow, required Widget first, required Widget second}) {
     if (isNarrow) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -660,15 +751,26 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           inputFormatters: inputFormatters,
           decoration: InputDecoration(
             hintText: hint,
-            prefixIcon: icon != null ? Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20) : null,
+            prefixIcon: icon != null
+                ? Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20)
+                : null,
             filled: true,
             fillColor: isDark ? AppColors.fillDark : AppColors.fillLight,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none),
+            enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none),
+            focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide:
+                    BorderSide(color: theme.colorScheme.primary, width: 1.5)),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
           ),
-          style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+          style:
+              theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
         ),
       ],
     );
@@ -694,7 +796,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
           value: items.contains(value) ? value : null,
           hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.textTheme.bodySmall?.color, size: 22),
+          icon: Icon(Icons.keyboard_arrow_down_rounded,
+              color: theme.textTheme.bodySmall?.color, size: 22),
           dropdownColor: isDark ? AppColors.elevatedDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
           items: items.map((String item) {
@@ -704,12 +807,14 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
               child: Row(
                 children: [
                   if (icon != null) ...[
-                    Icon(icon, color: theme.textTheme.bodySmall?.color, size: 20),
+                    Icon(icon,
+                        color: theme.textTheme.bodySmall?.color, size: 20),
                     const SizedBox(width: 8),
                   ],
                   Text(
                     _getRoleDisplayName(role),
-                    style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w600),
                   ),
                 ],
               ),
@@ -750,7 +855,8 @@ class _NewUserPageState extends ConsumerState<NewUserPage> {
 
 class _PanFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     String text = newValue.text.toUpperCase();
     String formatted = '';
 
@@ -774,7 +880,8 @@ class _PanFormatter extends TextInputFormatter {
 
 class _AadharFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
     if (digits.length > 12) digits = digits.substring(0, 12);
 
@@ -793,7 +900,8 @@ class _AadharFormatter extends TextInputFormatter {
 
 class _MobileFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     String digits = newValue.text.replaceAll(RegExp(r'\D'), '');
     if (digits.length > 10) digits = digits.substring(0, 10);
 
@@ -816,7 +924,8 @@ class _MobileFormatter extends TextInputFormatter {
 
 class LowerCaseTextFormatter extends TextInputFormatter {
   @override
-  TextEditingValue formatEditUpdate(TextEditingValue oldValue, TextEditingValue newValue) {
+  TextEditingValue formatEditUpdate(
+      TextEditingValue oldValue, TextEditingValue newValue) {
     return TextEditingValue(
       text: newValue.text.toLowerCase(),
       selection: TextSelection.collapsed(offset: newValue.text.length),

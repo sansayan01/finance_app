@@ -63,7 +63,6 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       return null;
     },
-
     routes: [
       GoRoute(
         path: '/auth',
@@ -199,11 +198,21 @@ class MainShell extends StatelessWidget {
 
   void _onItemTapped(int index, BuildContext context) {
     switch (index) {
-      case 0: context.go('/'); break;
-      case 1: context.go('/loans'); break;
-      case 2: context.go('/savings'); break;
-      case 3: context.go('/users'); break;
-      case 4: context.go('/settings'); break;
+      case 0:
+        context.go('/');
+        break;
+      case 1:
+        context.go('/loans');
+        break;
+      case 2:
+        context.go('/savings');
+        break;
+      case 3:
+        context.go('/users');
+        break;
+      case 4:
+        context.go('/settings');
+        break;
     }
   }
 
@@ -220,17 +229,34 @@ class MainShell extends StatelessWidget {
           child,
           if (useHudNav)
             Positioned(
-              left: 0, right: 0, top: 0,
+              left: 0,
+              right: 0,
+              top: 0,
               child: Center(
                 child: HUDNavigation(
                   currentIndex: currentIndex,
                   onTap: (index) => _onItemTapped(index, context),
                   items: const [
-                    HUDNavItem(label: 'Dashboard', icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded),
-                    HUDNavItem(label: 'Loans', icon: Icons.account_balance_outlined, activeIcon: Icons.account_balance_rounded),
-                    HUDNavItem(label: 'Savings', icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet_rounded),
-                    HUDNavItem(label: 'Users', icon: Icons.manage_accounts_outlined, activeIcon: Icons.manage_accounts_rounded),
-                    HUDNavItem(label: 'Settings', icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded),
+                    HUDNavItem(
+                        label: 'Dashboard',
+                        icon: Icons.grid_view_outlined,
+                        activeIcon: Icons.grid_view_rounded),
+                    HUDNavItem(
+                        label: 'Loans',
+                        icon: Icons.account_balance_outlined,
+                        activeIcon: Icons.account_balance_rounded),
+                    HUDNavItem(
+                        label: 'Savings',
+                        icon: Icons.account_balance_wallet_outlined,
+                        activeIcon: Icons.account_balance_wallet_rounded),
+                    HUDNavItem(
+                        label: 'Users',
+                        icon: Icons.manage_accounts_outlined,
+                        activeIcon: Icons.manage_accounts_rounded),
+                    HUDNavItem(
+                        label: 'Settings',
+                        icon: Icons.settings_outlined,
+                        activeIcon: Icons.settings_rounded),
                   ],
                 ),
               ),
@@ -242,7 +268,6 @@ class MainShell extends StatelessWidget {
           : _PremiumBottomBar(
               currentIndex: currentIndex,
               onTap: (index) => _onItemTapped(index, context),
-
             ),
     );
   }
@@ -283,7 +308,9 @@ class _PremiumBottomBar extends StatelessWidget {
                   ],
                 ),
                 border: Border.all(
-                  color: isDark ? Colors.white.withValues(alpha: 0.25) : Colors.white.withValues(alpha: 0.5),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.25)
+                      : Colors.white.withValues(alpha: 0.5),
                   width: 0.5,
                 ),
                 boxShadow: [
@@ -303,11 +330,51 @@ class _PremiumBottomBar extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  _NavItem(index: 0, icon: Icons.grid_view_outlined, activeIcon: Icons.grid_view_rounded, label: 'Home', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
-                  _NavItem(index: 1, icon: Icons.account_balance_outlined, activeIcon: Icons.account_balance_rounded, label: 'Loans', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
-                  _NavItem(index: 2, icon: Icons.account_balance_wallet_outlined, activeIcon: Icons.account_balance_wallet_rounded, label: 'Savings', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
-                  _NavItem(index: 3, icon: Icons.manage_accounts_outlined, activeIcon: Icons.manage_accounts_rounded, label: 'Users', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
-                  _NavItem(index: 4, icon: Icons.settings_outlined, activeIcon: Icons.settings_rounded, label: 'Settings', currentIndex: currentIndex, primary: primary, isDark: isDark, onTap: onTap),
+                  _NavItem(
+                      index: 0,
+                      icon: Icons.grid_view_outlined,
+                      activeIcon: Icons.grid_view_rounded,
+                      label: 'Home',
+                      currentIndex: currentIndex,
+                      primary: primary,
+                      isDark: isDark,
+                      onTap: onTap),
+                  _NavItem(
+                      index: 1,
+                      icon: Icons.account_balance_outlined,
+                      activeIcon: Icons.account_balance_rounded,
+                      label: 'Loans',
+                      currentIndex: currentIndex,
+                      primary: primary,
+                      isDark: isDark,
+                      onTap: onTap),
+                  _NavItem(
+                      index: 2,
+                      icon: Icons.account_balance_wallet_outlined,
+                      activeIcon: Icons.account_balance_wallet_rounded,
+                      label: 'Savings',
+                      currentIndex: currentIndex,
+                      primary: primary,
+                      isDark: isDark,
+                      onTap: onTap),
+                  _NavItem(
+                      index: 3,
+                      icon: Icons.manage_accounts_outlined,
+                      activeIcon: Icons.manage_accounts_rounded,
+                      label: 'Users',
+                      currentIndex: currentIndex,
+                      primary: primary,
+                      isDark: isDark,
+                      onTap: onTap),
+                  _NavItem(
+                      index: 4,
+                      icon: Icons.settings_outlined,
+                      activeIcon: Icons.settings_rounded,
+                      label: 'Settings',
+                      currentIndex: currentIndex,
+                      primary: primary,
+                      isDark: isDark,
+                      onTap: onTap),
                 ],
               ),
             ),
@@ -328,12 +395,22 @@ class _NavItem extends StatelessWidget {
   final bool isDark;
   final ValueChanged<int> onTap;
 
-  const _NavItem({required this.index, required this.icon, required this.activeIcon, required this.label, required this.currentIndex, required this.primary, required this.isDark, required this.onTap});
+  const _NavItem(
+      {required this.index,
+      required this.icon,
+      required this.activeIcon,
+      required this.label,
+      required this.currentIndex,
+      required this.primary,
+      required this.isDark,
+      required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     final isSelected = currentIndex == index;
-    final inactiveColor = isDark ? Colors.white.withValues(alpha: 0.35) : Colors.black.withValues(alpha: 0.28);
+    final inactiveColor = isDark
+        ? Colors.white.withValues(alpha: 0.35)
+        : Colors.black.withValues(alpha: 0.28);
 
     return GestureDetector(
       onTap: () => onTap(index),
@@ -343,7 +420,9 @@ class _NavItem extends StatelessWidget {
         curve: Curves.easeOutCubic,
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         decoration: BoxDecoration(
-          color: isSelected ? primary.withValues(alpha: isDark ? 0.15 : 0.1) : Colors.transparent,
+          color: isSelected
+              ? primary.withValues(alpha: isDark ? 0.15 : 0.1)
+              : Colors.transparent,
           borderRadius: BorderRadius.circular(16),
         ),
         child: Column(

@@ -46,7 +46,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF2F2F7),
+      backgroundColor:
+          isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF2F2F7),
       extendBodyBehindAppBar: true,
       appBar: _buildAppBar(theme),
       body: loanAsync.when(
@@ -59,7 +60,9 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                 controller: _scrollController,
                 physics: const BouncingScrollPhysics(),
                 slivers: [
-                  SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.top + 60)),
+                  SliverToBoxAdapter(
+                      child: SizedBox(
+                          height: MediaQuery.of(context).padding.top + 60)),
                   SliverToBoxAdapter(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
@@ -77,10 +80,12 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                     child: Container(
                       decoration: BoxDecoration(
                         color: theme.scaffoldBackgroundColor,
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+                        borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(40)),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.05),
+                            color: Colors.black
+                                .withValues(alpha: isDark ? 0.5 : 0.05),
                             blurRadius: 30,
                             offset: const Offset(0, -10),
                           ),
@@ -94,7 +99,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                             const SizedBox(height: 8),
                             Center(
                               child: Container(
-                                width: 40, height: 4,
+                                width: 40,
+                                height: 4,
                                 decoration: BoxDecoration(
                                   color: theme.dividerColor,
                                   borderRadius: BorderRadius.circular(2),
@@ -104,7 +110,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                             const SizedBox(height: 32),
                             _buildSectionHeader('Upcoming Payments', theme),
                             const SizedBox(height: 16),
-                            _buildHorizontalTimeline(loan, scheduleAsync, theme),
+                            _buildHorizontalTimeline(
+                                loan, scheduleAsync, theme),
                             const SizedBox(height: 40),
                             _buildSectionHeader('Loan Intelligence', theme),
                             const SizedBox(height: 16),
@@ -140,9 +147,11 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: ClipRRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15 * blurAlpha, sigmaY: 15 * blurAlpha),
+          filter:
+              ImageFilter.blur(sigmaX: 15 * blurAlpha, sigmaY: 15 * blurAlpha),
           child: AppBar(
-            backgroundColor: theme.scaffoldBackgroundColor.withValues(alpha: 0.7 * blurAlpha),
+            backgroundColor: theme.scaffoldBackgroundColor
+                .withValues(alpha: 0.7 * blurAlpha),
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded),
@@ -153,12 +162,21 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                 icon: const Icon(Icons.more_horiz_rounded),
                 onSelected: (val) {
                   HapticFeedback.lightImpact();
-                  if (val == 'edit') _handleEdit();
-                  if (val == 'statement') _handlePdfExport();
-                  if (val == 'default') _handleStatusChange(LoanStatus.defaultStatus);
-                  if (val == 'delete') _handleDelete();
+                  if (val == 'edit') {
+                    _handleEdit();
+                  }
+                  if (val == 'statement') {
+                    _handlePdfExport();
+                  }
+                  if (val == 'default') {
+                    _handleStatusChange(LoanStatus.defaultStatus);
+                  }
+                  if (val == 'delete') {
+                    _handleDelete();
+                  }
                 },
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
                 itemBuilder: (ctx) => [
                   const PopupMenuItem(
                     value: 'edit',
@@ -174,7 +192,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                     value: 'default',
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded, size: 18, color: Colors.orange),
+                        Icon(Icons.warning_amber_rounded,
+                            size: 18, color: Colors.orange),
                         SizedBox(width: 12),
                         Text('Mark Defaulted'),
                       ],
@@ -195,9 +214,11 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                     value: 'delete',
                     child: Row(
                       children: [
-                        Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
+                        Icon(Icons.delete_outline_rounded,
+                            size: 18, color: Colors.red),
                         SizedBox(width: 12),
-                        Text('Delete Loan', style: TextStyle(color: Colors.red)),
+                        Text('Delete Loan',
+                            style: TextStyle(color: Colors.red)),
                       ],
                     ),
                   ),
@@ -212,9 +233,11 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
 
   Widget _buildAmbientBackground(LoanModel loan) {
     return Positioned(
-      top: -150, right: -100,
+      top: -150,
+      right: -100,
       child: Container(
-        width: 400, height: 400,
+        width: 400,
+        height: 400,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
           gradient: RadialGradient(
@@ -253,7 +276,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   }
 
   Widget _buildDigitalPass(LoanModel loan, ThemeData theme) {
-    final progress = (loan.amount - loan.outstandingBalance) / loan.totalRepayable;
+    final progress =
+        (loan.amount - loan.outstandingBalance) / loan.totalRepayable;
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -264,26 +288,30 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark 
+          colors: isDark
               ? [const Color(0xFF2C2C2E), const Color(0xFF1C1C1E)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF2F2F7)],
         ),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF5E5CE6).withValues(alpha: 0.2),
-            blurRadius: 40, offset: const Offset(0, 20),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
           ),
         ],
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.5),
+        border:
+            Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1.5),
       ),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(32),
         child: Stack(
           children: [
             Positioned(
-              top: -50, right: -50,
+              top: -50,
+              right: -50,
               child: Container(
-                width: 200, height: 200,
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white.withValues(alpha: 0.05),
@@ -298,10 +326,15 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Icon(Icons.contactless_rounded, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                      Icon(Icons.contactless_rounded,
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.5)),
                       Text(
                         loan.loanNumber,
-                        style: const TextStyle(fontFamily: 'JetBrains Mono', fontWeight: FontWeight.w700, letterSpacing: 2),
+                        style: const TextStyle(
+                            fontFamily: 'JetBrains Mono',
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 2),
                       ),
                     ],
                   ),
@@ -313,15 +346,27 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('PRINCIPAL', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
-                          Text(AppFormatters.formatCurrency(loan.amount), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                          Text('PRINCIPAL',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                  letterSpacing: 1,
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.5))),
+                          Text(AppFormatters.formatCurrency(loan.amount),
+                              style: theme.textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w900)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('INTEREST', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
-                          Text('${loan.interestRate}%', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                          Text('INTEREST',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                  letterSpacing: 1,
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.5))),
+                          Text('${loan.interestRate}%',
+                              style: theme.textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w900)),
                         ],
                       ),
                     ],
@@ -332,8 +377,10 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                     child: LinearProgressIndicator(
                       value: progress.clamp(0, 1),
                       minHeight: 6,
-                      backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.1),
-                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF5E5CE6)),
+                      backgroundColor:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.1),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          Color(0xFF5E5CE6)),
                     ),
                   ),
                 ],
@@ -345,21 +392,31 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
     ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.2);
   }
 
-  Widget _buildPrimaryActionRow(LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme) {
+  Widget _buildPrimaryActionRow(LoanModel loan,
+      AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme) {
     return scheduleAsync.when(
       data: (schedule) {
-        final nextEmi = schedule.isNotEmpty ? schedule.firstWhere((e) => e.status != EMIStatus.paid, orElse: () => schedule.first) : null;
+        final nextEmi = schedule.isNotEmpty
+            ? schedule.firstWhere((e) => e.status != EMIStatus.paid,
+                orElse: () => schedule.first)
+            : null;
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 32),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildActionButton('Pay', Icons.add_rounded, const Color(0xFF5E5CE6), () {
-                if (nextEmi != null) _showCollectionSheet(context, loan, nextEmi);
+              _buildActionButton(
+                  'Pay', Icons.add_rounded, const Color(0xFF5E5CE6), () {
+                if (nextEmi != null) {
+                  _showCollectionSheet(context, loan, nextEmi);
+                }
               }),
-              _buildActionButton('Statement', Icons.description_rounded, theme.colorScheme.onSurface, () => _handlePdfExport()),
-              _buildActionButton('Settle', Icons.account_balance_rounded, theme.colorScheme.onSurface, () => _handleSettlement(loan)),
-              _buildActionButton('Message', Icons.chat_bubble_rounded, theme.colorScheme.onSurface, () => _makeWhatsApp(loan)),
+              _buildActionButton('Statement', Icons.description_rounded,
+                  theme.colorScheme.onSurface, () => _handlePdfExport()),
+              _buildActionButton('Settle', Icons.account_balance_rounded,
+                  theme.colorScheme.onSurface, () => _handleSettlement(loan)),
+              _buildActionButton('Message', Icons.chat_bubble_rounded,
+                  theme.colorScheme.onSurface, () => _makeWhatsApp(loan)),
             ],
           ),
         ).animate().fadeIn(delay: 400.ms);
@@ -369,7 +426,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
     );
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+      String label, IconData icon, Color color, VoidCallback onTap) {
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -378,7 +436,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
       child: Column(
         children: [
           Container(
-            width: 64, height: 64,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               color: color.withValues(alpha: 0.1),
@@ -386,7 +445,9 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
             child: Icon(icon, color: color, size: 28),
           ),
           const SizedBox(height: 12),
-          Text(label, style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
+          Text(label,
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -395,11 +456,13 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   Widget _buildSectionHeader(String title, ThemeData theme) {
     return Text(
       title,
-      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
+      style: theme.textTheme.titleLarge
+          ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
     );
   }
 
-  Widget _buildHorizontalTimeline(LoanModel loan, AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme) {
+  Widget _buildHorizontalTimeline(LoanModel loan,
+      AsyncValue<List<EMIScheduleModel>> scheduleAsync, ThemeData theme) {
     return scheduleAsync.when(
       data: (schedule) {
         if (schedule.isEmpty) return const Text('No schedule found.');
@@ -425,8 +488,10 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   Widget _buildTimelineCard(EMIScheduleModel emi, ThemeData theme) {
     final isPaid = emi.status == EMIStatus.paid;
     final isOverdue = emi.status == EMIStatus.overdue;
-    final color = isPaid ? Colors.green : (isOverdue ? Colors.red : theme.colorScheme.primary);
-    
+    final color = isPaid
+        ? Colors.green
+        : (isOverdue ? Colors.red : theme.colorScheme.primary);
+
     return Container(
       width: 140,
       padding: const EdgeInsets.all(16),
@@ -440,14 +505,24 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
-            child: Text(emi.status.name.toUpperCase(), style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: color)),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(8)),
+            child: Text(emi.status.name.toUpperCase(),
+                style: TextStyle(
+                    fontSize: 10, fontWeight: FontWeight.w900, color: color)),
           ),
           const Spacer(),
-          Text('EMI #${emi.emiNumber}', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
-          Text(AppFormatters.formatCurrency(emi.emiAmount), style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900)),
+          Text('EMI #${emi.emiNumber}',
+              style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+          Text(AppFormatters.formatCurrency(emi.emiAmount),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.w900)),
           const SizedBox(height: 4),
-          Text(AppFormatters.formatDate(emi.dueDate), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
+          Text(AppFormatters.formatDate(emi.dueDate),
+              style:
+                  const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
         ],
       ),
     );
@@ -462,24 +537,36 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
       ),
       child: Column(
         children: [
-          _buildInfoRow('Principal Amount', AppFormatters.formatCurrency(loan.amount), theme),
+          _buildInfoRow('Principal Amount',
+              AppFormatters.formatCurrency(loan.amount), theme),
           const SizedBox(height: 12),
-          _buildInfoRow('Total Interest', AppFormatters.formatCurrency(loan.totalInterest), theme),
+          _buildInfoRow('Total Interest',
+              AppFormatters.formatCurrency(loan.totalInterest), theme),
           const SizedBox(height: 12),
-          _buildInfoRow('Total Repayable', AppFormatters.formatCurrency(loan.totalRepayable), theme),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1)),
-          _buildInfoRow('Installment Amount', AppFormatters.formatCurrency(loan.emiAmount), theme, isBold: true),
+          _buildInfoRow('Total Repayable',
+              AppFormatters.formatCurrency(loan.totalRepayable), theme),
+          const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1)),
+          _buildInfoRow('Installment Amount',
+              AppFormatters.formatCurrency(loan.emiAmount), theme,
+              isBold: true),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, ThemeData theme, {bool isBold = false}) {
+  Widget _buildInfoRow(String label, String value, ThemeData theme,
+      {bool isBold = false}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
-        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: isBold ? FontWeight.w900 : FontWeight.w700)),
+        Text(label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
+        Text(value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: isBold ? FontWeight.w900 : FontWeight.w700)),
       ],
     );
   }
@@ -493,28 +580,46 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
       ),
       child: Column(
         children: [
-          _buildHealthRow('Status', loan.status.name.toUpperCase(), Icons.circle, loan.status == LoanStatus.active ? Colors.green : Colors.orange, theme),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1)),
-          _buildHealthRow('Tenure', '${loan.tenureMonths} Months', Icons.timelapse_rounded, const Color(0xFF5E5CE6), theme),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1)),
-          _buildHealthRow('Interest Type', loan.interestType.name.toUpperCase(), Icons.percent_rounded, Colors.orange, theme),
+          _buildHealthRow(
+              'Status',
+              loan.status.name.toUpperCase(),
+              Icons.circle,
+              loan.status == LoanStatus.active ? Colors.green : Colors.orange,
+              theme),
+          const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1)),
+          _buildHealthRow('Tenure', '${loan.tenureMonths} Months',
+              Icons.timelapse_rounded, const Color(0xFF5E5CE6), theme),
+          const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1)),
+          _buildHealthRow('Interest Type', loan.interestType.name.toUpperCase(),
+              Icons.percent_rounded, Colors.orange, theme),
         ],
       ),
     );
   }
 
-  Widget _buildHealthRow(String label, String value, IconData icon, Color color, ThemeData theme) {
+  Widget _buildHealthRow(
+      String label, String value, IconData icon, Color color, ThemeData theme) {
     return Row(
       children: [
         Container(
           padding: const EdgeInsets.all(8),
-          decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+          decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
           child: Icon(icon, color: color, size: 16),
         ),
         const SizedBox(width: 16),
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600, color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
+        Text(label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
         const Spacer(),
-        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w900)),
+        Text(value,
+            style: theme.textTheme.bodyMedium
+                ?.copyWith(fontWeight: FontWeight.w900)),
       ],
     );
   }
@@ -529,23 +634,37 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
       child: Row(
         children: [
           Container(
-            width: 60, height: 60,
-            decoration: const BoxDecoration(shape: BoxShape.circle, color: Color(0xFF5E5CE6)),
-            child: Center(child: Text((loan.customerName ?? '?')[0], style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900))),
+            width: 60,
+            height: 60,
+            decoration: const BoxDecoration(
+                shape: BoxShape.circle, color: Color(0xFF5E5CE6)),
+            child: Center(
+                child: Text((loan.customerName ?? '?')[0],
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900))),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(loan.customerName ?? 'Unknown', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
-                Text(loan.customerPhone ?? '', style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+                Text(loan.customerName ?? 'Unknown',
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900)),
+                Text(loan.customerPhone ?? '',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurface
+                            .withValues(alpha: 0.5))),
               ],
             ),
           ),
           IconButton(
             icon: const Icon(Icons.call_rounded),
-            style: IconButton.styleFrom(backgroundColor: theme.colorScheme.surface, padding: const EdgeInsets.all(12)),
+            style: IconButton.styleFrom(
+                backgroundColor: theme.colorScheme.surface,
+                padding: const EdgeInsets.all(12)),
             onPressed: () => _makeCall(loan.customerPhone ?? ''),
           ),
         ],
@@ -554,7 +673,8 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   }
 
   // --- Handlers ---
-  void _showCollectionSheet(BuildContext context, LoanModel loan, EMIScheduleModel emi) {
+  void _showCollectionSheet(
+      BuildContext context, LoanModel loan, EMIScheduleModel emi) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -566,17 +686,20 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   Future<void> _handlePdfExport() async {
     HapticFeedback.mediumImpact();
     final messenger = ScaffoldMessenger.of(context);
-    messenger.showSnackBar(const SnackBar(content: Text('Generating Document...')));
+    messenger
+        .showSnackBar(const SnackBar(content: Text('Generating Document...')));
     await Future.delayed(const Duration(seconds: 2));
     if (!mounted) return;
     messenger.hideCurrentSnackBar();
-    messenger.showSnackBar(const SnackBar(content: Text('Statement saved to Downloads')));
+    messenger.showSnackBar(
+        const SnackBar(content: Text('Statement saved to Downloads')));
   }
 
   Future<void> _handleSettlement(LoanModel loan) async {
     HapticFeedback.heavyImpact();
-    final controller = TextEditingController(text: loan.outstandingBalance.toStringAsFixed(2));
-    
+    final controller =
+        TextEditingController(text: loan.outstandingBalance.toStringAsFixed(2));
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -585,38 +708,48 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Enter the final settlement amount to close this loan.', style: Theme.of(context).textTheme.bodySmall),
+            Text('Enter the final settlement amount to close this loan.',
+                style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              keyboardType:
+                  const TextInputType.numberWithOptions(decimal: true),
               decoration: InputDecoration(
                 labelText: 'Settlement Amount',
                 prefixText: '₹ ',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 20),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CANCEL')),
           ElevatedButton(
             onPressed: () async {
               final amount = double.tryParse(controller.text) ?? 0.0;
               final messenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
               try {
-                await ref.read(loansRepositoryProvider).settleLoan(loan.id, amount);
+                await ref
+                    .read(loansRepositoryProvider)
+                    .settleLoan(loan.id, amount);
                 ref.invalidate(loanDetailProvider(loan.id));
                 ref.invalidate(loansProvider);
                 if (!mounted) return;
-                messenger.showSnackBar(SnackBar(content: Text('Settlement of ${AppFormatters.formatCurrency(amount)} processed')));
+                messenger.showSnackBar(SnackBar(
+                    content: Text(
+                        'Settlement of ${AppFormatters.formatCurrency(amount)} processed')));
               } catch (e) {
                 if (!mounted) return;
-                messenger.showSnackBar(SnackBar(content: Text('Settlement failed: $e')));
+                messenger.showSnackBar(
+                    SnackBar(content: Text('Settlement failed: $e')));
               }
-            }, 
+            },
             child: const Text('CONFIRM'),
           ),
         ],
@@ -627,10 +760,10 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   Future<void> _handleEdit() async {
     final loan = ref.read(loanDetailProvider(widget.loanId)).value;
     if (loan == null) return;
-    
+
     HapticFeedback.mediumImpact();
     final controller = TextEditingController(text: loan.remarks ?? '');
-    
+
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -644,18 +777,22 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
               decoration: InputDecoration(
                 labelText: 'Remarks/Purpose',
                 hintText: 'Enter internal notes or update purpose...',
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                border:
+                    OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CANCEL')),
           ElevatedButton(
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Metadata updated successfully')));
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                  content: Text('Metadata updated successfully')));
               Navigator.pop(context);
-            }, 
+            },
             child: const Text('SAVE'),
           ),
         ],
@@ -667,10 +804,13 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
     HapticFeedback.mediumImpact();
     final messenger = ScaffoldMessenger.of(context);
     try {
-      messenger.showSnackBar(SnackBar(content: Text('Loan status updated to ${newStatus.name.toUpperCase()}')));
+      messenger.showSnackBar(SnackBar(
+          content:
+              Text('Loan status updated to ${newStatus.name.toUpperCase()}')));
       ref.invalidate(loanDetailProvider(widget.loanId));
     } catch (e) {
-      messenger.showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+      messenger
+          .showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
     }
   }
 
@@ -680,15 +820,19 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Delete Loan?'),
-        content: const Text('This action is irreversible. All associated repayment schedules will be purged.'),
+        content: const Text(
+            'This action is irreversible. All associated repayment schedules will be purged.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('CANCEL')),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               Navigator.pop(context); // Go back to list
-              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Loan record purged')));
-            }, 
+              ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Loan record purged')));
+            },
             child: const Text('DELETE', style: TextStyle(color: Colors.red)),
           ),
         ],
@@ -702,8 +846,11 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
   }
 
   Future<void> _makeWhatsApp(LoanModel loan) async {
-    final msg = Uri.encodeComponent('Hi ${loan.customerName}, regarding your loan ${loan.loanNumber}...');
+    final msg = Uri.encodeComponent(
+        'Hi ${loan.customerName}, regarding your loan ${loan.loanNumber}...');
     final url = 'https://wa.me/${loan.customerPhone}?text=$msg';
-    if (await canLaunchUrl(Uri.parse(url))) await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    if (await canLaunchUrl(Uri.parse(url))) {
+      await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
+    }
   }
 }

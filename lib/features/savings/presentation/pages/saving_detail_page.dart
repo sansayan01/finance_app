@@ -43,7 +43,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF2F2F7),
+      backgroundColor:
+          isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF2F2F7),
       extendBodyBehindAppBar: true,
       appBar: savingAsync.when(
         data: (saving) => saving != null ? _buildAppBar(theme, saving) : null,
@@ -52,13 +53,17 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
       ),
       body: savingAsync.when(
         data: (saving) {
-          if (saving == null) return const Center(child: Text('Savings Plan Not Found'));
+          if (saving == null) {
+            return const Center(child: Text('Savings Plan Not Found'));
+          }
           return AuroraBackground(
             child: CustomScrollView(
               controller: _scrollController,
               physics: const BouncingScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).padding.top + 60)),
+                SliverToBoxAdapter(
+                    child: SizedBox(
+                        height: MediaQuery.of(context).padding.top + 60)),
                 SliverToBoxAdapter(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -76,10 +81,12 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                   child: Container(
                     decoration: BoxDecoration(
                       color: theme.scaffoldBackgroundColor,
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
+                      borderRadius:
+                          const BorderRadius.vertical(top: Radius.circular(40)),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.05),
+                          color: Colors.black
+                              .withValues(alpha: isDark ? 0.5 : 0.05),
                           blurRadius: 30,
                           offset: const Offset(0, -10),
                         ),
@@ -93,7 +100,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                           const SizedBox(height: 8),
                           Center(
                             child: Container(
-                              width: 40, height: 4,
+                              width: 40,
+                              height: 4,
                               decoration: BoxDecoration(
                                 color: theme.dividerColor,
                                 borderRadius: BorderRadius.circular(2),
@@ -142,7 +150,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            horizontalInterval: saving.targetAmount > 0 ? (saving.targetAmount / 4) : 1000,
+            horizontalInterval:
+                saving.targetAmount > 0 ? (saving.targetAmount / 4) : 1000,
             getDrawingHorizontalLine: (value) {
               return FlLine(
                 color: theme.dividerColor.withValues(alpha: 0.5),
@@ -153,8 +162,10 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
           ),
           titlesData: FlTitlesData(
             show: true,
-            rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-            topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            rightTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+            topTitles:
+                const AxisTitles(sideTitles: SideTitles(showTitles: false)),
             bottomTitles: AxisTitles(
               sideTitles: SideTitles(
                 showTitles: true,
@@ -162,7 +173,10 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                   if (value % 3 != 0) return const SizedBox.shrink();
                   return Padding(
                     padding: const EdgeInsets.only(top: 8.0),
-                    child: Text('M${value.toInt()}', style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                    child: Text('M${value.toInt()}',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.4))),
                   );
                 },
               ),
@@ -173,7 +187,10 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                 reservedSize: 40,
                 getTitlesWidget: (value, meta) {
                   if (value == 0) return const SizedBox.shrink();
-                  return Text(AppFormatters.formatCompactCurrency(value), style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.4)));
+                  return Text(AppFormatters.formatCompactCurrency(value),
+                      style: theme.textTheme.labelSmall?.copyWith(
+                          color: theme.colorScheme.onSurface
+                              .withValues(alpha: 0.4)));
                 },
               ),
             ),
@@ -239,9 +256,11 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
       preferredSize: const Size.fromHeight(kToolbarHeight),
       child: ClipRRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15 * blurAlpha, sigmaY: 15 * blurAlpha),
+          filter:
+              ImageFilter.blur(sigmaX: 15 * blurAlpha, sigmaY: 15 * blurAlpha),
           child: AppBar(
-            backgroundColor: theme.scaffoldBackgroundColor.withValues(alpha: 0.7 * blurAlpha),
+            backgroundColor: theme.scaffoldBackgroundColor
+                .withValues(alpha: 0.7 * blurAlpha),
             elevation: 0,
             leading: IconButton(
               icon: const Icon(Icons.arrow_back_ios_new_rounded),
@@ -256,7 +275,10 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                 },
                 itemBuilder: (context) => [
                   const PopupMenuItem(value: 'edit', child: Text('Edit Vault')),
-                  const PopupMenuItem(value: 'delete', child: Text('Close Account', style: TextStyle(color: Colors.red))),
+                  const PopupMenuItem(
+                      value: 'delete',
+                      child: Text('Close Account',
+                          style: TextStyle(color: Colors.red))),
                 ],
               ),
             ],
@@ -267,7 +289,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
   }
 
   void _showEditDialog(SavingsModel saving) {
-    final interestController = TextEditingController(text: saving.interestRate.toString());
+    final interestController =
+        TextEditingController(text: saving.interestRate.toString());
     DateTime selectedDate = saving.maturityDate;
 
     showDialog(
@@ -281,7 +304,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
               TextField(
                 controller: interestController,
                 keyboardType: TextInputType.number,
-                decoration: const InputDecoration(labelText: 'Interest Rate (%)'),
+                decoration:
+                    const InputDecoration(labelText: 'Interest Rate (%)'),
               ),
               const SizedBox(height: 16),
               ListTile(
@@ -303,14 +327,19 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
             ],
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+            TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel')),
             ElevatedButton(
               onPressed: () async {
-                final rate = double.tryParse(interestController.text) ?? saving.interestRate;
+                final rate = double.tryParse(interestController.text) ??
+                    saving.interestRate;
                 final navigator = Navigator.of(context);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
-                
-                await ref.read(savingsRepositoryProvider).updateSavingMetadata(widget.savingId, {
+
+                await ref
+                    .read(savingsRepositoryProvider)
+                    .updateSavingMetadata(widget.savingId, {
                   'interest_rate': rate,
                   'maturity_date': selectedDate.toIso8601String(),
                 });
@@ -320,7 +349,9 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                 ref.invalidate(allSavingsProvider);
                 navigator.pop();
                 scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('Vault updated successfully'), backgroundColor: AppColors.success),
+                  const SnackBar(
+                      content: Text('Vault updated successfully'),
+                      backgroundColor: AppColors.success),
                 );
               },
               child: const Text('Save Changes'),
@@ -336,14 +367,19 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Close Savings Vault?'),
-        content: const Text('Are you sure you want to close this account? This action cannot be undone.'),
+        content: const Text(
+            'Are you sure you want to close this account? This action cannot be undone.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           TextButton(
             onPressed: () async {
               final navigator = Navigator.of(context);
-              await ref.read(savingsRepositoryProvider).deleteSavingPlan(widget.savingId);
-              
+              await ref
+                  .read(savingsRepositoryProvider)
+                  .deleteSavingPlan(widget.savingId);
+
               if (!mounted) return;
               ref.invalidate(allSavingsProvider);
               navigator.pop(); // Pop dialog
@@ -351,7 +387,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                 Navigator.of(this.context).pop(); // Pop page
               }
             },
-            child: const Text('Close Account', style: TextStyle(color: Colors.red)),
+            child: const Text('Close Account',
+                style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -359,7 +396,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
   }
 
   void _showDepositDialog(SavingsModel saving) {
-    final controller = TextEditingController(text: saving.monthlyDeposit.toString());
+    final controller =
+        TextEditingController(text: saving.monthlyDeposit.toString());
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -373,7 +411,9 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel')),
           ElevatedButton(
             onPressed: () async {
               final amount = double.tryParse(controller.text) ?? 0;
@@ -381,15 +421,19 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
               final scaffoldMessenger = ScaffoldMessenger.of(context);
 
               if (amount > 0) {
-                await ref.read(savingsRepositoryProvider).recordDeposit(widget.savingId, amount);
-                
+                await ref
+                    .read(savingsRepositoryProvider)
+                    .recordDeposit(widget.savingId, amount);
+
                 if (!mounted) return;
                 ref.invalidate(savingDetailProvider(widget.savingId));
                 ref.invalidate(savingTransactionsProvider(widget.savingId));
                 ref.invalidate(allSavingsProvider);
                 navigator.pop();
                 scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('Deposit recorded successfully'), backgroundColor: AppColors.success),
+                  const SnackBar(
+                      content: Text('Deposit recorded successfully'),
+                      backgroundColor: AppColors.success),
                 );
               }
             },
@@ -433,7 +477,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
   }
 
   Widget _buildVaultCard(SavingsModel saving, ThemeData theme) {
-    final progress = (saving.currentAmount / saving.targetAmount).clamp(0.0, 1.0);
+    final progress =
+        (saving.currentAmount / saving.targetAmount).clamp(0.0, 1.0);
     final isDark = theme.brightness == Brightness.dark;
 
     return Container(
@@ -444,22 +489,26 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: isDark 
+          colors: isDark
               ? [const Color(0xFF1A1F2C), const Color(0xFF0F1420)]
               : [const Color(0xFFFFFFFF), const Color(0xFFF8F9FA)],
         ),
         boxShadow: [
           BoxShadow(
             color: AppColors.success.withValues(alpha: isDark ? 0.2 : 0.1),
-            blurRadius: 40, offset: const Offset(0, 20),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
           ),
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 10, offset: const Offset(0, 4),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.1) : AppColors.success.withValues(alpha: 0.2), 
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.1)
+              : AppColors.success.withValues(alpha: 0.2),
           width: 1.5,
         ),
       ),
@@ -468,9 +517,11 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
         child: Stack(
           children: [
             Positioned(
-              top: -50, right: -50,
+              top: -50,
+              right: -50,
               child: Container(
-                width: 200, height: 200,
+                width: 200,
+                height: 200,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: AppColors.success.withValues(alpha: 0.15),
@@ -489,10 +540,15 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Icon(Icons.savings_rounded, color: AppColors.success),
+                      const Icon(Icons.savings_rounded,
+                          color: AppColors.success),
                       Text(
                         'SAVINGS PASS',
-                        style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 2, fontWeight: FontWeight.w900, color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                            letterSpacing: 2,
+                            fontWeight: FontWeight.w900,
+                            color: theme.colorScheme.onSurface
+                                .withValues(alpha: 0.5)),
                       ),
                     ],
                   ),
@@ -504,15 +560,29 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('TARGET AMOUNT', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
-                          Text(AppFormatters.formatCurrency(saving.targetAmount), style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                          Text('TARGET AMOUNT',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                  letterSpacing: 1,
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.4))),
+                          Text(
+                              AppFormatters.formatCurrency(saving.targetAmount),
+                              style: theme.textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w900)),
                         ],
                       ),
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text('ANNUAL YIELD', style: theme.textTheme.labelSmall?.copyWith(letterSpacing: 1, color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
-                          Text('${saving.interestRate}%', style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, color: AppColors.success)),
+                          Text('ANNUAL YIELD',
+                              style: theme.textTheme.labelSmall?.copyWith(
+                                  letterSpacing: 1,
+                                  color: theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.4))),
+                          Text('${saving.interestRate}%',
+                              style: theme.textTheme.titleLarge?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                  color: AppColors.success)),
                         ],
                       ),
                     ],
@@ -523,8 +593,10 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                     child: LinearProgressIndicator(
                       value: progress,
                       minHeight: 6,
-                      backgroundColor: theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                      valueColor: const AlwaysStoppedAnimation<Color>(AppColors.success),
+                      backgroundColor:
+                          theme.colorScheme.onSurface.withValues(alpha: 0.05),
+                      valueColor: const AlwaysStoppedAnimation<Color>(
+                          AppColors.success),
                     ),
                   ),
                 ],
@@ -542,23 +614,31 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildActionButton('Deposit', Icons.add_rounded, AppColors.success, () => _showDepositDialog(saving)),
-          _buildActionButton('Statement', Icons.description_rounded, theme.colorScheme.onSurface, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Generating statement...')));
+          _buildActionButton('Deposit', Icons.add_rounded, AppColors.success,
+              () => _showDepositDialog(saving)),
+          _buildActionButton('Statement', Icons.description_rounded,
+              theme.colorScheme.onSurface, () {
+            ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Generating statement...')));
           }),
-          _buildActionButton('Withdraw', Icons.outbound_rounded, theme.colorScheme.onSurface, () {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Withdrawal feature coming soon')));
+          _buildActionButton(
+              'Withdraw', Icons.outbound_rounded, theme.colorScheme.onSurface,
+              () {
+            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                content: Text('Withdrawal feature coming soon')));
           }),
-          _buildActionButton('Close', Icons.lock_outline_rounded, Colors.red, () => _showDeleteDialog()),
+          _buildActionButton('Close', Icons.lock_outline_rounded, Colors.red,
+              () => _showDeleteDialog()),
         ],
       ),
     ).animate().fadeIn(delay: 400.ms);
   }
 
-  Widget _buildActionButton(String label, IconData icon, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+      String label, IconData icon, Color color, VoidCallback onTap) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -567,11 +647,15 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
       child: Column(
         children: [
           Container(
-            width: 68, height: 68,
+            width: 68,
+            height: 68,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: isDark ? color.withValues(alpha: 0.15) : color.withValues(alpha: 0.1),
-              border: Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
+              color: isDark
+                  ? color.withValues(alpha: 0.15)
+                  : color.withValues(alpha: 0.1),
+              border:
+                  Border.all(color: color.withValues(alpha: 0.3), width: 1.5),
               boxShadow: [
                 BoxShadow(
                   color: color.withValues(alpha: 0.2),
@@ -583,7 +667,11 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
             child: Icon(icon, color: color, size: 30),
           ),
           const SizedBox(height: 12),
-          Text(label, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: theme.colorScheme.onSurface.withValues(alpha: 0.8))),
+          Text(label,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w800,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.8))),
         ],
       ),
     );
@@ -592,7 +680,8 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
   Widget _buildSectionHeader(String title, ThemeData theme) {
     return Text(
       title,
-      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
+      style: theme.textTheme.titleLarge
+          ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.5),
     );
   }
 
@@ -605,31 +694,48 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
       ),
       child: Column(
         children: [
-          _buildInfoRow('Monthly Deposit', AppFormatters.formatCurrency(saving.monthlyDeposit), theme),
+          _buildInfoRow('Monthly Deposit',
+              AppFormatters.formatCurrency(saving.monthlyDeposit), theme),
           const SizedBox(height: 12),
-          _buildInfoRow('Interest Earned', AppFormatters.formatCurrency(0), theme, valueColor: AppColors.success),
+          _buildInfoRow(
+              'Interest Earned', AppFormatters.formatCurrency(0), theme,
+              valueColor: AppColors.success),
           const SizedBox(height: 12),
-          _buildInfoRow('Maturity Date', AppFormatters.formatDate(saving.maturityDate), theme),
-          const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1)),
-          _buildInfoRow('Days Remaining', '${saving.maturityDate.difference(DateTime.now()).inDays} Days', theme, isBold: true),
+          _buildInfoRow('Maturity Date',
+              AppFormatters.formatDate(saving.maturityDate), theme),
+          const Padding(
+              padding: EdgeInsets.symmetric(vertical: 16),
+              child: Divider(height: 1)),
+          _buildInfoRow(
+              'Days Remaining',
+              '${saving.maturityDate.difference(DateTime.now()).inDays} Days',
+              theme,
+              isBold: true),
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, ThemeData theme, {bool isBold = false, Color? valueColor}) {
+  Widget _buildInfoRow(String label, String value, ThemeData theme,
+      {bool isBold = false, Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
-        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: isBold ? FontWeight.w900 : FontWeight.w700, color: valueColor)),
+        Text(label,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
+        Text(value,
+            style: theme.textTheme.bodyMedium?.copyWith(
+                fontWeight: isBold ? FontWeight.w900 : FontWeight.w700,
+                color: valueColor)),
       ],
     );
   }
 
   Widget _buildTransactionList(ThemeData theme) {
-    final transactionsAsync = ref.watch(savingTransactionsProvider(widget.savingId));
-    
+    final transactionsAsync =
+        ref.watch(savingTransactionsProvider(widget.savingId));
+
     return transactionsAsync.when(
       data: (transactions) {
         if (transactions.isEmpty) {
@@ -643,15 +749,18 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
             ),
           );
         }
-        
+
         return Column(
-          children: transactions.map((t) => _buildTransactionItem(
-            t.description ?? _capitalize(t.type.name),
-            AppFormatters.formatDate(t.createdAt),
-            t.amount,
-            t.type.name.contains('Deposit') || t.type.name.contains('Interest'),
-            theme,
-          )).toList(),
+          children: transactions
+              .map((t) => _buildTransactionItem(
+                    t.description ?? _capitalize(t.type.name),
+                    AppFormatters.formatDate(t.createdAt),
+                    t.amount,
+                    t.type.name.contains('Deposit') ||
+                        t.type.name.contains('Interest'),
+                    theme,
+                  ))
+              .toList(),
         );
       },
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -659,9 +768,11 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
     );
   }
 
-  String _capitalize(String s) => s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : s;
+  String _capitalize(String s) =>
+      s.isNotEmpty ? s[0].toUpperCase() + s.substring(1) : s;
 
-  Widget _buildTransactionItem(String title, String date, double amount, bool isCredit, ThemeData theme) {
+  Widget _buildTransactionItem(String title, String date, double amount,
+      bool isCredit, ThemeData theme) {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       padding: const EdgeInsets.all(16),
@@ -674,17 +785,21 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: (isCredit ? AppColors.success : Colors.red).withValues(alpha: 0.1),
+              color: (isCredit ? AppColors.success : Colors.red)
+                  .withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(isCredit ? Icons.add_rounded : Icons.remove_rounded, color: isCredit ? AppColors.success : Colors.red, size: 18),
+            child: Icon(isCredit ? Icons.add_rounded : Icons.remove_rounded,
+                color: isCredit ? AppColors.success : Colors.red, size: 18),
           ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                Text(title,
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(fontWeight: FontWeight.w700)),
                 Text(date, style: theme.textTheme.bodySmall),
               ],
             ),

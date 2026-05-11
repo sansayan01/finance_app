@@ -38,24 +38,26 @@ class AppColors {
   static const Color secondaryFillLight = Color(0xFFEDF2F7);
 
   // ─── Dark Theme — Smooth Obsidian & Slate ───
-  static const Color backgroundDark = Color(0xFF0F1115); // Deeper, more neutral obsidian
-  static const Color surfaceDark = Color(0xFF181C24);    // Refined surface depth
-  static const Color cardDark = Color(0xFF222731);       // Subtly lighter for cards
-  static const Color elevatedDark = Color(0xFF2A313D);   // Elevated surfaces
-  static const Color textPrimaryDark = Color(0xFFE2E8F0); // Dimmed slate for smoothness
+  static const Color backgroundDark =
+      Color(0xFF0F1115); // Deeper, more neutral obsidian
+  static const Color surfaceDark = Color(0xFF181C24); // Refined surface depth
+  static const Color cardDark = Color(0xFF222731); // Subtly lighter for cards
+  static const Color elevatedDark = Color(0xFF2A313D); // Elevated surfaces
+  static const Color textPrimaryDark =
+      Color(0xFFE2E8F0); // Dimmed slate for smoothness
   static const Color textSecondaryDark = Color(0xFF94A3B8); // Slate 400
-  static const Color textTertiaryDark = Color(0xFF64748B);  // Slate 500
-  static const Color separatorDark = Color(0xFF2E3544);     // Muted separator
-  static const Color fillDark = Color(0xFF1F2532);          // Input/Fill color
+  static const Color textTertiaryDark = Color(0xFF64748B); // Slate 500
+  static const Color separatorDark = Color(0xFF2E3544); // Muted separator
+  static const Color fillDark = Color(0xFF1F2532); // Input/Fill color
   static const Color groupedBgDark = Color(0xFF0F1115);
   static const Color secondaryFillDark = Color(0xFF262B35);
 
   // ─── Dark Mode Specific Accents (Muted & Desaturated for premium smoothness) ───
   static const Color primaryDark = Color(0xFF7E89F1); // Soft Indigo
-  static const Color accentDark = Color(0xFF9B87F5);  // Soft Violet
+  static const Color accentDark = Color(0xFF9B87F5); // Soft Violet
   static const Color successDark = Color(0xFF52D1A4); // Muted Mint
   static const Color warningDark = Color(0xFFF4C45E); // Muted Amber
-  static const Color errorDark = Color(0xFFF28B8B);   // Soft Coral/Red
+  static const Color errorDark = Color(0xFFF28B8B); // Soft Coral/Red
 
   // ─── Legacy aliases (backward compatibility) ───
   static const Color primaryTeal = primary;
@@ -110,20 +112,20 @@ class AppColors {
   ];
 
   static LinearGradient get primaryGradient => const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: premiumGradient,
-  );
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: premiumGradient,
+      );
 
   static LinearGradient get auroraGradientLinear => const LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: auroraGradient,
-  );
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: auroraGradient,
+      );
 
   static RadialGradient get radialAurora => const RadialGradient(
-    center: Alignment.topLeft,
-    radius: 1.5,
-    colors: auroraGradient,
-  );
+        center: Alignment.topLeft,
+        radius: 1.5,
+        colors: auroraGradient,
+      );
 }

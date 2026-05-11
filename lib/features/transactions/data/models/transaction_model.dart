@@ -29,7 +29,9 @@ class TransactionModel {
       memberId: json['member_id'] as String,
       memberName: json['member_name'] as String? ?? '',
       type: TransactionType.values.firstWhere(
-        (e) => e.name == json['type'] || _toCamel(json['type'] as String) == e.name,
+        (e) =>
+            e.name == json['type'] ||
+            _toCamel(json['type'] as String) == e.name,
         orElse: () => TransactionType.other,
       ),
       amount: (json['amount'] as num).toDouble(),

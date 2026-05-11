@@ -14,16 +14,25 @@ class NewRecurringSavingPage extends ConsumerStatefulWidget {
   const NewRecurringSavingPage({super.key});
 
   @override
-  ConsumerState<NewRecurringSavingPage> createState() => _NewRecurringSavingPageState();
+  ConsumerState<NewRecurringSavingPage> createState() =>
+      _NewRecurringSavingPageState();
 }
 
-class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage> {
-  final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
-  final currencyFormatNoDecimals = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+class _NewRecurringSavingPageState
+    extends ConsumerState<NewRecurringSavingPage> {
+  final currencyFormat =
+      NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+  final currencyFormatNoDecimals =
+      NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
   final TextEditingController _installmentController = TextEditingController();
-  final TextEditingController _maturityAmountController = TextEditingController();
+  final TextEditingController _maturityAmountController =
+      TextEditingController();
   final TextEditingController _penaltyController = TextEditingController();
+  final TextEditingController _initialBalanceController =
+      TextEditingController();
+
+  bool _isMigratedAccount = false;
 
   @override
   void initState() {
@@ -33,6 +42,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
       _installmentController.text = state.installmentAmount.toInt().toString();
       _maturityAmountController.text = state.maturityAmount.toInt().toString();
       _penaltyController.text = state.prematurePenalty.toInt().toString();
+      _initialBalanceController.text = state.initialBalance.toInt().toString();
     });
   }
 
@@ -41,6 +51,7 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
     _installmentController.dispose();
     _maturityAmountController.dispose();
     _penaltyController.dispose();
+    _initialBalanceController.dispose();
     super.dispose();
   }
 
@@ -62,7 +73,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
             ref.read(newRecurringSavingProvider.notifier).reset();
             context.pop();
@@ -70,7 +82,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
         ),
         title: Text(
           'New Savings Plan',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          style: theme.textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
       ),
       body: Column(
@@ -78,7 +91,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           // ── Scrollable form body ──
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
+              padding: EdgeInsets.fromLTRB(
+                  isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isDesktop = constraints.maxWidth > 900;
@@ -86,9 +100,15 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _buildFormDetails(state, theme, isDark, primary, false, usersAsync)),
+                        Expanded(
+                            flex: 3,
+                            child: _buildFormDetails(state, theme, isDark,
+                                primary, false, usersAsync)),
                         const SizedBox(width: 24),
-                        Expanded(flex: 2, child: _buildSummary(state, theme, isDark, primary)),
+                        Expanded(
+                            flex: 2,
+                            child:
+                                _buildSummary(state, theme, isDark, primary)),
                       ],
                     );
                   } else {
@@ -96,7 +116,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                       children: [
                         _buildSummary(state, theme, isDark, primary),
                         const SizedBox(height: 20),
-                        _buildFormDetails(state, theme, isDark, primary, isNarrow, usersAsync),
+                        _buildFormDetails(state, theme, isDark, primary,
+                            isNarrow, usersAsync),
                       ],
                     );
                   }
@@ -114,12 +135,15 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   // ═══════════════════════════════════════════════════
   //  BOTTOM ACTION BAR
   // ═══════════════════════════════════════════════════
-  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary, NewRecurringSavingState state) {
+  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary,
+      NewRecurringSavingState state) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+      padding: EdgeInsets.fromLTRB(
+          20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.elevatedDark : Colors.white,
-        border: Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
+        border: Border(
+            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
@@ -138,66 +162,85 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.3)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
+              child: Text('Discard',
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(
-              onPressed: state.isLoading 
-                ? null 
-                : () async {
-                    try {
-                      await ref.read(newRecurringSavingProvider.notifier).createSavingsPlan();
-                      
-                      if (!mounted) return;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Row(
-                            children: [
-                              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                              SizedBox(width: 12),
-                              Text('Savings Account Opened Successfully'),
-                            ],
+              onPressed: state.isLoading
+                  ? null
+                  : () async {
+                      try {
+                        await ref
+                            .read(newRecurringSavingProvider.notifier)
+                            .createSavingsPlan();
+
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.check_circle_rounded,
+                                    color: Colors.white, size: 20),
+                                SizedBox(width: 12),
+                                Text('Savings Account Opened Successfully'),
+                              ],
+                            ),
+                            backgroundColor: AppColors.success,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
-                          backgroundColor: AppColors.success,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                      context.pop();
-                    } catch (e) {
-                      if (!mounted) return;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error: ${e.toString()}'),
-                          backgroundColor: theme.colorScheme.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                    }
-                  },
-              icon: state.isLoading 
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.savings_rounded, size: 18),
+                        );
+                        context.pop();
+                      } catch (e) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: ${e.toString()}'),
+                            backgroundColor: theme.colorScheme.error,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    },
+              icon: state.isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.savings_rounded, size: 18),
               label: Text(
-                state.isLoading ? 'Opening...' : 'Open Account', 
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                state.isLoading ? 'Opening...' : 'Open Account',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: isDark ? AppColors.successDark : AppColors.success,
+                backgroundColor:
+                    isDark ? AppColors.successDark : AppColors.success,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                disabledBackgroundColor: (isDark ? AppColors.successDark : AppColors.success).withValues(alpha: 0.6),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                disabledBackgroundColor:
+                    (isDark ? AppColors.successDark : AppColors.success)
+                        .withValues(alpha: 0.6),
               ),
             ),
           ),
@@ -209,23 +252,30 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   // ═══════════════════════════════════════════════════
   //  SECTION HEADER
   // ═══════════════════════════════════════════════════
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme, Color accent) {
+  Widget _buildSectionHeader(
+      String title, IconData icon, ThemeData theme, Color accent) {
     return Row(
       children: [
         Container(
-          width: 38, height: 38,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [accent.withValues(alpha: 0.18), accent.withValues(alpha: 0.06)],
+              colors: [
+                accent.withValues(alpha: 0.18),
+                accent.withValues(alpha: 0.06)
+              ],
             ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, size: 20, color: accent),
         ),
         const SizedBox(width: 12),
-        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+        Text(title,
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
       ],
     );
   }
@@ -233,13 +283,20 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   // ═══════════════════════════════════════════════════
   //  FORM DETAILS
   // ═══════════════════════════════════════════════════
-  Widget _buildFormDetails(NewRecurringSavingState state, ThemeData theme, bool isDark, Color primary, bool isNarrow, AsyncValue<List<dynamic>> usersAsync) {
+  Widget _buildFormDetails(
+      NewRecurringSavingState state,
+      ThemeData theme,
+      bool isDark,
+      Color primary,
+      bool isNarrow,
+      AsyncValue<List<dynamic>> usersAsync) {
     return GlassCard(
       padding: EdgeInsets.all(isNarrow ? 18 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Account Parameters', Icons.account_balance_wallet_rounded, theme, primary),
+          _buildSectionHeader('Account Parameters',
+              Icons.account_balance_wallet_rounded, theme, primary),
           const SizedBox(height: 28),
 
           // ── Member ──
@@ -248,15 +305,72 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           usersAsync.when(
             data: (users) => _buildDropdown(
               value: state.memberId,
-              hint: users.isEmpty ? 'No users found' : 'Select registered member',
+              hint:
+                  users.isEmpty ? 'No users found' : 'Select registered member',
               items: users.map((u) => u.id as String).toList(),
               itemLabels: users.map((u) => u.fullName as String).toList(),
-              onChanged: (val) => ref.read(newRecurringSavingProvider.notifier).updateMember(val),
-              theme: theme, isDark: isDark,
+              onChanged: (val) => ref
+                  .read(newRecurringSavingProvider.notifier)
+                  .updateMember(val),
+              theme: theme,
+              isDark: isDark,
             ),
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => _buildDropdown(value: null, hint: 'Error loading users', items: [], onChanged: (_) {}, theme: theme, isDark: isDark),
+            error: (_, __) => _buildDropdown(
+                value: null,
+                hint: 'Error loading users',
+                items: [],
+                onChanged: (_) {},
+                theme: theme,
+                isDark: isDark),
           ),
+
+          const SizedBox(height: 24),
+
+          // ── Migration Toggle ──
+          Container(
+            decoration: BoxDecoration(
+              color: isDark ? AppColors.fillDark : AppColors.fillLight,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: SwitchListTile(
+              title: Text('Existing / Migrated Account',
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w700)),
+              subtitle: Text(
+                  'Enable if the customer already has funds saved in this plan.',
+                  style: theme.textTheme.bodySmall),
+              value: _isMigratedAccount,
+              activeThumbColor: primary,
+              onChanged: (val) {
+                setState(() => _isMigratedAccount = val);
+                if (!val) {
+                  _initialBalanceController.text = '0';
+                  ref
+                      .read(newRecurringSavingProvider.notifier)
+                      .updateInitialBalance(0);
+                }
+              },
+            ),
+          ).animate().fadeIn(duration: 400.ms),
+
+          if (_isMigratedAccount) ...[
+            const SizedBox(height: 20),
+            _buildLabel('ALREADY SAVED / INITIAL BALANCE (₹)', theme),
+            const SizedBox(height: 10),
+            _buildTextField(
+              controller: _initialBalanceController,
+              prefix: '₹',
+              onChanged: (val) {
+                final parsed = double.tryParse(val) ?? 0;
+                ref
+                    .read(newRecurringSavingProvider.notifier)
+                    .updateInitialBalance(parsed);
+              },
+              theme: theme,
+              isDark: isDark,
+            ).animate().slideY(begin: -0.2, end: 0).fadeIn(),
+          ],
 
           _buildDivider(theme),
 
@@ -274,12 +388,16 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   items: CollectionType.values.map((e) => e.name).toList(),
                   onChanged: (val) {
                     if (val != null) {
-                      ref.read(newRecurringSavingProvider.notifier).updateCollectionType(
-                        CollectionType.values.firstWhere((e) => e.name == val),
-                      );
+                      ref
+                          .read(newRecurringSavingProvider.notifier)
+                          .updateCollectionType(
+                            CollectionType.values
+                                .firstWhere((e) => e.name == val),
+                          );
                     }
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -293,9 +411,12 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   prefix: '₹',
                   onChanged: (val) {
                     final parsed = double.tryParse(val) ?? 0;
-                    ref.read(newRecurringSavingProvider.notifier).updateInstallmentAmount(parsed);
+                    ref
+                        .read(newRecurringSavingProvider.notifier)
+                        .updateInstallmentAmount(parsed);
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -303,14 +424,20 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           const SizedBox(height: 12),
           _buildSlider(
             value: state.installmentAmount.clamp(10, 50000),
-            min: 10, max: 50000,
-            displayValue: currencyFormatNoDecimals.format(state.installmentAmount),
-            minLabel: '₹10', maxLabel: '₹50K',
+            min: 10,
+            max: 50000,
+            displayValue:
+                currencyFormatNoDecimals.format(state.installmentAmount),
+            minLabel: '₹10',
+            maxLabel: '₹50K',
             onChanged: (val) {
               _installmentController.text = val.toInt().toString();
-              ref.read(newRecurringSavingProvider.notifier).updateInstallmentAmount(val);
+              ref
+                  .read(newRecurringSavingProvider.notifier)
+                  .updateInstallmentAmount(val);
             },
-            theme: theme, primary: primary,
+            theme: theme,
+            primary: primary,
           ),
 
           _buildDivider(theme),
@@ -328,21 +455,30 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   prefix: '₹',
                   onChanged: (val) {
                     final parsed = double.tryParse(val) ?? 0;
-                    ref.read(newRecurringSavingProvider.notifier).updateMaturityAmount(parsed);
+                    ref
+                        .read(newRecurringSavingProvider.notifier)
+                        .updateMaturityAmount(parsed);
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 12),
                 _buildSlider(
                   value: state.maturityAmount.clamp(1000, 5000000),
-                  min: 1000, max: 5000000,
-                  displayValue: currencyFormatNoDecimals.format(state.maturityAmount),
-                  minLabel: '₹1K', maxLabel: '₹50L',
+                  min: 1000,
+                  max: 5000000,
+                  displayValue:
+                      currencyFormatNoDecimals.format(state.maturityAmount),
+                  minLabel: '₹1K',
+                  maxLabel: '₹50L',
                   onChanged: (val) {
                     _maturityAmountController.text = val.toInt().toString();
-                    ref.read(newRecurringSavingProvider.notifier).updateMaturityAmount(val);
+                    ref
+                        .read(newRecurringSavingProvider.notifier)
+                        .updateMaturityAmount(val);
                   },
-                  theme: theme, primary: primary,
+                  theme: theme,
+                  primary: primary,
                 ),
               ],
             ),
@@ -353,8 +489,11 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 const SizedBox(height: 10),
                 _buildDatePicker(
                   date: state.maturityDate,
-                  onPicked: (date) => ref.read(newRecurringSavingProvider.notifier).updateMaturityDate(date),
-                  theme: theme, isDark: isDark,
+                  onPicked: (date) => ref
+                      .read(newRecurringSavingProvider.notifier)
+                      .updateMaturityDate(date),
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -375,21 +514,29 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   suffix: '%',
                   onChanged: (val) {
                     final parsed = double.tryParse(val) ?? 0;
-                    ref.read(newRecurringSavingProvider.notifier).updatePrematurePenalty(parsed);
+                    ref
+                        .read(newRecurringSavingProvider.notifier)
+                        .updatePrematurePenalty(parsed);
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 12),
                 _buildSlider(
                   value: state.prematurePenalty.clamp(0, 10),
-                  min: 0, max: 10,
+                  min: 0,
+                  max: 10,
                   displayValue: '${state.prematurePenalty.toInt()}%',
-                  minLabel: '0%', maxLabel: '10%',
+                  minLabel: '0%',
+                  maxLabel: '10%',
                   onChanged: (val) {
                     _penaltyController.text = val.toInt().toString();
-                    ref.read(newRecurringSavingProvider.notifier).updatePrematurePenalty(val);
+                    ref
+                        .read(newRecurringSavingProvider.notifier)
+                        .updatePrematurePenalty(val);
                   },
-                  theme: theme, primary: primary,
+                  theme: theme,
+                  primary: primary,
                 ),
               ],
             ),
@@ -399,24 +546,41 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [isDark ? AppColors.successDark.withValues(alpha: 0.12) : AppColors.success.withValues(alpha: 0.12), isDark ? AppColors.successDark.withValues(alpha: 0.04) : AppColors.success.withValues(alpha: 0.04)],
+                  colors: [
+                    isDark
+                        ? AppColors.successDark.withValues(alpha: 0.12)
+                        : AppColors.success.withValues(alpha: 0.12),
+                    isDark
+                        ? AppColors.successDark.withValues(alpha: 0.04)
+                        : AppColors.success.withValues(alpha: 0.04)
+                  ],
                 ),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.verified_user_outlined, color: isDark ? AppColors.successDark : AppColors.success, size: 22),
+                  Icon(Icons.verified_user_outlined,
+                      color: isDark ? AppColors.successDark : AppColors.success,
+                      size: 22),
                   const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('PRINCIPAL PROTECTED', style: TextStyle(color: isDark ? AppColors.successDark : AppColors.success, fontSize: 11, fontWeight: FontWeight.w700, letterSpacing: 0.5)),
+                        Text('PRINCIPAL PROTECTED',
+                            style: TextStyle(
+                                color: isDark
+                                    ? AppColors.successDark
+                                    : AppColors.success,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5)),
                         const SizedBox(height: 4),
                         Text(
                           'Fully insured and capital-guaranteed.',
-                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+                          style: theme.textTheme.bodySmall
+                              ?.copyWith(fontSize: 13, height: 1.5),
                         ),
                       ],
                     ),
@@ -433,7 +597,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   // ═══════════════════════════════════════════════════
   //  SUMMARY SIDEBAR
   // ═══════════════════════════════════════════════════
-  Widget _buildSummary(NewRecurringSavingState state, ThemeData theme, bool isDark, Color primary) {
+  Widget _buildSummary(NewRecurringSavingState state, ThemeData theme,
+      bool isDark, Color primary) {
     return Column(
       children: [
         GlassCard(
@@ -441,7 +606,8 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Wealth Forecast', Icons.radar_outlined, theme, primary),
+              _buildSectionHeader(
+                  'Wealth Forecast', Icons.radar_outlined, theme, primary),
               const SizedBox(height: 24),
 
               // Hero metric
@@ -452,61 +618,98 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [isDark ? AppColors.successDark.withValues(alpha: 0.14) : AppColors.success.withValues(alpha: 0.14), isDark ? AppColors.successDark.withValues(alpha: 0.04) : AppColors.success.withValues(alpha: 0.04)],
+                    colors: [
+                      isDark
+                          ? AppColors.successDark.withValues(alpha: 0.14)
+                          : AppColors.success.withValues(alpha: 0.14),
+                      isDark
+                          ? AppColors.successDark.withValues(alpha: 0.04)
+                          : AppColors.success.withValues(alpha: 0.04)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('GUARANTEED MATURITY', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, color: (isDark ? AppColors.successDark : AppColors.success).withValues(alpha: 0.7))),
+                    Text('GUARANTEED MATURITY',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: (isDark
+                                    ? AppColors.successDark
+                                    : AppColors.success)
+                                .withValues(alpha: 0.7))),
                     const SizedBox(height: 8),
                     Text(
                       currencyFormat.format(state.maturityAmount),
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: isDark ? AppColors.successDark : AppColors.success, letterSpacing: -1),
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: isDark
+                              ? AppColors.successDark
+                              : AppColors.success,
+                          letterSpacing: -1),
                     ),
                     const SizedBox(height: 4),
-                    Text('on ${DateFormat('dd MMM yyyy').format(state.maturityDate)}', style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+                    Text(
+                        'on ${DateFormat('dd MMM yyyy').format(state.maturityDate)}',
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
                   ],
                 ),
               ),
 
               const SizedBox(height: 24),
-              _buildKV('Deposit Cycle', _capitalize(state.collectionType.name), theme),
-              _buildKV('Installment', currencyFormat.format(state.installmentAmount), theme),
-              _buildKV('Total Installments', '${state.totalInstallments}', theme),
-              _buildKV('Total Capital', currencyFormat.format(state.totalCapitalInvested), theme),
-              Divider(height: 32, color: theme.dividerColor.withValues(alpha: 0.1)),
-              _buildKV('Est. Interest/Yield', currencyFormat.format(state.estimatedInterest), theme, valueColor: isDark ? AppColors.successDark : AppColors.success),
+              _buildKV('Deposit Cycle', _capitalize(state.collectionType.name),
+                  theme),
+              _buildKV('Installment',
+                  currencyFormat.format(state.installmentAmount), theme),
+              _buildKV(
+                  'Total Installments', '${state.totalInstallments}', theme),
+              _buildKV('Total Capital',
+                  currencyFormat.format(state.totalCapitalInvested), theme),
+              Divider(
+                  height: 32, color: theme.dividerColor.withValues(alpha: 0.1)),
+              _buildKV('Est. Interest/Yield',
+                  currencyFormat.format(state.estimatedInterest), theme,
+                  valueColor:
+                      isDark ? AppColors.successDark : AppColors.success),
             ],
           ),
         ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.08, end: 0),
-
         const SizedBox(height: 16),
-
         GlassCard(
           padding: const EdgeInsets.all(20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 36, height: 36,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                color: isDark ? AppColors.warningDark.withValues(alpha: 0.12) : AppColors.orange.withValues(alpha: 0.12),
+                  color: isDark
+                      ? AppColors.warningDark.withValues(alpha: 0.12)
+                      : AppColors.orange.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.warning_amber_rounded, size: 18, color: isDark ? AppColors.warningDark : AppColors.orange),
+                child: Icon(Icons.warning_amber_rounded,
+                    size: 18,
+                    color: isDark ? AppColors.warningDark : AppColors.orange),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Premature Exit', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text('Premature Exit',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
                       'A ${state.prematurePenalty.toInt()}% penalty on accumulated interest applies before ${DateFormat('dd MMM yyyy').format(state.maturityDate)}.',
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(fontSize: 13, height: 1.5),
                     ),
                   ],
                 ),
@@ -521,14 +724,21 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   // ═══════════════════════════════════════════════════
   //  REUSABLE COMPONENTS
   // ═══════════════════════════════════════════════════
-  Widget _buildKV(String label, String value, ThemeData theme, {Color? valueColor}) {
+  Widget _buildKV(String label, String value, ThemeData theme,
+      {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
-          Text(value, style: TextStyle(color: valueColor ?? theme.colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w700)),
+          Text(label,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontWeight: FontWeight.w500)),
+          Text(value,
+              style: TextStyle(
+                  color: valueColor ?? theme.colorScheme.onSurface,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -537,18 +747,21 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
   Widget _buildDivider(ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.1)),
+      child:
+          Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.1)),
     );
   }
 
   Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
+      style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
     );
   }
 
-  Widget _buildTwoColumn({required bool isNarrow, required Widget first, required Widget second}) {
+  Widget _buildTwoColumn(
+      {required bool isNarrow, required Widget first, required Widget second}) {
     if (isNarrow) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -577,18 +790,30 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
       controller: controller,
       onChanged: onChanged,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+      ],
       decoration: InputDecoration(
         prefixText: prefix != null ? '$prefix ' : null,
         suffixText: suffix,
-        prefixStyle: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-        suffixStyle: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+        prefixStyle: TextStyle(
+            color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
+        suffixStyle:
+            theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
         filled: true,
         fillColor: isDark ? AppColors.fillDark : AppColors.fillLight,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:
+                BorderSide(color: theme.colorScheme.primary, width: 1.5)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
     );
@@ -614,15 +839,19 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           value: items.contains(value) ? value : null,
           hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.textTheme.bodySmall?.color, size: 22),
+          icon: Icon(Icons.keyboard_arrow_down_rounded,
+              color: theme.textTheme.bodySmall?.color, size: 22),
           dropdownColor: isDark ? AppColors.elevatedDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
           items: List.generate(items.length, (index) {
             final item = items[index];
-            final label = itemLabels != null ? itemLabels[index] : _capitalize(item);
+            final label =
+                itemLabels != null ? itemLabels[index] : _capitalize(item);
             return DropdownMenuItem<String>(
               value: item,
-              child: Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              child: Text(label,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
             );
           }),
           onChanged: onChanged,
@@ -656,14 +885,18 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today_rounded, size: 18, color: theme.colorScheme.primary),
+            Icon(Icons.calendar_today_rounded,
+                size: 18, color: theme.colorScheme.primary),
             const SizedBox(width: 10),
             Text(
               DateFormat('dd MMM yyyy').format(date),
-              style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontWeight: FontWeight.w600),
             ),
             const Spacer(),
-            Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: theme.textTheme.bodySmall?.color),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                size: 20, color: theme.textTheme.bodySmall?.color),
           ],
         ),
       ),
@@ -700,16 +933,25 @@ class _NewRecurringSavingPageState extends ConsumerState<NewRecurringSavingPage>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(minLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, color: theme.textTheme.bodySmall?.color)),
+              Text(minLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10, color: theme.textTheme.bodySmall?.color)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(displayValue, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: primary)),
+                child: Text(displayValue,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: primary)),
               ),
-              Text(maxLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, color: theme.textTheme.bodySmall?.color)),
+              Text(maxLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10, color: theme.textTheme.bodySmall?.color)),
             ],
           ),
         ),

@@ -47,14 +47,15 @@ class EMIRepository {
         'entered_at': DateTime.now().toIso8601String(),
       });
 
-      // Note: Supabase functions/triggers would normally handle 
+      // Note: Supabase functions/triggers would normally handle
       // updating the loan's outstanding balance and total collected.
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<void> generateSchedule(String loanId, {
+  Future<void> generateSchedule(
+    String loanId, {
     required double principal,
     required double interestRate,
     required int tenureMonths,
@@ -65,7 +66,8 @@ class EMIRepository {
     try {
       // Try RPC first
       try {
-        await _client.rpc('generate_emi_schedule', params: {'p_loan_id': loanId});
+        await _client
+            .rpc('generate_emi_schedule', params: {'p_loan_id': loanId});
         return;
       } catch (e) {
         // Fallback to manual generation if RPC fails
@@ -83,7 +85,8 @@ class EMIRepository {
             principalPaid = emiAmount - interest;
           } else {
             // Flat rate
-            interest = (principal * annualRate * (tenureMonths / 12)) / tenureMonths;
+            interest =
+                (principal * annualRate * (tenureMonths / 12)) / tenureMonths;
             principalPaid = emiAmount - interest;
           }
 
@@ -93,7 +96,9 @@ class EMIRepository {
           schedule.add({
             'loan_id': loanId,
             'emi_number': i,
-            'due_date': DateTime(startDate.year, startDate.month + (i - 1), startDate.day).toIso8601String(),
+            'due_date': DateTime(
+                    startDate.year, startDate.month + (i - 1), startDate.day)
+                .toIso8601String(),
             'emi_amount': emiAmount,
             'principal': principalPaid,
             'interest': interest,
@@ -110,6 +115,8 @@ class EMIRepository {
   }
 
   Future<void> updateEMIStatus(String emiId, String status) async {
-    await _client.from('emi_schedule').update({'status': status}).eq('id', emiId);
+    await _client
+        .from('emi_schedule')
+        .update({'status': status}).eq('id', emiId);
   }
 }

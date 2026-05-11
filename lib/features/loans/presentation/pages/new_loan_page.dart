@@ -18,8 +18,10 @@ class NewLoanPage extends ConsumerStatefulWidget {
 }
 
 class _NewLoanPageState extends ConsumerState<NewLoanPage> {
-  final currencyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
-  final currencyFormatNoDecimals = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
+  final currencyFormat =
+      NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+  final currencyFormatNoDecimals =
+      NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
   final TextEditingController _principalController = TextEditingController();
   final TextEditingController _rateController = TextEditingController();
@@ -62,7 +64,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         elevation: 0,
         scrolledUnderElevation: 0,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new_rounded, color: theme.colorScheme.onSurface, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded,
+              color: theme.colorScheme.onSurface, size: 20),
           onPressed: () {
             ref.read(newLoanProvider.notifier).reset();
             context.pop();
@@ -70,7 +73,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         ),
         title: Text(
           'Deploy Capital',
-          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
+          style: theme.textTheme.titleLarge
+              ?.copyWith(fontWeight: FontWeight.w800, letterSpacing: -0.5),
         ),
       ),
       body: Column(
@@ -78,7 +82,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           // ── Scrollable form body ──
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
+              padding: EdgeInsets.fromLTRB(
+                  isNarrow ? 16 : 24, 8, isNarrow ? 16 : 24, 24),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   final isDesktop = constraints.maxWidth > 900;
@@ -86,9 +91,15 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                     return Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Expanded(flex: 3, child: _buildFacilityDetails(state, theme, isDark, primary, false, usersAsync)),
+                        Expanded(
+                            flex: 3,
+                            child: _buildFacilityDetails(state, theme, isDark,
+                                primary, false, usersAsync)),
                         const SizedBox(width: 24),
-                        Expanded(flex: 2, child: _buildFinancialSummary(state, theme, isDark, primary)),
+                        Expanded(
+                            flex: 2,
+                            child: _buildFinancialSummary(
+                                state, theme, isDark, primary)),
                       ],
                     );
                   } else {
@@ -96,7 +107,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                       children: [
                         _buildFinancialSummary(state, theme, isDark, primary),
                         const SizedBox(height: 20),
-                        _buildFacilityDetails(state, theme, isDark, primary, isNarrow, usersAsync),
+                        _buildFacilityDetails(state, theme, isDark, primary,
+                            isNarrow, usersAsync),
                       ],
                     );
                   }
@@ -114,12 +126,15 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  BOTTOM ACTION BAR
   // ═══════════════════════════════════════════════════
-  Widget _buildBottomBar(ThemeData theme, bool isDark, Color primary, NewLoanState state) {
+  Widget _buildBottomBar(
+      ThemeData theme, bool isDark, Color primary, NewLoanState state) {
     return Container(
-      padding: EdgeInsets.fromLTRB(20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
+      padding: EdgeInsets.fromLTRB(
+          20, 16, 20, MediaQuery.of(context).padding.bottom + 16),
       decoration: BoxDecoration(
         color: isDark ? AppColors.elevatedDark : Colors.white,
-        border: Border(top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
+        border: Border(
+            top: BorderSide(color: theme.dividerColor.withValues(alpha: 0.12))),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.06),
@@ -138,65 +153,79 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                side: BorderSide(color: theme.dividerColor.withValues(alpha: 0.3)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                side: BorderSide(
+                    color: theme.dividerColor.withValues(alpha: 0.3)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
               ),
-              child: Text('Discard', style: TextStyle(color: theme.colorScheme.onSurface, fontWeight: FontWeight.w600)),
+              child: Text('Discard',
+                  style: TextStyle(
+                      color: theme.colorScheme.onSurface,
+                      fontWeight: FontWeight.w600)),
             ),
           ),
           const SizedBox(width: 12),
           Expanded(
             flex: 2,
             child: ElevatedButton.icon(
-              onPressed: state.isLoading 
-                ? null 
-                : () async {
-                    try {
-                      await ref.read(newLoanProvider.notifier).createLoan();
-                      
-                      if (!mounted) return;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: const Row(
-                            children: [
-                              Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
-                              SizedBox(width: 12),
-                              Text('Loan Deployed Successfully'),
-                            ],
+              onPressed: state.isLoading
+                  ? null
+                  : () async {
+                      try {
+                        await ref.read(newLoanProvider.notifier).createLoan();
+
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: const Row(
+                              children: [
+                                Icon(Icons.check_circle_rounded,
+                                    color: Colors.white, size: 20),
+                                SizedBox(width: 12),
+                                Text('Loan Deployed Successfully'),
+                              ],
+                            ),
+                            backgroundColor: AppColors.success,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
-                          backgroundColor: AppColors.success,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                      context.pop();
-                    } catch (e) {
-                      if (!mounted) return;
-                      
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Error: ${e.toString()}'),
-                          backgroundColor: theme.colorScheme.error,
-                          behavior: SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        ),
-                      );
-                    }
-                  },
-              icon: state.isLoading 
-                ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                : const Icon(Icons.rocket_launch_rounded, size: 18),
+                        );
+                        context.pop();
+                      } catch (e) {
+                        if (!mounted) return;
+
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('Error: ${e.toString()}'),
+                            backgroundColor: theme.colorScheme.error,
+                            behavior: SnackBarBehavior.floating,
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
+                          ),
+                        );
+                      }
+                    },
+              icon: state.isLoading
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                          strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.rocket_launch_rounded, size: 18),
               label: Text(
-                state.isLoading ? 'Deploying...' : 'Deploy Loan', 
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                state.isLoading ? 'Deploying...' : 'Deploy Loan',
+                style:
+                    const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 elevation: 0,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
                 disabledBackgroundColor: primary.withValues(alpha: 0.6),
               ),
             ),
@@ -209,23 +238,30 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  SECTION HEADER
   // ═══════════════════════════════════════════════════
-  Widget _buildSectionHeader(String title, IconData icon, ThemeData theme, Color accent) {
+  Widget _buildSectionHeader(
+      String title, IconData icon, ThemeData theme, Color accent) {
     return Row(
       children: [
         Container(
-          width: 38, height: 38,
+          width: 38,
+          height: 38,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [accent.withValues(alpha: 0.18), accent.withValues(alpha: 0.06)],
+              colors: [
+                accent.withValues(alpha: 0.18),
+                accent.withValues(alpha: 0.06)
+              ],
             ),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(icon, size: 20, color: accent),
         ),
         const SizedBox(width: 12),
-        Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
+        Text(title,
+            style: theme.textTheme.titleMedium
+                ?.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.3)),
       ],
     );
   }
@@ -233,13 +269,47 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  FACILITY DETAILS FORM
   // ═══════════════════════════════════════════════════
-  Widget _buildFacilityDetails(NewLoanState state, ThemeData theme, bool isDark, Color primary, bool isNarrow, AsyncValue<List<dynamic>> usersAsync) {
+  Widget _buildFacilityDetails(NewLoanState state, ThemeData theme, bool isDark,
+      Color primary, bool isNarrow, AsyncValue<List<dynamic>> usersAsync) {
     return GlassCard(
       padding: EdgeInsets.all(isNarrow ? 18 : 24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildSectionHeader('Facility Details', Icons.account_balance_rounded, theme, primary),
+          _buildSectionHeader('Facility Details', Icons.account_balance_rounded,
+              theme, primary),
+          const SizedBox(height: 20),
+
+          // ── Migration Alert ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: primary.withValues(alpha: 0.3)),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.info_outline_rounded, color: primary),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Migrating an existing loan?',
+                          style: TextStyle(
+                              fontWeight: FontWeight.w700, color: primary)),
+                      const SizedBox(height: 4),
+                      Text(
+                        'To migrate a loan, simply enter the current OUTSTANDING principal balance and the REMAINING tenure. The system will continue calculations from today.',
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ).animate().fadeIn(),
           const SizedBox(height: 28),
 
           // ── Borrower ──
@@ -248,14 +318,24 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           usersAsync.when(
             data: (users) => _buildDropdown(
               value: state.borrowerId,
-              hint: users.isEmpty ? 'No users found' : 'Select registered customer',
+              hint: users.isEmpty
+                  ? 'No users found'
+                  : 'Select registered customer',
               items: users.map((u) => u.id as String).toList(),
               itemLabels: users.map((u) => u.fullName as String).toList(),
-              onChanged: (val) => ref.read(newLoanProvider.notifier).updateBorrower(val),
-              theme: theme, isDark: isDark,
+              onChanged: (val) =>
+                  ref.read(newLoanProvider.notifier).updateBorrower(val),
+              theme: theme,
+              isDark: isDark,
             ),
             loading: () => const LinearProgressIndicator(),
-            error: (_, __) => _buildDropdown(value: null, hint: 'Error loading users', items: [], onChanged: (_) {}, theme: theme, isDark: isDark),
+            error: (_, __) => _buildDropdown(
+                value: null,
+                hint: 'Error loading users',
+                items: [],
+                onChanged: (_) {},
+                theme: theme,
+                isDark: isDark),
           ),
 
           const SizedBox(height: 28),
@@ -270,19 +350,24 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               final parsed = double.tryParse(val) ?? 0;
               ref.read(newLoanProvider.notifier).updatePrincipal(parsed);
             },
-            theme: theme, isDark: isDark,
+            theme: theme,
+            isDark: isDark,
           ),
           const SizedBox(height: 12),
           _buildSlider(
             value: state.principalAmount.clamp(1000, 1000000),
-            min: 1000, max: 1000000,
-            displayValue: currencyFormatNoDecimals.format(state.principalAmount),
-            minLabel: '₹1K', maxLabel: '₹10L',
+            min: 1000,
+            max: 1000000,
+            displayValue:
+                currencyFormatNoDecimals.format(state.principalAmount),
+            minLabel: '₹1K',
+            maxLabel: '₹10L',
             onChanged: (val) {
               _principalController.text = val.toInt().toString();
               ref.read(newLoanProvider.notifier).updatePrincipal(val);
             },
-            theme: theme, primary: primary,
+            theme: theme,
+            primary: primary,
           ),
 
           _buildDivider(theme),
@@ -297,19 +382,23 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               final parsed = double.tryParse(val) ?? 0;
               ref.read(newLoanProvider.notifier).updateInterestRate(parsed);
             },
-            theme: theme, isDark: isDark,
+            theme: theme,
+            isDark: isDark,
           ),
           const SizedBox(height: 12),
           _buildSlider(
             value: state.interestRate.clamp(0, 50),
-            min: 0, max: 50,
+            min: 0,
+            max: 50,
             displayValue: '${state.interestRate.toStringAsFixed(1)}%',
-            minLabel: '0%', maxLabel: '50%',
+            minLabel: '0%',
+            maxLabel: '50%',
             onChanged: (val) {
               _rateController.text = val.toStringAsFixed(1);
               ref.read(newLoanProvider.notifier).updateInterestRate(val);
             },
-            theme: theme, primary: primary,
+            theme: theme,
+            primary: primary,
           ),
 
           _buildDivider(theme),
@@ -329,19 +418,25 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                     final parsed = int.tryParse(val) ?? 1;
                     ref.read(newLoanProvider.notifier).updateTenure(parsed);
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 12),
                 _buildSlider(
                   value: state.tenureMonths.toDouble().clamp(1, 120),
-                  min: 1, max: 120,
+                  min: 1,
+                  max: 120,
                   displayValue: '${state.tenureMonths} Mo',
-                  minLabel: '1', maxLabel: '120',
+                  minLabel: '1',
+                  maxLabel: '120',
                   onChanged: (val) {
                     _tenureController.text = val.toInt().toString();
-                    ref.read(newLoanProvider.notifier).updateTenure(val.toInt());
+                    ref
+                        .read(newLoanProvider.notifier)
+                        .updateTenure(val.toInt());
                   },
-                  theme: theme, primary: primary,
+                  theme: theme,
+                  primary: primary,
                 ),
               ],
             ),
@@ -357,11 +452,13 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                   onChanged: (val) {
                     if (val != null) {
                       ref.read(newLoanProvider.notifier).updateCollectionType(
-                        CollectionType.values.firstWhere((e) => e.name == val),
-                      );
+                            CollectionType.values
+                                .firstWhere((e) => e.name == val),
+                          );
                     }
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -384,11 +481,13 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                   onChanged: (val) {
                     if (val != null) {
                       ref.read(newLoanProvider.notifier).updateInterestLogic(
-                        InterestLogic.values.firstWhere((e) => e.name == val),
-                      );
+                            InterestLogic.values
+                                .firstWhere((e) => e.name == val),
+                          );
                     }
                   },
-                  theme: theme, isDark: isDark,
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -399,8 +498,11 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                 const SizedBox(height: 10),
                 _buildDatePicker(
                   date: state.firstInstallmentDate,
-                  onPicked: (date) => ref.read(newLoanProvider.notifier).updateFirstInstallmentDate(date),
-                  theme: theme, isDark: isDark,
+                  onPicked: (date) => ref
+                      .read(newLoanProvider.notifier)
+                      .updateFirstInstallmentDate(date),
+                  theme: theme,
+                  isDark: isDark,
                 ),
               ],
             ),
@@ -413,7 +515,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  FINANCIAL SUMMARY SIDEBAR
   // ═══════════════════════════════════════════════════
-  Widget _buildFinancialSummary(NewLoanState state, ThemeData theme, bool isDark, Color primary) {
+  Widget _buildFinancialSummary(
+      NewLoanState state, ThemeData theme, bool isDark, Color primary) {
     return Column(
       children: [
         GlassCard(
@@ -421,7 +524,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildSectionHeader('Financial Summary', Icons.calculate_outlined, theme, primary),
+              _buildSectionHeader('Financial Summary', Icons.calculate_outlined,
+                  theme, primary),
               const SizedBox(height: 24),
 
               // Hero metric
@@ -432,61 +536,89 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [primary.withValues(alpha: 0.14), primary.withValues(alpha: 0.04)],
+                    colors: [
+                      primary.withValues(alpha: 0.14),
+                      primary.withValues(alpha: 0.04)
+                    ],
                   ),
                   borderRadius: BorderRadius.circular(18),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('EST. INSTALLMENT', style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, color: primary.withValues(alpha: 0.7))),
+                    Text('EST. INSTALLMENT',
+                        style: theme.textTheme.labelSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            letterSpacing: 0.8,
+                            color: primary.withValues(alpha: 0.7))),
                     const SizedBox(height: 8),
                     Text(
                       currencyFormat.format(state.estimatedInstallment),
-                      style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: primary, letterSpacing: -1),
+                      style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w900,
+                          color: primary,
+                          letterSpacing: -1),
                     ),
                     const SizedBox(height: 4),
-                    Text('per ${_capitalize(state.collectionType.name)}', style: theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
+                    Text('per ${_capitalize(state.collectionType.name)}',
+                        style:
+                            theme.textTheme.bodySmall?.copyWith(fontSize: 12)),
                   ],
                 ),
               ),
 
               const SizedBox(height: 24),
-              _buildKV('Capital Outlay', currencyFormatNoDecimals.format(state.principalAmount), theme),
+              _buildKV(
+                  'Capital Outlay',
+                  currencyFormatNoDecimals.format(state.principalAmount),
+                  theme),
               _buildKV('Yield Rate', '${state.interestRate}% APR', theme),
               _buildKV('Tenure', '${state.tenureMonths} Months', theme),
-              Divider(height: 32, color: theme.dividerColor.withValues(alpha: 0.1)),
-              _buildKV('Interest Burden', currencyFormat.format(state.interestBurden), theme, valueColor: isDark ? AppColors.warningDark : AppColors.orange),
-              _buildKV('Total Exposure', currencyFormat.format(state.totalExposure), theme, valueColor: theme.colorScheme.error),
+              Divider(
+                  height: 32, color: theme.dividerColor.withValues(alpha: 0.1)),
+              _buildKV('Interest Burden',
+                  currencyFormat.format(state.interestBurden), theme,
+                  valueColor:
+                      isDark ? AppColors.warningDark : AppColors.orange),
+              _buildKV('Total Exposure',
+                  currencyFormat.format(state.totalExposure), theme,
+                  valueColor: theme.colorScheme.error),
             ],
           ),
         ).animate().fadeIn(delay: 150.ms).slideX(begin: 0.08, end: 0),
-
         const SizedBox(height: 16),
-
         GlassCard(
           padding: const EdgeInsets.all(20),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 36, height: 36,
+                width: 36,
+                height: 36,
                 decoration: BoxDecoration(
-                color: isDark ? AppColors.successDark.withValues(alpha: 0.12) : AppColors.success.withValues(alpha: 0.12),
+                  color: isDark
+                      ? AppColors.successDark.withValues(alpha: 0.12)
+                      : AppColors.success.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: Icon(Icons.info_outline_rounded, size: 18, color: isDark ? AppColors.successDark : AppColors.success),
+                child: Icon(Icons.info_outline_rounded,
+                    size: 18,
+                    color: isDark ? AppColors.successDark : AppColors.success),
               ),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Amortization', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
+                    Text('Amortization',
+                        style: theme.textTheme.bodyMedium
+                            ?.copyWith(fontWeight: FontWeight.w700)),
                     const SizedBox(height: 4),
                     Text(
                       'A full ${state.interestLogic == InterestLogic.reducingBalance ? 'reducing balance' : 'flat rate'} schedule will be generated upon approval.',
-                      style: theme.textTheme.bodySmall?.copyWith(fontSize: 13, height: 1.5),
+                      style: theme.textTheme.bodySmall
+                          ?.copyWith(fontSize: 13, height: 1.5),
                     ),
                   ],
                 ),
@@ -501,14 +633,21 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   // ═══════════════════════════════════════════════════
   //  REUSABLE COMPONENTS
   // ═══════════════════════════════════════════════════
-  Widget _buildKV(String label, String value, ThemeData theme, {Color? valueColor}) {
+  Widget _buildKV(String label, String value, ThemeData theme,
+      {Color? valueColor}) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500)),
-          Text(value, style: TextStyle(color: valueColor ?? theme.colorScheme.onSurface, fontSize: 14, fontWeight: FontWeight.w700)),
+          Text(label,
+              style: theme.textTheme.bodySmall
+                  ?.copyWith(fontWeight: FontWeight.w500)),
+          Text(value,
+              style: TextStyle(
+                  color: valueColor ?? theme.colorScheme.onSurface,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700)),
         ],
       ),
     );
@@ -517,18 +656,21 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   Widget _buildDivider(ThemeData theme) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 20),
-      child: Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.1)),
+      child:
+          Divider(height: 1, color: theme.dividerColor.withValues(alpha: 0.1)),
     );
   }
 
   Widget _buildLabel(String text, ThemeData theme) {
     return Text(
       text,
-      style: theme.textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
+      style: theme.textTheme.labelSmall?.copyWith(
+          fontWeight: FontWeight.w700, letterSpacing: 0.8, fontSize: 11),
     );
   }
 
-  Widget _buildTwoColumn({required bool isNarrow, required Widget first, required Widget second}) {
+  Widget _buildTwoColumn(
+      {required bool isNarrow, required Widget first, required Widget second}) {
     if (isNarrow) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -557,18 +699,30 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
       controller: controller,
       onChanged: onChanged,
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
-      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))],
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*'))
+      ],
       decoration: InputDecoration(
         prefixText: prefix != null ? '$prefix ' : null,
         suffixText: suffix,
-        prefixStyle: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
-        suffixStyle: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+        prefixStyle: TextStyle(
+            color: theme.colorScheme.primary, fontWeight: FontWeight.w700),
+        suffixStyle:
+            theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
         filled: true,
         fillColor: isDark ? AppColors.fillDark : AppColors.fillLight,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide(color: theme.colorScheme.primary, width: 1.5)),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide:
+                BorderSide(color: theme.colorScheme.primary, width: 1.5)),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
     );
@@ -594,15 +748,19 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           value: items.contains(value) ? value : null,
           hint: Text(hint, style: theme.textTheme.bodySmall),
           isExpanded: true,
-          icon: Icon(Icons.keyboard_arrow_down_rounded, color: theme.textTheme.bodySmall?.color, size: 22),
+          icon: Icon(Icons.keyboard_arrow_down_rounded,
+              color: theme.textTheme.bodySmall?.color, size: 22),
           dropdownColor: isDark ? AppColors.elevatedDark : Colors.white,
           borderRadius: BorderRadius.circular(14),
           items: List.generate(items.length, (index) {
             final item = items[index];
-            final label = itemLabels != null ? itemLabels[index] : _capitalize(item);
+            final label =
+                itemLabels != null ? itemLabels[index] : _capitalize(item);
             return DropdownMenuItem<String>(
               value: item,
-              child: Text(label, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600)),
+              child: Text(label,
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w600)),
             );
           }),
           onChanged: onChanged,
@@ -636,17 +794,23 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
         ),
         child: Row(
           children: [
-            Icon(Icons.calendar_today_rounded, size: 18, color: theme.colorScheme.primary),
+            Icon(Icons.calendar_today_rounded,
+                size: 18, color: theme.colorScheme.primary),
             const SizedBox(width: 10),
             Text(
-              date != null ? DateFormat('dd MMM yyyy').format(date) : 'Select date',
+              date != null
+                  ? DateFormat('dd MMM yyyy').format(date)
+                  : 'Select date',
               style: TextStyle(
-                color: date != null ? theme.colorScheme.onSurface : theme.textTheme.bodySmall?.color,
+                color: date != null
+                    ? theme.colorScheme.onSurface
+                    : theme.textTheme.bodySmall?.color,
                 fontWeight: FontWeight.w600,
               ),
             ),
             const Spacer(),
-            Icon(Icons.keyboard_arrow_down_rounded, size: 20, color: theme.textTheme.bodySmall?.color),
+            Icon(Icons.keyboard_arrow_down_rounded,
+                size: 20, color: theme.textTheme.bodySmall?.color),
           ],
         ),
       ),
@@ -683,16 +847,25 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(minLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, color: theme.textTheme.bodySmall?.color)),
+              Text(minLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10, color: theme.textTheme.bodySmall?.color)),
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                 decoration: BoxDecoration(
                   color: primary.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(999),
                 ),
-                child: Text(displayValue, style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: primary)),
+                child: Text(displayValue,
+                    style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: primary)),
               ),
-              Text(maxLabel, style: theme.textTheme.labelSmall?.copyWith(fontSize: 10, color: theme.textTheme.bodySmall?.color)),
+              Text(maxLabel,
+                  style: theme.textTheme.labelSmall?.copyWith(
+                      fontSize: 10, color: theme.textTheme.bodySmall?.color)),
             ],
           ),
         ),

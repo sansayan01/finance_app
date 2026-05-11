@@ -37,7 +37,9 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       backgroundColor: Colors.transparent,
       body: Container(
         decoration: BoxDecoration(
-          color: isDark ? Colors.black.withValues(alpha: 0.7) : Colors.white.withValues(alpha: 0.8),
+          color: isDark
+              ? Colors.black.withValues(alpha: 0.7)
+              : Colors.white.withValues(alpha: 0.8),
         ),
         child: SafeArea(
           child: Column(
@@ -50,10 +52,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.05)
+                              : Colors.black.withValues(alpha: 0.03),
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(
-                            color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.1)
+                                : Colors.black.withValues(alpha: 0.05),
                           ),
                         ),
                         child: TextField(
@@ -62,9 +68,11 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                           style: theme.textTheme.bodyLarge,
                           decoration: InputDecoration(
                             hintText: 'Search members, loans, or savings...',
-                            hintStyle: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textTertiaryLight),
+                            hintStyle: theme.textTheme.bodyMedium
+                                ?.copyWith(color: AppColors.textTertiaryLight),
                             border: InputBorder.none,
-                            icon: const Icon(Icons.search_rounded, color: AppColors.primary),
+                            icon: const Icon(Icons.search_rounded,
+                                color: AppColors.primary),
                           ),
                         ),
                       ),
@@ -72,7 +80,8 @@ class _SearchPageState extends ConsumerState<SearchPage> {
                     const SizedBox(width: 12),
                     TextButton(
                       onPressed: () => context.pop(),
-                      child: const Text('Cancel', style: TextStyle(fontWeight: FontWeight.w600)),
+                      child: const Text('Cancel',
+                          style: TextStyle(fontWeight: FontWeight.w600)),
                     ),
                   ],
                 ),
@@ -93,11 +102,14 @@ class _SearchPageState extends ConsumerState<SearchPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded, size: 64, color: AppColors.textTertiaryLight.withValues(alpha: 0.5)),
+          Icon(Icons.search_off_rounded,
+              size: 64,
+              color: AppColors.textTertiaryLight.withValues(alpha: 0.5)),
           const SizedBox(height: 16),
           Text(
             'Type something to start searching',
-            style: theme.textTheme.bodyLarge?.copyWith(color: AppColors.textTertiaryLight),
+            style: theme.textTheme.bodyLarge
+                ?.copyWith(color: AppColors.textTertiaryLight),
           ),
         ],
       ).animate().fadeIn(duration: 400.ms),

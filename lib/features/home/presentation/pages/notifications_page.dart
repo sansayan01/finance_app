@@ -12,7 +12,8 @@ class NotificationsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Notifications', style: TextStyle(fontWeight: FontWeight.w800)),
+        title: const Text('Notifications',
+            style: TextStyle(fontWeight: FontWeight.w800)),
         centerTitle: false,
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -28,12 +29,14 @@ class NotificationsPage extends StatelessWidget {
               child: Row(
                 children: [
                   Container(
-                    width: 48, height: 48,
+                    width: 48,
+                    height: 48,
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(14),
                     ),
-                    child: const Icon(Icons.notifications_active_outlined, color: AppColors.primary, size: 22),
+                    child: const Icon(Icons.notifications_active_outlined,
+                        color: AppColors.primary, size: 22),
                   ),
                   const SizedBox(width: 16),
                   Expanded(
@@ -42,24 +45,30 @@ class NotificationsPage extends StatelessWidget {
                       children: [
                         Text(
                           _getMockTitle(index),
-                          style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.w600, fontSize: 15),
+                          style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600, fontSize: 15),
                         ),
                         const SizedBox(height: 4),
                         Text(
                           _getMockBody(index),
-                          style: theme.textTheme.bodySmall?.copyWith(fontSize: 13),
+                          style:
+                              theme.textTheme.bodySmall?.copyWith(fontSize: 13),
                         ),
                       ],
                     ),
                   ),
                   Text(
                     '${index + 1}h ago',
-                    style: theme.textTheme.labelSmall?.copyWith(color: AppColors.textTertiaryLight),
+                    style: theme.textTheme.labelSmall
+                        ?.copyWith(color: AppColors.textTertiaryLight),
                   ),
                 ],
               ),
             ),
-          ).animate().fadeIn(delay: (index * 100).ms).slideX(begin: 0.05, end: 0);
+          )
+              .animate()
+              .fadeIn(delay: (index * 100).ms)
+              .slideX(begin: 0.05, end: 0);
         },
       ),
     );

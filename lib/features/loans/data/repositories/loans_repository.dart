@@ -16,7 +16,8 @@ class LoansRepository {
     try {
       final response = await _client
           .from('loans')
-          .select('*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
+          .select(
+              '*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
           .order('created_at', ascending: false)
           .limit(limit);
 
@@ -32,7 +33,8 @@ class LoansRepository {
     try {
       final response = await _client
           .from('loans')
-          .select('*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
+          .select(
+              '*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
           .eq('status', 'active')
           .order('created_at', ascending: false)
           .limit(limit);
@@ -48,15 +50,19 @@ class LoansRepository {
   Future<LoanSummary> getLoanSummary() async {
     try {
       final loans = await getAllLoans(limit: 1000);
-      
+
       final active = loans.where((l) => l.status == LoanStatus.active).toList();
-      final defaults = loans.where((l) => l.status == LoanStatus.defaultStatus).toList();
-      
-      final totalOutstanding = active.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance) +
-                               defaults.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance);
-      
+      final defaults =
+          loans.where((l) => l.status == LoanStatus.defaultStatus).toList();
+
+      final totalOutstanding = active.fold<double>(
+              0.0, (double sum, LoanModel l) => sum + l.outstandingBalance) +
+          defaults.fold<double>(
+              0.0, (double sum, LoanModel l) => sum + l.outstandingBalance);
+
       final totalDisbursed = loans
-          .where((l) => l.status == LoanStatus.active || l.status == LoanStatus.closed)
+          .where((l) =>
+              l.status == LoanStatus.active || l.status == LoanStatus.closed)
           .fold<double>(0.0, (double sum, LoanModel l) => sum + l.amount);
 
       return LoanSummary(
@@ -66,8 +72,10 @@ class LoansRepository {
         totalOutstanding: totalOutstanding,
         totalDisbursed: totalDisbursed,
         totalCollected: 0, // Would need transaction history
-        overdueAmount: defaults.fold<double>(0.0, (double sum, LoanModel l) => sum + l.outstandingBalance),
-        parPercentage: loans.isEmpty ? 0 : (defaults.length / loans.length) * 100,
+        overdueAmount: defaults.fold<double>(
+            0.0, (double sum, LoanModel l) => sum + l.outstandingBalance),
+        parPercentage:
+            loans.isEmpty ? 0 : (defaults.length / loans.length) * 100,
       );
     } catch (e) {
       return LoanSummary(
@@ -87,19 +95,21 @@ class LoansRepository {
     try {
       final response = await _client
           .from('loans')
-          .select('*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
+          .select(
+              '*, profiles:customer_id(full_name, phone), staff:staff_id(full_name)')
           .eq('id', id)
           .maybeSingle();
 
       if (response == null) return null;
       final createdLoan = LoanModel.fromJson(response);
-      
+
       await _logRepo?.log(
         action: 'Loan Disbursed',
-        details: 'Amount: ₹${createdLoan.amount}, Customer ID: ${createdLoan.customerId}',
+        details:
+            'Amount: ₹${createdLoan.amount}, Customer ID: ${createdLoan.customerId}',
         type: ActivityType.financialTransaction,
       );
-      
+
       return createdLoan;
     } catch (e) {
       return null;
@@ -120,8 +130,9 @@ class LoansRepository {
   }) async {
     final now = DateTime.now();
     // Generate a unique loan number: L-YYYYMMDD-XXXX
-    final loanNumber = 'L-${DateFormat('yyyyMMdd').format(now)}-${math.Random().nextInt(9999).toString().padLeft(4, '0')}';
-    
+    final loanNumber =
+        'L-${DateFormat('yyyyMMdd').format(now)}-${math.Random().nextInt(9999).toString().padLeft(4, '0')}';
+
     await _client.from('loans').insert({
       'customer_id': borrowerId,
       'loan_number': loanNumber,
@@ -151,7 +162,8 @@ class LoansRepository {
     final loan = await getLoanById(loanId);
     if (loan == null) return;
 
-    final newBalance = (loan.outstandingBalance - amount).clamp(0.0, double.infinity);
+    final newBalance =
+        (loan.outstandingBalance - amount).clamp(0.0, double.infinity);
     final newStatus = newBalance <= 0 ? 'closed' : 'active';
 
     await _client.from('loans').update({

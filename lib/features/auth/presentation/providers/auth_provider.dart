@@ -69,8 +69,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
         if (biometricEnabled) {
           final LocalAuthentication auth = LocalAuthentication();
-          final bool canAuthenticateWithBiometrics = await auth.canCheckBiometrics;
-          final bool canAuthenticate = canAuthenticateWithBiometrics || await auth.isDeviceSupported();
+          final bool canAuthenticateWithBiometrics =
+              await auth.canCheckBiometrics;
+          final bool canAuthenticate =
+              canAuthenticateWithBiometrics || await auth.isDeviceSupported();
 
           if (canAuthenticate) {
             try {
@@ -86,9 +88,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
                 return;
               }
             } on PlatformException catch (_) {
-               await _repository.signOut();
-               state = state.copyWith(status: AuthStatus.unauthenticated);
-               return;
+              await _repository.signOut();
+              state = state.copyWith(status: AuthStatus.unauthenticated);
+              return;
             }
           }
         }
@@ -112,7 +114,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (_repository == null) {
       state = state.copyWith(
         status: AuthStatus.error,
-        errorMessage: 'Supabase not configured. Please add your Supabase credentials.',
+        errorMessage:
+            'Supabase not configured. Please add your Supabase credentials.',
       );
       return false;
     }
@@ -143,7 +146,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (_repository == null) {
       state = state.copyWith(
         status: AuthStatus.error,
-        errorMessage: 'Supabase not configured. Please add your Supabase credentials.',
+        errorMessage:
+            'Supabase not configured. Please add your Supabase credentials.',
       );
       return false;
     }
@@ -194,11 +198,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     if (_repository == null) return false;
     try {
-      await _repository.updateProfile(fullName: fullName, phone: phone, email: email);
+      await _repository.updateProfile(
+          fullName: fullName, phone: phone, email: email);
       await _checkSession(); // Refresh local user state
       return true;
     } catch (e) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: _getErrorMessage(e));
+      state = state.copyWith(
+          status: AuthStatus.error, errorMessage: _getErrorMessage(e));
       return false;
     }
   }
@@ -215,7 +221,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       await _repository.updatePassword(newPassword);
       return true;
     } catch (e) {
-      state = state.copyWith(status: AuthStatus.error, errorMessage: _getErrorMessage(e));
+      state = state.copyWith(
+          status: AuthStatus.error, errorMessage: _getErrorMessage(e));
       return false;
     }
   }
@@ -224,9 +231,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (error is AuthException) {
       return error.message;
     }
-    
+
     final message = error.toString().toLowerCase();
-    if (message.contains('invalid credentials') || message.contains('invalid login credentials')) {
+    if (message.contains('invalid credentials') ||
+        message.contains('invalid login credentials')) {
       return 'Invalid email or password';
     }
     if (message.contains('user already registered')) {
@@ -238,7 +246,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     if (message.contains('network') || message.contains('connection')) {
       return 'Network error. Please check your internet connection.';
     }
-    
+
     // Return the actual error message if possible to help debugging
     if (error is Exception) {
       final str = error.toString();
@@ -247,7 +255,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
       return str;
     }
-    
+
     return 'An error occurred: ${error.toString()}';
   }
 }

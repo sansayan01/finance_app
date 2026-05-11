@@ -26,12 +26,14 @@ final savingsSummaryProvider = FutureProvider<SavingsSummary>((ref) async {
 // Alias for backward compatibility if needed by other pages
 final savingsProvider = allSavingsProvider;
 
-final savingDetailProvider = FutureProvider.family<SavingsModel?, String>((ref, id) async {
+final savingDetailProvider =
+    FutureProvider.family<SavingsModel?, String>((ref, id) async {
   final repository = ref.watch(savingsRepositoryProvider);
   return repository.getSavingPlanById(id);
 });
 
-final savingTransactionsProvider = FutureProvider.family<List<TransactionModel>, String>((ref, id) async {
+final savingTransactionsProvider =
+    FutureProvider.family<List<TransactionModel>, String>((ref, id) async {
   final repository = ref.watch(transactionsRepositoryProvider);
   return repository.getTransactionsBySavingsId(id);
 });

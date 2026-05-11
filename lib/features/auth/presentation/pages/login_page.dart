@@ -22,7 +22,7 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  
+
   bool _obscurePassword = true;
   bool _isHovering = false;
 
@@ -35,14 +35,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
-    
+
     HapticFeedback.lightImpact();
-    
+
     final success = await ref.read(authProvider.notifier).signIn(
           email: _emailController.text.trim(),
           password: _passwordController.text,
         );
-        
+
     if (success && mounted) {
       context.go('/');
     } else if (mounted) {
@@ -66,7 +66,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
     final brand = ref.watch(brandProvider);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0A0A0B) : const Color(0xFFFBFBFE),
+      backgroundColor:
+          isDark ? const Color(0xFF0A0A0B) : const Color(0xFFFBFBFE),
       body: Stack(
         children: [
           // Refined Aurora Background
@@ -76,7 +77,8 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             child: Center(
               child: SingleChildScrollView(
                 physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 400),
                   child: Column(
@@ -84,9 +86,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                     children: [
                       // Sophisticated Logo Entry
                       _buildLogo(primary, ref),
-                      
+
                       const SizedBox(height: 32),
-                      
+
                       // Modern Header
                       Text(
                         brand.name,
@@ -96,8 +98,11 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           color: isDark ? Colors.white : Colors.black,
                           fontSize: 32,
                         ),
-                      ).animate().fadeIn(duration: 800.ms).slideY(begin: 0.2, end: 0),
-                      
+                      )
+                          .animate()
+                          .fadeIn(duration: 800.ms)
+                          .slideY(begin: 0.2, end: 0),
+
                       const SizedBox(height: 8),
                       Text(
                         'Authorized administrative access only.',
@@ -107,14 +112,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                           fontWeight: FontWeight.w500,
                         ),
                       ).animate().fadeIn(delay: 200.ms, duration: 800.ms),
-                      
+
                       const SizedBox(height: 56),
 
                       // Neo-Glass Login Card
                       _buildNeoGlassCard(isDark, primary, isLoading),
-                      
+
                       const SizedBox(height: 40),
-                      
+
                       // Footer Note
                       Text(
                         'Protected by Enterprise Security',
@@ -138,16 +143,17 @@ class _LoginPageState extends ConsumerState<LoginPage> {
 
   Widget _buildLogo(Color primary, WidgetRef ref) {
     final brand = ref.watch(brandProvider);
-    
+
     return Container(
       width: 64,
       height: 64,
       decoration: BoxDecoration(
         color: brand.logoUrl != null ? Colors.transparent : primary,
         borderRadius: BorderRadius.circular(20),
-        image: brand.logoUrl != null 
-          ? DecorationImage(image: NetworkImage(brand.logoUrl!), fit: BoxFit.contain)
-          : null,
+        image: brand.logoUrl != null
+            ? DecorationImage(
+                image: NetworkImage(brand.logoUrl!), fit: BoxFit.contain)
+            : null,
         boxShadow: [
           BoxShadow(
             color: primary.withValues(alpha: 0.4),
@@ -156,9 +162,10 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
         ],
       ),
-      child: brand.logoUrl == null 
-        ? const Icon(Icons.account_balance_rounded, color: Colors.white, size: 32)
-        : null,
+      child: brand.logoUrl == null
+          ? const Icon(Icons.account_balance_rounded,
+              color: Colors.white, size: 32)
+          : null,
     ).animate().scale(duration: 600.ms, curve: Curves.easeOutBack);
   }
 
@@ -170,12 +177,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
         child: Container(
           padding: const EdgeInsets.all(32),
           decoration: BoxDecoration(
-            color: isDark 
-                ? Colors.white.withValues(alpha: 0.05) 
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
                 : Colors.white.withValues(alpha: 0.7),
             borderRadius: BorderRadius.circular(32),
             border: Border.all(
-              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.3),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.white.withValues(alpha: 0.3),
               width: 1.5,
             ),
           ),
@@ -201,8 +210,13 @@ class _LoginPageState extends ConsumerState<LoginPage> {
                   primary: primary,
                   obscureText: _obscurePassword,
                   suffix: IconButton(
-                    icon: Icon(_obscurePassword ? Icons.visibility_off : Icons.visibility, size: 18),
-                    onPressed: () => setState(() => _obscurePassword = !_obscurePassword),
+                    icon: Icon(
+                        _obscurePassword
+                            ? Icons.visibility_off
+                            : Icons.visibility,
+                        size: 18),
+                    onPressed: () =>
+                        setState(() => _obscurePassword = !_obscurePassword),
                     color: isDark ? Colors.white38 : Colors.black38,
                   ),
                 ),
@@ -248,19 +262,30 @@ class _LoginPageState extends ConsumerState<LoginPage> {
           ),
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: TextStyle(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
-            prefixIcon: Icon(icon, size: 20, color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black.withValues(alpha: 0.3)),
+            hintStyle: TextStyle(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : Colors.black.withValues(alpha: 0.1)),
+            prefixIcon: Icon(icon,
+                size: 20,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.3)
+                    : Colors.black.withValues(alpha: 0.3)),
             suffixIcon: suffix,
             filled: true,
-            fillColor: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.03),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+            fillColor: isDark
+                ? Colors.black.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.03),
+            contentPadding:
+                const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide(color: primary.withValues(alpha: 0.5), width: 1),
+              borderSide:
+                  BorderSide(color: primary.withValues(alpha: 0.5), width: 1),
             ),
           ),
           validator: (v) => v!.isEmpty ? 'Required' : null,
@@ -299,11 +324,20 @@ class _LoginPageState extends ConsumerState<LoginPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.transparent,
               shadowColor: Colors.transparent,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
             ),
-            child: isLoading 
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : const Text('Access Dashboard', style: TextStyle(fontWeight: FontWeight.w800, color: Colors.white, letterSpacing: 0.5)),
+            child: isLoading
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        color: Colors.white, strokeWidth: 2))
+                : const Text('Access Dashboard',
+                    style: TextStyle(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                        letterSpacing: 0.5)),
           ),
         ),
       ),
@@ -318,13 +352,16 @@ class _AuroraBackground extends StatefulWidget {
   State<_AuroraBackground> createState() => _AuroraBackgroundState();
 }
 
-class _AuroraBackgroundState extends State<_AuroraBackground> with SingleTickerProviderStateMixin {
+class _AuroraBackgroundState extends State<_AuroraBackground>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(seconds: 20))..repeat();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 20))
+          ..repeat();
   }
 
   @override
@@ -356,22 +393,26 @@ class _AuroraPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
+    final paint = Paint()
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 100);
     final t = progress * 2 * math.pi;
 
     canvas.drawCircle(
-      Offset(size.width * 0.3 + 50 * math.sin(t), size.height * 0.2 + 30 * math.cos(t)),
+      Offset(size.width * 0.3 + 50 * math.sin(t),
+          size.height * 0.2 + 30 * math.cos(t)),
       size.width * 0.6,
       paint..color = colors[0],
     );
 
     canvas.drawCircle(
-      Offset(size.width * 0.7 + 40 * math.cos(t * 1.2), size.height * 0.8 + 60 * math.sin(t * 0.8)),
+      Offset(size.width * 0.7 + 40 * math.cos(t * 1.2),
+          size.height * 0.8 + 60 * math.sin(t * 0.8)),
       size.width * 0.5,
       paint..color = colors[1],
     );
   }
 
   @override
-  bool shouldRepaint(covariant _AuroraPainter oldDelegate) => oldDelegate.progress != progress;
+  bool shouldRepaint(covariant _AuroraPainter oldDelegate) =>
+      oldDelegate.progress != progress;
 }

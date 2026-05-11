@@ -74,7 +74,9 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
     // Agentic Navigation Logic
     final t = text.toLowerCase();
-    if (t.contains('go to') || t.contains('navigate to') || t.contains('open')) {
+    if (t.contains('go to') ||
+        t.contains('navigate to') ||
+        t.contains('open')) {
       bool navigated = false;
       if (t.contains('settings') || t.contains('admin')) {
         _ref.read(routerProvider).go('/settings');
@@ -95,7 +97,11 @@ class ChatNotifier extends StateNotifier<ChatState> {
 
       if (navigated) {
         state = state.copyWith(
-          messages: [...state.messages, ChatMessage(text: "Navigating there now.", role: MessageRole.assistant)],
+          messages: [
+            ...state.messages,
+            ChatMessage(
+                text: "Navigating there now.", role: MessageRole.assistant)
+          ],
           isLoading: false,
         );
         return;
@@ -105,12 +111,20 @@ class ChatNotifier extends StateNotifier<ChatState> {
     // Auto-detect current page context
     String? currentRoute;
     try {
-      currentRoute = _ref.read(routerProvider).routerDelegate.currentConfiguration.uri.toString();
+      currentRoute = _ref
+          .read(routerProvider)
+          .routerDelegate
+          .currentConfiguration
+          .uri
+          .toString();
     } catch (_) {}
 
     // RAG: Auto-fetch Live Database Context if requested
     String? businessContext;
-    if (t.contains('loan') || t.contains('summary') || t.contains('portfolio') || t.contains('analytics')) {
+    if (t.contains('loan') ||
+        t.contains('summary') ||
+        t.contains('portfolio') ||
+        t.contains('analytics')) {
       try {
         final loanSummary = await _ref.read(loanSummaryProvider.future);
         businessContext = '''
@@ -131,7 +145,7 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
     try {
       final repository = _ref.read(chatbotRepositoryProvider);
       String fullContent = '';
-      
+
       // Temporary message for streaming
       final assistantMessage = ChatMessage(
         text: '...',
@@ -148,10 +162,11 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
       int lastSpokenIndex = 0;
       await for (final content in responseStream) {
         fullContent = content;
-        
+
         // Update the last message in real-time
         final updatedMessages = List<ChatMessage>.from(state.messages);
-        updatedMessages[updatedMessages.length - 1] = assistantMessage.copyWith(text: fullContent);
+        updatedMessages[updatedMessages.length - 1] =
+            assistantMessage.copyWith(text: fullContent);
         state = state.copyWith(messages: updatedMessages);
 
         // Advanced: Sentence-by-sentence streaming TTS
@@ -169,7 +184,7 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
           }
         }
       }
-      
+
       // Speak any remaining text at the end
       if (state.isContinuous && lastSpokenIndex < fullContent.length) {
         speak(fullContent.substring(lastSpokenIndex).trim());
@@ -194,7 +209,8 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
         }
       },
       onError: (errorNotification) {
-        state = state.copyWith(isListening: false, error: errorNotification.errorMsg);
+        state = state.copyWith(
+            isListening: false, error: errorNotification.errorMsg);
       },
     );
 
@@ -212,9 +228,11 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
           }
         },
         listenFor: const Duration(seconds: 30),
-        pauseFor: const Duration(seconds: 2), // Silence detection: Auto-send after 2s of silence
+        pauseFor: const Duration(
+            seconds: 2), // Silence detection: Auto-send after 2s of silence
         listenOptions: stt.SpeechListenOptions(
-          listenMode: stt.ListenMode.search, // Optimized for command/search intent
+          listenMode:
+              stt.ListenMode.search, // Optimized for command/search intent
         ),
       );
     }
@@ -227,15 +245,15 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
 
   Future<void> speak(String text) async {
     state = state.copyWith(isSpeaking: true);
-    
+
     // Detect language and set locale accordingly
     final locale = _detectLanguageCode(text);
     await _tts.setLanguage(locale);
-    
+
     await _tts.speak(text);
     _tts.setCompletionHandler(() {
       state = state.copyWith(isSpeaking: false);
-      
+
       // Auto-listen after speaking if in continuous mode
       if (state.isContinuous) {
         startListening();
@@ -246,7 +264,7 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
   void toggleContinuousMode() {
     final newValue = !state.isContinuous;
     state = state.copyWith(isContinuous: newValue);
-    
+
     if (newValue) {
       startListening(); // Kick off the loop if enabling
     } else {

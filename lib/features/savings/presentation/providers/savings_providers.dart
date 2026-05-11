@@ -26,13 +26,14 @@ final filteredSavingsProvider = Provider<List<SavingsModel>>((ref) {
   if (query.isEmpty) return savings;
 
   return savings.where((s) {
-    return s.memberName.toLowerCase().contains(query) || 
-           s.memberId.toLowerCase().contains(query) ||
-           s.planName.toLowerCase().contains(query);
+    return s.memberName.toLowerCase().contains(query) ||
+        s.memberId.toLowerCase().contains(query) ||
+        s.planName.toLowerCase().contains(query);
   }).toList();
 });
 
-final userSavingsProvider = FutureProvider.family<List<SavingsModel>, String>((ref, userId) async {
+final userSavingsProvider =
+    FutureProvider.family<List<SavingsModel>, String>((ref, userId) async {
   final savings = await ref.watch(allSavingsProvider.future);
   return savings.where((s) => s.memberId == userId).toList();
 });

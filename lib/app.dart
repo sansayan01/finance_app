@@ -18,9 +18,13 @@ class MicroFlowApp extends ConsumerWidget {
     SystemChrome.setSystemUIOverlayStyle(
       SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarIconBrightness: themeMode == ThemeMode.dark ? Brightness.light : Brightness.dark,
-        systemNavigationBarColor: themeMode == ThemeMode.dark ? const Color(0xFF1A1F2E) : Colors.white,
-        systemNavigationBarIconBrightness: themeMode == ThemeMode.dark ? Brightness.light : Brightness.dark,
+        statusBarIconBrightness:
+            themeMode == ThemeMode.dark ? Brightness.light : Brightness.dark,
+        systemNavigationBarColor: themeMode == ThemeMode.dark
+            ? const Color(0xFF1A1F2E)
+            : Colors.white,
+        systemNavigationBarIconBrightness:
+            themeMode == ThemeMode.dark ? Brightness.light : Brightness.dark,
       ),
     );
 

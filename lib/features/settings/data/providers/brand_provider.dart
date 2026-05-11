@@ -8,7 +8,8 @@ class BrandNotifier extends StateNotifier<BrandModel> {
   final SupabaseClient _client;
   final Ref _ref;
 
-  BrandNotifier(this._client, this._ref) : super(BrandModel(name: 'MicroFlow Pro')) {
+  BrandNotifier(this._client, this._ref)
+      : super(BrandModel(name: 'MicroFlow Pro')) {
     _loadBrand();
   }
 
@@ -42,10 +43,10 @@ class BrandNotifier extends StateNotifier<BrandModel> {
 
       // Log the activity
       await _ref.read(activityLogRepositoryProvider).log(
-        action: 'System Branding Updated',
-        details: 'Changed brand name from "$oldName" to "${newState.name}"',
-        type: ActivityType.systemUpdate,
-      );
+            action: 'System Branding Updated',
+            details: 'Changed brand name from "$oldName" to "${newState.name}"',
+            type: ActivityType.systemUpdate,
+          );
     } catch (e) {
       // Local only if DB fails
     }
