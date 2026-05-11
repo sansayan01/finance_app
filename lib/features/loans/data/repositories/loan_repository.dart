@@ -39,4 +39,11 @@ class LoanRepository {
         .order('created_at', ascending: false);
     return List<Map<String, dynamic>>.from(response);
   }
+
+  Future<void> settleLoan(String loanId) async {
+    await _client.from('loans').update({
+      'status': 'closed',
+      'outstanding_balance': 0,
+    }).eq('id', loanId);
+  }
 }

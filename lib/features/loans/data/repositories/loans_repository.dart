@@ -146,4 +146,11 @@ class LoansRepository {
   Future<void> updateLoanStatus(String id, String status) async {
     await _client.from('loans').update({'status': status}).eq('id', id);
   }
+
+  Future<void> settleLoan(String loanId) async {
+    await _client.from('loans').update({
+      'status': 'closed',
+      'outstanding_balance': 0,
+    }).eq('id', loanId);
+  }
 }
