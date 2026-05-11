@@ -17,6 +17,7 @@ class ChatState {
   final bool isLoading;
   final bool isListening;
   final bool isSpeaking;
+  final bool isContinuous; // New: Hands-free mode
   final String? error;
 
   ChatState({
@@ -24,6 +25,7 @@ class ChatState {
     this.isLoading = false,
     this.isListening = false,
     this.isSpeaking = false,
+    this.isContinuous = false,
     this.error,
   });
 
@@ -32,6 +34,7 @@ class ChatState {
     bool? isLoading,
     bool? isListening,
     bool? isSpeaking,
+    bool? isContinuous,
     String? error,
   }) {
     return ChatState(
@@ -39,19 +42,18 @@ class ChatState {
       isLoading: isLoading ?? this.isLoading,
       isListening: isListening ?? this.isListening,
       isSpeaking: isSpeaking ?? this.isSpeaking,
+      isContinuous: isContinuous ?? this.isContinuous,
       error: error,
     );
   }
 }
 
 class ChatNotifier extends StateNotifier<ChatState> {
-  final ChatbotRepository _repository;
   final stt.SpeechToText _speech = stt.SpeechToText();
   final FlutterTts _tts = FlutterTts();
-
   final Ref _ref;
 
-  ChatNotifier(this._repository, this._ref) : super(ChatState()) {
+  ChatNotifier(this._ref) : super(ChatState()) {
     _initVoice();
   }
 
@@ -127,31 +129,64 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
     }
 
     try {
-      final responseText = await _repository.getChatResponse(state.messages, contextRoute: currentRoute, businessContext: businessContext)
-          .timeout(const Duration(seconds: 30), onTimeout: () {
-            throw Exception('Connection timed out. Please check your internet and API status.');
-          });
-          
-      final assistantMessage = ChatMessage(text: responseText, role: MessageRole.assistant);
+      final repository = _ref.read(chatbotRepositoryProvider);
+      String fullContent = '';
       
-      state = state.copyWith(
-        messages: [...state.messages, assistantMessage],
-        isLoading: false,
-        error: null,
+      // Temporary message for streaming
+      final assistantMessage = ChatMessage(
+        text: '...',
+        role: MessageRole.assistant,
       );
+      state = state.copyWith(messages: [...state.messages, assistantMessage]);
+
+      final responseStream = repository.streamChatResponse(
+        state.messages.sublist(0, state.messages.length - 1),
+        contextRoute: currentRoute,
+        businessContext: businessContext,
+      );
+
+      int lastSpokenIndex = 0;
+      await for (final content in responseStream) {
+        fullContent = content;
+        
+        // Update the last message in real-time
+        final updatedMessages = List<ChatMessage>.from(state.messages);
+        updatedMessages[updatedMessages.length - 1] = assistantMessage.copyWith(text: fullContent);
+        state = state.copyWith(messages: updatedMessages);
+
+        // Advanced: Sentence-by-sentence streaming TTS
+        if (state.isContinuous) {
+          final remainingText = fullContent.substring(lastSpokenIndex);
+          // Look for sentence terminators (., !, ?)
+          if (RegExp(r'[.!?]').hasMatch(remainingText)) {
+            final sentences = remainingText.split(RegExp(r'(?<=[.!?])\s*'));
+            for (int i = 0; i < sentences.length - 1; i++) {
+              if (sentences[i].trim().isNotEmpty) {
+                await speak(sentences[i].trim());
+                lastSpokenIndex += sentences[i].length;
+              }
+            }
+          }
+        }
+      }
+      
+      // Speak any remaining text at the end
+      if (state.isContinuous && lastSpokenIndex < fullContent.length) {
+        speak(fullContent.substring(lastSpokenIndex).trim());
+      }
+
+      state = state.copyWith(isLoading: false);
     } catch (e) {
-      String errorMsg = e.toString();
-      if (errorMsg.contains('401')) errorMsg = 'Invalid API Key. Please check your NVIDIA NIM credentials.';
-      if (errorMsg.contains('404')) errorMsg = 'Model not found. Please verify the Model ID in settings.';
-      
-      state = state.copyWith(
-        isLoading: false,
-        error: errorMsg,
-      );
+      state = state.copyWith(isLoading: false, error: e.toString());
     }
   }
 
   Future<void> startListening() async {
+    // Advanced Gemini Feature: Interruption (Barge-in)
+    if (state.isSpeaking) {
+      await stopSpeaking(); // Immediately shut up if user starts talking
+    }
+
     bool available = await _speech.initialize(
       onStatus: (status) {
         if (status == 'done' || status == 'notListening') {
@@ -167,10 +202,20 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
       state = state.copyWith(isListening: true);
       _speech.listen(
         onResult: (result) {
+          // Real-time Barge-in detection
+          if (state.isSpeaking && result.recognizedWords.length > 3) {
+            stopSpeaking();
+          }
+
           if (result.finalResult) {
             sendMessage(result.recognizedWords);
           }
         },
+        listenFor: const Duration(seconds: 30),
+        pauseFor: const Duration(seconds: 2), // Silence detection: Auto-send after 2s of silence
+        listenOptions: stt.SpeechListenOptions(
+          listenMode: stt.ListenMode.search, // Optimized for command/search intent
+        ),
       );
     }
   }
@@ -182,10 +227,47 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
 
   Future<void> speak(String text) async {
     state = state.copyWith(isSpeaking: true);
+    
+    // Detect language and set locale accordingly
+    final locale = _detectLanguageCode(text);
+    await _tts.setLanguage(locale);
+    
     await _tts.speak(text);
     _tts.setCompletionHandler(() {
       state = state.copyWith(isSpeaking: false);
+      
+      // Auto-listen after speaking if in continuous mode
+      if (state.isContinuous) {
+        startListening();
+      }
     });
+  }
+
+  void toggleContinuousMode() {
+    final newValue = !state.isContinuous;
+    state = state.copyWith(isContinuous: newValue);
+    
+    if (newValue) {
+      startListening(); // Kick off the loop if enabling
+    } else {
+      stopListening();
+      stopSpeaking();
+    }
+  }
+
+  String _detectLanguageCode(String text) {
+    // Simple script-based detection for Indian languages
+    if (RegExp(r'[\u0900-\u097F]').hasMatch(text)) return 'hi-IN'; // Hindi
+    if (RegExp(r'[\u0980-\u09FF]').hasMatch(text)) return 'bn-IN'; // Bengali
+    if (RegExp(r'[\u0B80-\u0BFF]').hasMatch(text)) return 'ta-IN'; // Tamil
+    if (RegExp(r'[\u0C00-\u0C7F]').hasMatch(text)) return 'te-IN'; // Telugu
+    if (RegExp(r'[\u0C80-\u0CFF]').hasMatch(text)) return 'kn-IN'; // Kannada
+    if (RegExp(r'[\u0D00-\u0D7F]').hasMatch(text)) return 'ml-IN'; // Malayalam
+    if (RegExp(r'[\u0A00-\u0A7F]').hasMatch(text)) return 'pa-IN'; // Punjabi
+    if (RegExp(r'[\u0AB0-\u0AFF]').hasMatch(text)) return 'gu-IN'; // Gujarati
+    if (RegExp(r'[\u0B00-\u0B7F]').hasMatch(text)) return 'or-IN'; // Odia
+    if (RegExp(r'[\u0D80-\u0DFF]').hasMatch(text)) return 'si-LK'; // Sinhala
+    return 'en-US'; // Default
   }
 
   Future<void> stopSpeaking() async {
@@ -199,6 +281,5 @@ PAR (Portfolio at Risk): ${loanSummary.parPercentage.toStringAsFixed(1)}%
 }
 
 final chatProvider = StateNotifierProvider<ChatNotifier, ChatState>((ref) {
-  final repository = ref.watch(chatbotRepositoryProvider);
-  return ChatNotifier(repository, ref);
+  return ChatNotifier(ref);
 });

@@ -42,20 +42,24 @@ class _FloatingChatbotState extends ConsumerState<FloatingChatbot> {
     final theme = Theme.of(context);
     final primary = theme.colorScheme.primary;
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
+    // Shift the button up on mobile to avoid overlapping the Navbar
+    final bottomOffset = isMobile ? 100.0 : 30.0;
 
     return Stack(
       children: [
         // Chat Panel
         if (_isOpen)
           Positioned(
-            bottom: 90 + (bottomInset > 0 ? bottomInset - 20 : 0),
+            bottom: bottomOffset + 70,
             right: 20,
             child: _buildChatPanel(chatState, theme, primary),
           ),
         
         // Floating Button
         Positioned(
-          bottom: 20 + (bottomInset > 0 ? bottomInset : 0),
+          bottom: bottomOffset + (bottomInset > 0 ? bottomInset : 0),
           right: 20,
           child: _buildFloatingButton(chatState, primary),
         ),
@@ -142,7 +146,7 @@ class _FloatingChatbotState extends ConsumerState<FloatingChatbot> {
           child: Column(
             children: [
               // Header
-              _buildHeader(isDark, primary),
+              _buildHeader(chatState, isDark, primary),
               
               // Messages
               Expanded(
@@ -162,7 +166,7 @@ class _FloatingChatbotState extends ConsumerState<FloatingChatbot> {
     );
   }
 
-  Widget _buildHeader(bool isDark, Color primary) {
+  Widget _buildHeader(ChatState chatState, bool isDark, Color primary) {
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 12, 16),
       decoration: BoxDecoration(
@@ -184,25 +188,33 @@ class _FloatingChatbotState extends ConsumerState<FloatingChatbot> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'MicroFlow Assistant',
+                  chatState.isListening ? 'Listening...' : 'MicroFlow Assistant',
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
                     fontSize: 15,
                     letterSpacing: -0.5,
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: chatState.isListening ? primary : (isDark ? Colors.white : Colors.black87),
                   ),
                 ),
                 Text(
-                  'Online • Neural Engine Active',
+                  chatState.isListening ? 'Speak now' : 'Online • Neural Engine Active',
                   style: TextStyle(
                     fontSize: 10,
-                    color: primary.withValues(alpha: 0.8),
+                    color: chatState.isListening ? primary.withValues(alpha: 0.6) : primary.withValues(alpha: 0.8),
                     fontWeight: FontWeight.w700,
                     letterSpacing: 0.5,
                   ),
                 ),
               ],
             ),
+          ),
+          IconButton(
+            icon: Icon(
+              chatState.isContinuous ? Icons.hearing_rounded : Icons.hearing_disabled_rounded,
+              size: 20,
+              color: chatState.isContinuous ? primary : (isDark ? Colors.white38 : Colors.black38),
+            ),
+            onPressed: () => ref.read(chatProvider.notifier).toggleContinuousMode(),
           ),
           IconButton(
             icon: const Icon(Icons.close_fullscreen_rounded, size: 20),

@@ -17,4 +17,16 @@ class ChatMessage {
       'content': text,
     };
   }
+
+  ChatMessage copyWith({
+    String? text,
+    MessageRole? role,
+    DateTime? timestamp,
+  }) {
+    return ChatMessage(
+      text: text ?? this.text,
+      role: role ?? this.role,
+      timestamp: timestamp ?? this.timestamp,
+    );
+  }
 }

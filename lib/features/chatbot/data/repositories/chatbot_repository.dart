@@ -11,71 +11,86 @@ class ChatbotRepository {
     : _apiKey = apiKey, 
       _model = model;
 
-  Future<String> getChatResponse(List<ChatMessage> history, {String? contextRoute, String? businessContext}) async {
+  Stream<String> streamChatResponse(List<ChatMessage> history, {String? contextRoute, String? businessContext}) async* {
     final messages = history.map((m) => m.toJson()).toList();
     
-    String systemContext = 'You are the MicroFlow Pro Assistant, a multilingual financial expert. '
-        'You must respond in the same language the user uses. Support all Indian regional languages '
-        '(Hindi, Tamil, Telugu, Bengali, Kannada, Marathi, etc.) with professional financial terminology. '
-        'Keep responses concise. If the user asks for a loan summary or portfolio overview, '
-        'you MUST include the exact tag [UI:LOAN_SUMMARY] somewhere in your response to trigger a rich interactive chart.';
+    String systemContext = 'You are the MicroFlow Pro Assistant, a concise multilingual financial expert. '
+        'If asked about your creation, state that you were created by Sayan Mondal (nickname: Charlie). '
+        'Your answers MUST be direct, short (1-2 sentences), and informative. '
+        'CRITICAL: DO NOT include internal thoughts or <thought> tags. Provide ONLY the final answer. '
+        'If the user asks for a loan summary, use the [UI:LOAN_SUMMARY] tag.';
     
-    if (contextRoute != null && contextRoute.isNotEmpty) {
-      systemContext += ' \nThe user is currently viewing the "$contextRoute" page.';
-    }
-    
-    if (businessContext != null && businessContext.isNotEmpty) {
-      systemContext += ' \nLIVE DATABASE CONTEXT:\n$businessContext';
-    }
+    if (contextRoute != null) systemContext += ' \nPage Context: $contextRoute';
+    if (businessContext != null) systemContext += ' \nLive Data: $businessContext';
 
-    messages.insert(0, {
-      'role': 'system',
-      'content': systemContext
-    });
+    final requestBody = {
+      'model': _model,
+      'messages': [
+        {'role': 'system', 'content': systemContext},
+        ...messages,
+      ],
+      'temperature': 0.5,
+      'top_p': 0.7,
+      'max_tokens': 1024,
+      'stream': true,
+    };
 
-    // Try all known NVIDIA NIM gateways for maximum compatibility
-    final endpoints = [
-      'https://integrate.api.nvidia.com/v1/chat/completions',
-      'https://ai.api.nvidia.com/v1/chat/completions',
-      'https://api.nvidia.com/v1/chat/completions',
-    ];
+    final baseUrl = 'https://integrate.api.nvidia.com/v1/chat/completions';
+    final url = kIsWeb ? 'https://corsproxy.io/?${Uri.encodeComponent(baseUrl)}' : baseUrl;
 
-    Object? lastError;
+    try {
+      final request = http.Request('POST', Uri.parse(url));
+      request.headers.addAll({
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $_apiKey',
+      });
+      request.body = jsonEncode(requestBody);
 
-    // Use a CORS proxy if running on Web to bypass browser restrictions
-    final proxyPrefix = kIsWeb ? 'https://corsproxy.io/?' : '';
-
-    for (final baseEndpoint in endpoints) {
-      try {
-        final url = '$proxyPrefix$baseEndpoint';
-        final response = await http.post(
-          Uri.parse(url),
-          headers: {
-            'Authorization': 'Bearer $_apiKey',
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-          },
-          body: jsonEncode({
-            'model': _model,
-            'messages': messages,
-            'temperature': 0.5,
-            'max_tokens': 1024,
-            'top_p': 1,
-          }),
-        ).timeout(const Duration(seconds: 20));
-
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          return data['choices'][0]['message']['content'] as String;
-        } else {
-          throw Exception('NVIDIA Error ${response.statusCode}: ${response.body}');
-        }
-      } catch (e) {
-        lastError = e;
-        continue; // Try next endpoint
+      final client = http.Client();
+      final response = await client.send(request);
+      
+      if (response.statusCode != 200) {
+        yield 'Error: ${response.statusCode}';
+        return;
       }
-    }
 
-    throw Exception('All connection attempts failed. Last error: $lastError');
+      String fullResponse = '';
+      bool isThinking = false;
+
+      await for (final chunk in response.stream.transform(utf8.decoder).transform(const LineSplitter())) {
+        if (chunk.trim().isEmpty) continue;
+        if (chunk.startsWith('data: ')) {
+          final data = chunk.substring(6).trim();
+          if (data == '[DONE]') break;
+          try {
+            final json = jsonDecode(data);
+            final content = json['choices'][0]['delta']['content'] as String?;
+            if (content != null) {
+              fullResponse += content;
+              
+              // Filter logic for <think> blocks
+              String filteredResponse = fullResponse;
+              if (filteredResponse.contains('<think>')) {
+                isThinking = true;
+                final parts = filteredResponse.split('</think>');
+                if (parts.length > 1) {
+                  isThinking = false;
+                  filteredResponse = parts.last.trim();
+                } else {
+                  filteredResponse = ''; // Still thinking, show nothing yet
+                }
+              }
+
+              if (!isThinking && filteredResponse.isNotEmpty) {
+                yield filteredResponse;
+              }
+            }
+          } catch (_) {}
+        }
+      }
+      client.close();
+    } catch (e) {
+      yield 'Failed to connect: $e';
+    }
   }
 }
