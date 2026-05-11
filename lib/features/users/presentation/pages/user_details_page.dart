@@ -12,7 +12,7 @@ import '../../../loans/presentation/providers/loan_providers.dart';
 import '../../../savings/presentation/providers/savings_providers.dart';
 import '../../../loans/data/models/loan_model.dart';
 import '../../../savings/data/models/savings_model.dart';
-import '../../../../core/constants/enums.dart';
+
 import '../providers/user_list_provider.dart';
 import '../providers/new_user_provider.dart';
 

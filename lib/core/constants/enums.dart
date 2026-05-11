@@ -1,7 +1,8 @@
 enum UserRole {
-  admin,
-  staff,
-  customer,
+  executiveAdmin,
+  manager,
+  fieldStaff,
+  retailMember,
 }
 
 enum LoanStatus {

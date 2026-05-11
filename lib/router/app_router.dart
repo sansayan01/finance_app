@@ -5,8 +5,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/auth/presentation/pages/login_page.dart';
 import '../features/auth/presentation/pages/signup_page.dart';
 import '../features/auth/presentation/providers/auth_provider.dart';
+import '../features/auth/data/models/user_model.dart';
 
 import '../features/home/presentation/pages/home_page.dart';
+import '../features/home/presentation/pages/staff_home_page.dart';
 import '../features/loans/presentation/pages/loans_page.dart';
 import '../features/savings/presentation/pages/savings_page.dart';
 import '../features/settings/presentation/pages/settings_page.dart';
@@ -454,11 +456,15 @@ class _NavItem extends StatelessWidget {
   }
 }
 
-class HomePageContent extends StatelessWidget {
+class HomePageContent extends ConsumerWidget {
   const HomePageContent({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(currentUserProvider);
+    if (user?.role == UserRole.fieldStaff) {
+      return const StaffHomePage();
+    }
     return HomePage(
       onViewAllLoans: () => context.go('/loans'),
       onViewAllSavings: () => context.go('/savings'),

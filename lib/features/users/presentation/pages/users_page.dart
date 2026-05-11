@@ -8,7 +8,6 @@ import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../auth/presentation/providers/auth_provider.dart';
 import '../../../loans/presentation/providers/loan_providers.dart';
-import '../../../../core/constants/enums.dart' hide UserRole;
 import '../providers/user_list_provider.dart';
 
 class UsersPage extends ConsumerStatefulWidget {
@@ -380,9 +379,9 @@ class _UsersPageState extends ConsumerState<UsersPage> {
             _SelectionAction(
                 icon: Icons.message_rounded, label: 'Notify', onTap: () {}),
             _SelectionAction(
-                icon: Icons.block_rounded,
-                label: 'Deactivate',
-                onTap: () {},
+                icon: Icons.delete_rounded,
+                label: 'Delete',
+                onTap: () => _showDeleteConfirmation(theme),
                 color: Colors.red),
             _SelectionAction(
                 icon: Icons.verified_user_rounded,
@@ -395,6 +394,35 @@ class _UsersPageState extends ConsumerState<UsersPage> {
         ),
       ),
     ).animate().slideY(begin: 1, end: 0, curve: Curves.easeOutBack);
+  }
+
+  void _showDeleteConfirmation(ThemeData theme) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Users'),
+        content: Text('Are you sure you want to delete ${_selectedUsers.length} user(s)? This action cannot be undone.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(userListNotifierProvider.notifier).deleteUsers(_selectedUsers.toList());
+              ref.invalidate(userListProvider);
+              ref.invalidate(userStatsProvider);
+              setState(() {
+                _selectedUsers.clear();
+                _isSelectionMode = false;
+              });
+            },
+            child: const Text('Delete', style: TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildEmptyState(ThemeData theme) {

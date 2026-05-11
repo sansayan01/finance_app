@@ -62,6 +62,29 @@ class TransactionsRepository {
     }
   }
 
+  Future<void> createTransaction({
+    required String memberId,
+    required String memberName,
+    required String type,
+    required double amount,
+    String? loanId,
+    String? savingsId,
+    String? paymentMode,
+    String? description,
+  }) async {
+    await _client.from('transactions').insert({
+      'member_id': memberId,
+      'member_name': memberName,
+      'type': type,
+      'amount': amount,
+      'loan_id': loanId,
+      'savings_id': savingsId,
+      'payment_mode': paymentMode,
+      'description': description,
+      'created_at': DateTime.now().toIso8601String(),
+    });
+  }
+
   Future<Map<String, dynamic>> getTodayStats() async {
     try {
       final today = DateTime.now();
@@ -84,7 +107,7 @@ class TransactionsRepository {
       for (final t in transactions) {
         final type = t['type'] as String;
         final amount = (t['amount'] as num).toDouble();
-        if (type == 'emiCollection' || type == 'savingsDeposit') {
+        if (type == 'emiPayment' || type == 'savingsDeposit') {
           collected += amount;
           collectionCount++;
         } else if (type == 'loanDisbursement') {

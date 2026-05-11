@@ -25,14 +25,32 @@ class AuthRepository {
 
     final parsedDate = DateTime.tryParse(user.createdAt);
 
-    // Fail-safe role fetching
+    // Fail-safe role fetching & linking
     UserRole role = _parseRole(null, user.email);
+    Map<String, dynamic>? profile;
     try {
-      final profile = await _client
+      // 1. Try finding by user_id
+      profile = await _client
           .from('profiles')
-          .select('role')
+          .select()
           .eq('user_id', user.id)
           .maybeSingle();
+
+      // 2. If not found, try finding by email (for users pre-created by admin)
+      if (profile == null && user.email != null) {
+        profile = await _client
+            .from('profiles')
+            .select()
+            .eq('email', user.email!)
+            .maybeSingle();
+
+        if (profile != null) {
+          // Link the user_id for future logins
+          await _client
+              .from('profiles')
+              .update({'user_id': user.id}).eq('id', profile['id']);
+        }
+      }
 
       if (profile != null) {
         role = _parseRole(profile['role'] as String?, user.email);
@@ -44,8 +62,11 @@ class AuthRepository {
     final userModel = UserModel(
       id: user.id,
       email: user.email ?? '',
-      fullName: user.userMetadata?['full_name'] as String? ?? '',
-      phone: user.phone,
+      fullName: user.userMetadata?['full_name'] as String? ??
+          (profile != null ? profile['full_name'] as String? : null) ??
+          '',
+      phone:
+          user.phone ?? (profile != null ? profile['phone'] as String? : null),
       role: role,
       createdAt: parsedDate ?? DateTime.now(),
     );
@@ -113,27 +134,48 @@ class AuthRepository {
 
     final parsedDate = DateTime.tryParse(user.createdAt);
 
-    // Fail-safe role fetching
+    // Fail-safe role fetching & linking
     UserRole role = _parseRole(null, user.email);
+    Map<String, dynamic>? profile;
     try {
-      final profile = await _client
+      // 1. Try finding by user_id
+      profile = await _client
           .from('profiles')
-          .select('role')
+          .select()
           .eq('user_id', user.id)
           .maybeSingle();
+
+      // 2. If not found, try finding by email
+      if (profile == null && user.email != null) {
+        profile = await _client
+            .from('profiles')
+            .select()
+            .eq('email', user.email!)
+            .maybeSingle();
+
+        if (profile != null) {
+          // Link the user_id
+          await _client
+              .from('profiles')
+              .update({'user_id': user.id}).eq('id', profile['id']);
+        }
+      }
 
       if (profile != null) {
         role = _parseRole(profile['role'] as String?, user.email);
       }
     } catch (e) {
-      // Fallback to default/email override
+      // Fallback
     }
 
     return UserModel(
       id: user.id,
       email: user.email ?? '',
-      fullName: user.userMetadata?['full_name'] as String? ?? '',
-      phone: user.phone,
+      fullName: user.userMetadata?['full_name'] as String? ??
+          (profile != null ? profile['full_name'] as String? : null) ??
+          '',
+      phone:
+          user.phone ?? (profile != null ? profile['phone'] as String? : null),
       role: role,
       createdAt: parsedDate ?? DateTime.now(),
     );
@@ -146,6 +188,21 @@ class AuthRepository {
     }
 
     if (roleStr == null) return UserRole.retailMember;
+
+    // Handle legacy or simplified role names from DB
+    final normalizedRole = roleStr.toLowerCase();
+    if (normalizedRole == 'staff' || normalizedRole == 'fieldstaff') {
+      return UserRole.fieldStaff;
+    }
+    if (normalizedRole == 'admin' || normalizedRole == 'executiveadmin') {
+      return UserRole.executiveAdmin;
+    }
+    if (normalizedRole == 'manager') {
+      return UserRole.manager;
+    }
+    if (normalizedRole == 'customer' || normalizedRole == 'retailmember') {
+      return UserRole.retailMember;
+    }
 
     return UserRole.values.firstWhere(
       (e) => e.name == roleStr,

@@ -10,6 +10,7 @@ class GlassCard extends StatefulWidget {
   final Color? backgroundColor;
   final Color? borderColor;
   final bool enableScale;
+  final EdgeInsetsGeometry? margin;
 
   const GlassCard({
     super.key,
@@ -21,6 +22,7 @@ class GlassCard extends StatefulWidget {
     this.backgroundColor,
     this.borderColor,
     this.enableScale = true,
+    this.margin,
   });
 
   @override
@@ -86,30 +88,35 @@ class _GlassCardState extends State<GlassCard>
             ),
           ];
 
-    final child = AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      curve: Curves.easeOutCubic,
-      padding: widget.padding,
-      decoration: BoxDecoration(
-        color: _isPressed
-            ? (isDark
-                ? bgColor.withValues(alpha: 0.9)
-                : bgColor.withValues(alpha: 0.95))
-            : bgColor,
-        borderRadius: BorderRadius.circular(widget.borderRadius),
-        border: Border.all(
-          color: widget.borderColor ??
-              (isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.03)),
-          width: widget.borderColor != null ? 1.5 : 0.5,
+    final child = Padding(
+      padding: widget.margin ?? EdgeInsets.zero,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        curve: Curves.easeOutCubic,
+        padding: widget.padding,
+        decoration: BoxDecoration(
+          color: _isPressed
+              ? (isDark
+                  ? bgColor.withValues(alpha: 0.9)
+                  : bgColor.withValues(alpha: 0.95))
+              : bgColor,
+          borderRadius: BorderRadius.circular(widget.borderRadius),
+          border: Border.all(
+            color: widget.borderColor ??
+                (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.03)),
+            width: widget.borderColor != null ? 1.5 : 0.5,
+          ),
+          boxShadow: shadows,
         ),
-        boxShadow: shadows,
+        child: widget.child,
       ),
-      child: widget.child,
     );
 
-    if (widget.onTap == null) return child;
+    if (widget.onTap == null) {
+      return child;
+    }
 
     return GestureDetector(
       onTap: widget.onTap,

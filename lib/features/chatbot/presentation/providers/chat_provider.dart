@@ -65,6 +65,16 @@ class ChatNotifier extends StateNotifier<ChatState> {
   Future<void> sendMessage(String text, {String? contextRoute}) async {
     if (text.trim().isEmpty) return;
 
+    final config = _ref.read(chatConfigProvider);
+    if (config.apiKey.isEmpty) {
+      state = state.copyWith(
+        error:
+            'NVIDIA API Key not configured. Please go to Settings > Chatbot to add your API key.',
+        isLoading: false,
+      );
+      return;
+    }
+
     final userMessage = ChatMessage(text: text, role: MessageRole.user);
     state = state.copyWith(
       messages: [...state.messages, userMessage],

@@ -119,4 +119,25 @@ class EMIRepository {
         .from('emi_schedule')
         .update({'status': status}).eq('id', emiId);
   }
+
+  Future<List<EMIScheduleModel>> getTodaysDues() async {
+    try {
+      final today = DateTime.now();
+      final startOfDay = DateTime(today.year, today.month, today.day);
+      final endOfDay = startOfDay.add(const Duration(days: 1));
+
+      final response = await _client
+          .from('emi_schedule')
+          .select()
+          .gte('due_date', startOfDay.toIso8601String())
+          .lt('due_date', endOfDay.toIso8601String())
+          .inFilter('status', ['upcoming', 'overdue', 'pendingPayment']);
+
+      return (response as List)
+          .map((json) => EMIScheduleModel.fromJson(json))
+          .toList();
+    } catch (e) {
+      return [];
+    }
+  }
 }

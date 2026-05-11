@@ -1,9 +1,5 @@
-enum UserRole {
-  executiveAdmin,
-  manager,
-  fieldStaff,
-  retailMember,
-}
+import '../../../../core/constants/enums.dart';
+export '../../../../core/constants/enums.dart';
 
 class UserModel {
   final String id;

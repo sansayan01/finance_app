@@ -27,6 +27,8 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
   final TextEditingController _rateController = TextEditingController();
   final TextEditingController _tenureController = TextEditingController();
 
+  bool _isMigratedLoan = false;
+
   @override
   void initState() {
     super.initState();
@@ -280,36 +282,59 @@ class _NewLoanPageState extends ConsumerState<NewLoanPage> {
               theme, primary),
           const SizedBox(height: 20),
 
-          // ── Migration Alert ──
+          // ── Migration Toggle ──
           Container(
-            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: primary.withValues(alpha: 0.1),
+              color: isDark ? AppColors.fillDark : AppColors.fillLight,
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: primary.withValues(alpha: 0.3)),
             ),
-            child: Row(
-              children: [
-                Icon(Icons.info_outline_rounded, color: primary),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Migrating an existing loan?',
-                          style: TextStyle(
-                              fontWeight: FontWeight.w700, color: primary)),
-                      const SizedBox(height: 4),
-                      Text(
-                        'To migrate a loan, simply enter the current OUTSTANDING principal balance and the REMAINING tenure. The system will continue calculations from today.',
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
+            child: SwitchListTile(
+              title: Text('Existing / Migrated Loan',
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w700)),
+              subtitle: Text(
+                  'Enable if this loan is being moved from manual records.',
+                  style: theme.textTheme.bodySmall),
+              value: _isMigratedLoan,
+              activeThumbColor: primary,
+              onChanged: (val) {
+                setState(() => _isMigratedLoan = val);
+              },
+            ),
+          ).animate().fadeIn(duration: 400.ms),
+
+          if (_isMigratedLoan) ...[
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(color: primary.withValues(alpha: 0.3)),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded, color: primary),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Migration Mode Active',
+                            style: TextStyle(
+                                fontWeight: FontWeight.w700, color: primary)),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Enter the current OUTSTANDING principal balance and the REMAINING tenure. The system will resume tracking from the next installment date.',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ).animate().fadeIn(),
+                ],
+              ),
+            ).animate().fadeIn(),
+          ],
           const SizedBox(height: 28),
 
           // ── Borrower ──
