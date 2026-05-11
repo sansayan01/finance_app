@@ -9,7 +9,7 @@ import '../../../../core/constants/app_colors.dart';
 import '../../../../core/widgets/glass_card.dart';
 import '../../../auth/data/models/user_model.dart';
 import '../../../loans/presentation/providers/loan_providers.dart';
-import '../../../savings/presentation/providers/savings_providers.dart';
+import '../../../savings/data/providers/savings_providers.dart';
 import '../../../loans/data/models/loan_model.dart';
 import '../../../savings/data/models/savings_model.dart';
 

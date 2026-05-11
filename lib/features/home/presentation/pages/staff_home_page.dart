@@ -16,8 +16,8 @@ import '../../../loans/presentation/widgets/collection_sheet.dart';
 
 import '../../../loans/data/models/emi_schedule_model.dart';
 import '../../../transactions/data/models/transaction_model.dart';
-import '../../data/providers/dashboard_providers.dart';
 import '../providers/staff_providers.dart';
+import '../../../savings/data/providers/savings_providers.dart';
 
 class StaffHomePage extends ConsumerWidget {
   const StaffHomePage({super.key});

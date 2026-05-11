@@ -1,21 +1,21 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/brand_model.dart';
 import 'activity_log_repository_provider.dart';
 import '../models/activity_log_model.dart';
+import '../../../../providers/supabase_provider.dart';
 
 class BrandNotifier extends StateNotifier<BrandModel> {
-  final SupabaseClient _client;
   final Ref _ref;
 
-  BrandNotifier(this._client, this._ref)
+  BrandNotifier(this._ref)
       : super(BrandModel(name: 'MicroFlow Pro')) {
     _loadBrand();
   }
 
   Future<void> _loadBrand() async {
     try {
-      final response = await _client
+      final client = _ref.read(supabaseClientProvider);
+      final response = await client
           .from('system_settings')
           .select()
           .eq('key', 'branding')
@@ -35,7 +35,8 @@ class BrandNotifier extends StateNotifier<BrandModel> {
     state = newState;
 
     try {
-      await _client.from('system_settings').upsert({
+      final client = _ref.read(supabaseClientProvider);
+      await client.from('system_settings').upsert({
         'key': 'branding',
         'value': newState.toJson(),
         'updated_at': DateTime.now().toIso8601String(),
@@ -54,5 +55,5 @@ class BrandNotifier extends StateNotifier<BrandModel> {
 }
 
 final brandProvider = StateNotifierProvider<BrandNotifier, BrandModel>((ref) {
-  return BrandNotifier(Supabase.instance.client, ref);
+  return BrandNotifier(ref);
 });

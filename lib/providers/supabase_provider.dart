@@ -19,7 +19,7 @@ final authStateProvider = StreamProvider<User?>((ref) {
   }
 });
 
-final currentUserProvider = Provider<User?>((ref) {
+final supabaseUserProvider = Provider<User?>((ref) {
   try {
     final authState = ref.watch(authStateProvider);
     return authState.whenOrNull(data: (user) => user);
@@ -30,7 +30,7 @@ final currentUserProvider = Provider<User?>((ref) {
 
 final isAuthenticatedProvider = Provider<bool>((ref) {
   try {
-    final user = ref.watch(currentUserProvider);
+    final user = ref.watch(supabaseUserProvider);
     return user != null;
   } catch (e) {
     return false;

@@ -1,5 +1,4 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../providers/supabase_provider.dart';
 import '../../data/repositories/savings_repository.dart';
 import '../../data/providers/savings_providers.dart';
 
@@ -73,10 +72,6 @@ class NewRecurringSavingState {
     return maturityAmount - totalCapitalInvested;
   }
 }
-
-final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
-  return SavingsRepository(ref.watch(supabaseClientProvider));
-});
 
 class NewRecurringSavingNotifier
     extends StateNotifier<NewRecurringSavingState> {

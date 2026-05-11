@@ -2,17 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../providers/supabase_provider.dart';
 import '../../../loans/data/repositories/loans_repository.dart';
 import '../../../loans/data/models/loan_model.dart';
-import '../../../savings/data/repositories/savings_repository.dart';
 import '../../../savings/data/models/savings_model.dart';
+import '../../../savings/data/providers/savings_providers.dart';
 import '../../../transactions/data/repositories/transactions_repository.dart';
 import '../../../transactions/data/models/transaction_model.dart';
 
 final loansRepositoryProvider = Provider<LoansRepository>((ref) {
   return LoansRepository(ref.watch(supabaseClientProvider));
-});
-
-final savingsRepositoryProvider = Provider<SavingsRepository>((ref) {
-  return SavingsRepository(ref.watch(supabaseClientProvider));
 });
 
 final transactionsRepositoryProvider = Provider<TransactionsRepository>((ref) {

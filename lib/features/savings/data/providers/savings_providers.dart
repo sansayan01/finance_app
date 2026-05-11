@@ -37,3 +37,9 @@ final savingTransactionsProvider =
   final repository = ref.watch(transactionsRepositoryProvider);
   return repository.getTransactionsBySavingsId(id);
 });
+
+final userSavingsProvider =
+    FutureProvider.family<List<SavingsModel>, String>((ref, userId) async {
+  final savings = await ref.watch(allSavingsProvider.future);
+  return savings.where((s) => s.memberId == userId).toList();
+});

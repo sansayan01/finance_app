@@ -1,7 +1,7 @@
+// ignore_for_file: deprecated_member_use
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/constants/app_colors.dart';
@@ -72,7 +72,7 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                 letterSpacing: 2,
                 color: theme.colorScheme.primary,
               ),
-            ).animate().fadeIn(duration: 400.ms),
+            ),
             Text(
               'Savings Hub',
               style: theme.textTheme.headlineSmall?.copyWith(
@@ -80,22 +80,29 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                 letterSpacing: -1,
                 color: theme.colorScheme.onSurface,
               ),
-            ).animate().fadeIn(delay: 100.ms).slideX(begin: -0.1),
+            ),
           ],
         ),
       ),
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 16),
+          padding: const EdgeInsets.only(right: 16, top: 12),
           child: Container(
             decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.1),
+              gradient: AppColors.primaryGradient,
               borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                )
+              ],
             ),
             child: IconButton(
               onPressed: () => context.push('/savings/new'),
               icon: const Icon(Icons.add_rounded, size: 28),
-              color: AppColors.success,
+              color: Colors.white,
               tooltip: 'New Savings Plan',
             ),
           ),
@@ -110,7 +117,8 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
       data: (savings) {
         final totalSaved = savings.fold(0.0, (sum, s) => sum + s.currentAmount);
         final totalTarget = savings.fold(0.0, (sum, s) => sum + s.targetAmount);
-        final progress = totalTarget > 0 ? totalSaved / totalTarget : 0.0;
+        final progress = (totalTarget > 0 ? totalSaved / totalTarget : 0.0)
+            .clamp(0.0, 1.0);
         final avgRate = savings.isEmpty
             ? 0.0
             : (savings.fold(0.0, (sum, s) => sum + s.interestRate) /
@@ -120,25 +128,54 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
           padding: const EdgeInsets.symmetric(horizontal: 24),
           child: Column(
             children: [
-              GlassCard(
-                padding: EdgeInsets.zero,
-                elevated: true,
-                child: Stack(
+              Container(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(28),
+                  gradient: AppColors.primaryGradient,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
+                    )
+                  ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(28),
+                  child: Stack(
                   children: [
                     Positioned(
-                      top: -40,
-                      right: -30,
+                      top: -60,
+                      right: -40,
+                      child: Container(
+                        width: 200,
+                        height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.white.withOpacity(0.12),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -80,
+                      left: -40,
                       child: Container(
                         width: 160,
                         height: 160,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.success.withValues(alpha: 0.1),
+                          color: Colors.white.withOpacity(0.12),
                         ),
                       ),
                     ),
+                    Positioned.fill(
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                        child: const SizedBox(),
+                      ),
+                    ),
                     Padding(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(28),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -153,9 +190,8 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                                           ?.copyWith(
                                               letterSpacing: 2,
                                               fontWeight: FontWeight.w900,
-                                              color: theme
-                                                  .colorScheme.onSurface
-                                                  .withValues(alpha: 0.5))),
+                                              color: Colors.white
+                                                  .withOpacity(0.7))),
                                   const SizedBox(height: 8),
                                   Text(
                                     AppFormatters.formatCurrency(totalSaved),
@@ -163,6 +199,7 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                                         theme.textTheme.displaySmall?.copyWith(
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: -1,
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -171,15 +208,13 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                                 width: 56,
                                 height: 56,
                                 decoration: BoxDecoration(
-                                  color:
-                                      AppColors.success.withValues(alpha: 0.1),
+                                  color: Colors.white.withOpacity(0.15),
                                   shape: BoxShape.circle,
                                   border: Border.all(
-                                      color: AppColors.success
-                                          .withValues(alpha: 0.2)),
+                                      color: Colors.white.withOpacity(0.2)),
                                 ),
                                 child: const Icon(Icons.shield_rounded,
-                                    color: AppColors.success, size: 28),
+                                    color: Colors.white, size: 28),
                               ),
                             ],
                           ),
@@ -191,13 +226,18 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                                   'GOAL',
                                   AppFormatters.formatCompactCurrency(
                                       totalTarget),
-                                  theme),
+                                  theme,
+                                  color: Colors.white,
+                                  labelColor: Colors.white.withOpacity(0.7)),
                               _buildGlobalMetric(
                                   'AVG YIELD', '${avgRate.toStringAsFixed(1)}%',
                                   theme,
-                                  color: AppColors.success),
+                                  color: Colors.white,
+                                  labelColor: Colors.white.withOpacity(0.7)),
                               _buildGlobalMetric('PLANS',
-                                  savings.length.toString(), theme),
+                                  savings.length.toString(), theme,
+                                  color: Colors.white,
+                                  labelColor: Colors.white.withOpacity(0.7)),
                             ],
                           ),
                           const SizedBox(height: 24),
@@ -208,18 +248,17 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                                   '${(progress * 100).toStringAsFixed(1)}% ACHIEVED',
                                   style: theme.textTheme.labelSmall?.copyWith(
                                       fontWeight: FontWeight.w900,
-                                      color: AppColors.success)),
+                                      color: Colors.white)),
                               const SizedBox(height: 8),
                               ClipRRect(
                                 borderRadius: BorderRadius.circular(4),
                                 child: LinearProgressIndicator(
                                   value: progress,
                                   minHeight: 8,
-                                  backgroundColor: theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.05),
+                                  backgroundColor: Colors.white.withOpacity(0.2),
                                   valueColor:
                                       const AlwaysStoppedAnimation<Color>(
-                                          AppColors.success),
+                                          Colors.white),
                                 ),
                               ),
                             ],
@@ -230,9 +269,10 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                   ],
                 ),
               ),
+              ),
             ],
           ),
-        ).animate().fadeIn(duration: 600.ms).slideY(begin: 0.1, end: 0);
+        );
       },
       loading: () => const Padding(
           padding: EdgeInsets.all(24), child: ShimmerCard(height: 220)),
@@ -241,14 +281,14 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
   }
 
   Widget _buildGlobalMetric(String label, String value, ThemeData theme,
-      {Color? color}) {
+      {Color? color, Color? labelColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(label,
             style: theme.textTheme.labelSmall?.copyWith(
                 fontWeight: FontWeight.w800,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                color: labelColor ?? theme.colorScheme.onSurface.withOpacity(0.4))),
         const SizedBox(height: 4),
         Text(value,
             style: theme.textTheme.titleMedium?.copyWith(
@@ -265,7 +305,7 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
           child: BackdropFilter(
             filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
             child: Container(
-              color: theme.scaffoldBackgroundColor.withValues(alpha: 0.8),
+              color: theme.scaffoldBackgroundColor.withOpacity(0.8),
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -275,18 +315,29 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       decoration: BoxDecoration(
-                        color: theme.colorScheme.surfaceContainerHighest
-                            .withValues(alpha: 0.3),
+                        color: isDark
+                            ? Colors.white.withOpacity(0.03)
+                            : Colors.white.withOpacity(0.8),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
-                            color: theme.dividerColor.withValues(alpha: 0.1)),
+                            color: isDark
+                                ? Colors.white.withOpacity(0.05)
+                                : Colors.black.withOpacity(0.03)),
+                        boxShadow: [
+                          if (!isDark)
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.02),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            )
+                        ],
                       ),
                       child: Row(
                         children: [
                           Icon(Icons.search_rounded,
                               size: 20,
                               color: theme.colorScheme.onSurface
-                                  .withValues(alpha: 0.4)),
+                                  .withOpacity(0.4)),
                           const SizedBox(width: 12),
                           Expanded(
                             child: TextField(
@@ -296,7 +347,7 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
                                 hintText: 'Search by member name...',
                                 hintStyle: theme.textTheme.bodySmall?.copyWith(
                                     color: theme.colorScheme.onSurface
-                                        .withValues(alpha: 0.3)),
+                                        .withOpacity(0.3)),
                                 border: InputBorder.none,
                                 isDense: true,
                                 contentPadding:
@@ -344,27 +395,22 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
         duration: const Duration(milliseconds: 250),
         padding: const EdgeInsets.symmetric(horizontal: 22, vertical: 12),
         decoration: BoxDecoration(
-          gradient: isSelected
-              ? LinearGradient(colors: [
-                  theme.colorScheme.primary,
-                  theme.colorScheme.primary.withValues(blue: 255)
-                ])
-              : null,
+          gradient: isSelected ? AppColors.primaryGradient : null,
           color: !isSelected
               ? (isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.03))
+                  ? Colors.white.withOpacity(0.05)
+                  : Colors.black.withOpacity(0.03))
               : null,
           borderRadius: BorderRadius.circular(999),
           border: Border.all(
               color: isSelected
                   ? Colors.transparent
-                  : theme.dividerColor.withValues(alpha: 0.1)),
+                  : theme.dividerColor.withOpacity(0.1)),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                      color: theme.colorScheme.primary.withValues(alpha: 0.3),
-                      blurRadius: 8,
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 12,
                       offset: const Offset(0, 4))
                 ]
               : [],
@@ -374,7 +420,7 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
           style: TextStyle(
             color: isSelected
                 ? Colors.white
-                : theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                : theme.colorScheme.onSurface.withOpacity(0.7),
             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
             fontSize: 13,
             letterSpacing: 0.3,
@@ -445,9 +491,26 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.savings_outlined,
-              size: 80,
-              color: theme.colorScheme.primary.withValues(alpha: 0.2)),
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: theme.colorScheme.primary.withOpacity(0.05),
+              border: Border.all(
+                color: theme.colorScheme.primary.withOpacity(0.1),
+                width: 2,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  blurRadius: 32,
+                  spreadRadius: 8,
+                )
+              ],
+            ),
+            child: Icon(Icons.savings_outlined,
+                size: 80, color: theme.colorScheme.primary),
+          ),
           const SizedBox(height: 24),
           Text('No Savings Found',
               style: theme.textTheme.titleLarge
@@ -455,7 +518,7 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
           const SizedBox(height: 8),
           Text('Your financial future starts with a single deposit.',
               style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.5))),
+                  color: theme.colorScheme.onSurface.withOpacity(0.5))),
         ],
       ),
     );
@@ -484,20 +547,18 @@ class _PremiumSavingCard extends StatelessWidget {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      AppColors.success.withValues(alpha: 0.2),
-                      AppColors.success.withValues(alpha: 0.05)
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppColors.primaryGradient,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: AppColors.success.withValues(alpha: 0.2)),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.3),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    )
+                  ],
                 ),
                 child: const Icon(Icons.account_balance_wallet_rounded,
-                    color: AppColors.success, size: 24),
+                    color: Colors.white, size: 24),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -508,13 +569,13 @@ class _PremiumSavingCard extends StatelessWidget {
                         style: theme.textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w900, letterSpacing: -0.5)),
                     Text(
-                      'VAULT ID: ${saving.id.substring(0, 8).toUpperCase()}',
+                      'VAULT ID: ${saving.id.length >= 8 ? saving.id.substring(0, 8).toUpperCase() : saving.id.toUpperCase()}',
                       style: theme.textTheme.labelSmall?.copyWith(
                           fontSize: 9,
                           letterSpacing: 1,
                           fontWeight: FontWeight.w800,
                           color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.4)),
+                              .withOpacity(0.4)),
                     ),
                   ],
                 ),
@@ -548,7 +609,7 @@ class _PremiumSavingCard extends StatelessWidget {
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
                           color: theme.colorScheme.onSurface
-                              .withValues(alpha: 0.3))),
+                              .withOpacity(0.3))),
                   Text('${(progress * 100).toInt()}%',
                       style: theme.textTheme.labelSmall?.copyWith(
                           fontSize: 10,
@@ -559,13 +620,21 @@ class _PremiumSavingCard extends StatelessWidget {
               const SizedBox(height: 8),
               ClipRRect(
                 borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  minHeight: 4,
-                  backgroundColor:
-                      theme.colorScheme.onSurface.withValues(alpha: 0.05),
-                  valueColor: const AlwaysStoppedAnimation<Color>(
-                      AppColors.success),
+                child: Container(
+                  height: 6,
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.onSurface.withOpacity(0.05),
+                  ),
+                  child: FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: progress,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(3),
+                        gradient: const LinearGradient(colors: AppColors.successGradient),
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -575,23 +644,23 @@ class _PremiumSavingCard extends StatelessWidget {
             children: [
               Icon(Icons.event_available_rounded,
                   size: 14,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.4)),
+                  color: theme.colorScheme.onSurface.withOpacity(0.4)),
               const SizedBox(width: 6),
               Text(
                 'Maturity: ${AppFormatters.formatDate(saving.maturityDate)}',
                 style: theme.textTheme.labelSmall?.copyWith(
                     fontWeight: FontWeight.w700,
-                    color: theme.colorScheme.onSurface.withValues(alpha: 0.5)),
+                    color: theme.colorScheme.onSurface.withOpacity(0.5)),
               ),
               const Spacer(),
               Icon(Icons.arrow_forward_ios_rounded,
                   size: 12,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.3)),
+                  color: theme.colorScheme.onSurface.withOpacity(0.3)),
             ],
           ),
         ],
       ),
-    ).animate().fadeIn(duration: 400.ms).slideX(begin: 0.05, end: 0);
+    );
   }
 
   Widget _buildMiniMetric(String label, String value, ThemeData theme,
@@ -601,7 +670,7 @@ class _PremiumSavingCard extends StatelessWidget {
       children: [
         Text(label,
             style: theme.textTheme.labelSmall?.copyWith(
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.4))),
+                color: theme.colorScheme.onSurface.withOpacity(0.4))),
         Text(value,
             style: theme.textTheme.bodyMedium
                 ?.copyWith(fontWeight: FontWeight.w800, color: color)),
@@ -614,16 +683,23 @@ class _PremiumSavingCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: (isMatured ? AppColors.success : AppColors.primary)
-            .withValues(alpha: 0.1),
+        gradient: isMatured ? const LinearGradient(colors: AppColors.successGradient) : AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: (isMatured ? AppColors.success : AppColors.primary).withOpacity(0.3),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          )
+        ],
       ),
       child: Text(
         isMatured ? 'MATURED' : 'ACTIVE',
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 10,
           fontWeight: FontWeight.w900,
-          color: isMatured ? AppColors.success : AppColors.primary,
+          color: Colors.white,
+          letterSpacing: 0.5,
         ),
       ),
     );
@@ -637,13 +713,15 @@ class _FilterDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
           BuildContext context, double shrinkOffset, bool overlapsContent) =>
-      child;
+      SizedBox.expand(child: child);
 
   @override
-  double get maxExtent => 110;
+  double get maxExtent => 140;
   @override
-  double get minExtent => 110;
+  double get minExtent => 140;
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
       true;
 }
+
+

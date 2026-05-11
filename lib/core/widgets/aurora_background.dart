@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'dart:math';
 import 'package:flutter/material.dart';
 
@@ -42,9 +43,9 @@ class _AuroraBackgroundState extends State<AuroraBackground>
             return CustomPaint(
               painter: _AuroraPainter(
                 progress: _controller.value,
-                primaryColor: primary.withValues(alpha: isDark ? 0.08 : 0.05),
+                primaryColor: primary.withOpacity(isDark ? 0.08 : 0.05),
                 secondaryColor:
-                    secondary.withValues(alpha: isDark ? 0.06 : 0.03),
+                    secondary.withOpacity(isDark ? 0.06 : 0.03),
                 isDark: isDark,
               ),
               size: Size.infinite,
@@ -86,7 +87,7 @@ class _AuroraPainter extends CustomPainter {
         0.5 + 0.1 * sin(progress * pi),
         0.7 - 0.1 * cos(progress * 2 * pi),
         200,
-        primaryColor.withValues(alpha: 0.03),
+        primaryColor.withOpacity(0.03),
         paint);
   }
 
@@ -104,3 +105,5 @@ class _AuroraPainter extends CustomPainter {
   bool shouldRepaint(covariant _AuroraPainter oldDelegate) =>
       oldDelegate.progress != progress;
 }
+
+
