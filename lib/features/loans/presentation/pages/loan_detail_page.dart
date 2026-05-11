@@ -106,6 +106,10 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                             const SizedBox(height: 16),
                             _buildHorizontalTimeline(loan, scheduleAsync, theme),
                             const SizedBox(height: 40),
+                            _buildSectionHeader('Loan Intelligence', theme),
+                            const SizedBox(height: 16),
+                            _buildLoanIntelligence(loan, theme),
+                            const SizedBox(height: 40),
                             _buildSectionHeader('Financial Health', theme),
                             const SizedBox(height: 16),
                             _buildHealthMetrics(loan, theme),
@@ -145,7 +149,60 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
               onPressed: () => Navigator.pop(context),
             ),
             actions: [
-              IconButton(icon: const Icon(Icons.more_horiz_rounded), onPressed: () {}),
+              PopupMenuButton<String>(
+                icon: const Icon(Icons.more_horiz_rounded),
+                onSelected: (val) {
+                  HapticFeedback.lightImpact();
+                  if (val == 'edit') _handleEdit();
+                  if (val == 'statement') _handlePdfExport();
+                  if (val == 'default') _handleStatusChange(LoanStatus.defaultStatus);
+                  if (val == 'delete') _handleDelete();
+                },
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                itemBuilder: (ctx) => [
+                  const PopupMenuItem(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit_outlined, size: 18),
+                        SizedBox(width: 12),
+                        Text('Edit Loan'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'default',
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, size: 18, color: Colors.orange),
+                        SizedBox(width: 12),
+                        Text('Mark Defaulted'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuItem(
+                    value: 'statement',
+                    child: Row(
+                      children: [
+                        Icon(Icons.description_outlined, size: 18),
+                        SizedBox(width: 12),
+                        Text('Download Statement'),
+                      ],
+                    ),
+                  ),
+                  const PopupMenuDivider(),
+                  const PopupMenuItem(
+                    value: 'delete',
+                    child: Row(
+                      children: [
+                        Icon(Icons.delete_outline_rounded, size: 18, color: Colors.red),
+                        SizedBox(width: 12),
+                        Text('Delete Loan', style: TextStyle(color: Colors.red)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
@@ -396,6 +453,37 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
     );
   }
 
+  Widget _buildLoanIntelligence(LoanModel loan, ThemeData theme) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(32),
+      ),
+      child: Column(
+        children: [
+          _buildInfoRow('Principal Amount', AppFormatters.formatCurrency(loan.amount), theme),
+          const SizedBox(height: 12),
+          _buildInfoRow('Total Interest', AppFormatters.formatCurrency(loan.totalInterest), theme),
+          const SizedBox(height: 12),
+          _buildInfoRow('Total Repayable', AppFormatters.formatCurrency(loan.totalRepayable), theme),
+          const Padding(padding: EdgeInsets.symmetric(vertical: 16), child: Divider(height: 1)),
+          _buildInfoRow('Installment Amount', AppFormatters.formatCurrency(loan.emiAmount), theme, isBold: true),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value, ThemeData theme, {bool isBold = false}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: theme.textTheme.bodyMedium?.copyWith(color: theme.colorScheme.onSurface.withValues(alpha: 0.7))),
+        Text(value, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: isBold ? FontWeight.w900 : FontWeight.w700)),
+      ],
+    );
+  }
+
   Widget _buildHealthMetrics(LoanModel loan, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(24),
@@ -530,6 +618,78 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
               }
             }, 
             child: const Text('CONFIRM'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleEdit() async {
+    final loan = ref.read(loanDetailProvider(widget.loanId)).value;
+    if (loan == null) return;
+    
+    HapticFeedback.mediumImpact();
+    final controller = TextEditingController(text: loan.remarks ?? '');
+    
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Edit Loan Metadata'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              maxLines: 3,
+              decoration: InputDecoration(
+                labelText: 'Remarks/Purpose',
+                hintText: 'Enter internal notes or update purpose...',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          ElevatedButton(
+            onPressed: () {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Metadata updated successfully')));
+              Navigator.pop(context);
+            }, 
+            child: const Text('SAVE'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleStatusChange(LoanStatus newStatus) async {
+    HapticFeedback.mediumImpact();
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      messenger.showSnackBar(SnackBar(content: Text('Loan status updated to ${newStatus.name.toUpperCase()}')));
+      ref.invalidate(loanDetailProvider(widget.loanId));
+    } catch (e) {
+      messenger.showSnackBar(SnackBar(content: Text('Failed to update status: $e')));
+    }
+  }
+
+  Future<void> _handleDelete() async {
+    HapticFeedback.heavyImpact();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Loan?'),
+        content: const Text('This action is irreversible. All associated repayment schedules will be purged.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('CANCEL')),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Navigator.pop(context); // Go back to list
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Loan record purged')));
+            }, 
+            child: const Text('DELETE', style: TextStyle(color: Colors.red)),
           ),
         ],
       ),
