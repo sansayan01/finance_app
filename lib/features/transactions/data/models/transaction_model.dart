@@ -10,6 +10,8 @@ class TransactionModel {
   final String? savingsId;
   final DateTime createdAt;
   final String? description;
+  final PaymentMode? paymentMode;
+  final String? agentId;
 
   TransactionModel({
     required this.id,
@@ -21,6 +23,8 @@ class TransactionModel {
     this.savingsId,
     required this.createdAt,
     this.description,
+    this.paymentMode,
+    this.agentId,
   });
 
   factory TransactionModel.fromJson(Map<String, dynamic> json) {
@@ -39,6 +43,13 @@ class TransactionModel {
       savingsId: json['savings_id'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       description: json['description'] as String?,
+      paymentMode: json['payment_mode'] != null
+          ? PaymentMode.values.firstWhere(
+              (e) => e.name == json['payment_mode'],
+              orElse: () => PaymentMode.cash,
+            )
+          : null,
+      agentId: json['agent_id'] as String?,
     );
   }
 
@@ -63,6 +74,8 @@ class TransactionModel {
       'savings_id': savingsId,
       'created_at': createdAt.toIso8601String(),
       'description': description,
+      'payment_mode': paymentMode?.name,
+      'agent_id': agentId,
     };
   }
 }

@@ -48,6 +48,7 @@ enum TransactionType {
   savingsDeposit,
   savingsWithdrawal,
   penalty,
+  staffCashDeposit,
   other,
 }
 

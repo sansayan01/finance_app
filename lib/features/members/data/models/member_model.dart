@@ -9,6 +9,11 @@ class MemberModel {
   final int activeLoans;
   final double totalSavings;
   final DateTime createdAt;
+  final String? shopName;
+  final String? businessType;
+  final double? latitude;
+  final double? longitude;
+  final String? shopPhotoUrl;
 
   MemberModel({
     required this.id,
@@ -19,6 +24,11 @@ class MemberModel {
     this.activeLoans = 0,
     this.totalSavings = 0,
     required this.createdAt,
+    this.shopName,
+    this.businessType,
+    this.latitude,
+    this.longitude,
+    this.shopPhotoUrl,
   });
 
   factory MemberModel.fromJson(Map<String, dynamic> json) {
@@ -36,7 +46,30 @@ class MemberModel {
       activeLoans: json['active_loans'] as int? ?? 0,
       totalSavings: (json['total_savings'] as num?)?.toDouble() ?? 0.0,
       createdAt: DateTime.parse(json['created_at'] as String),
+      shopName: json['shop_name'] as String?,
+      businessType: json['business_type'] as String?,
+      latitude: (json['latitude'] as num?)?.toDouble(),
+      longitude: (json['longitude'] as num?)?.toDouble(),
+      shopPhotoUrl: json['shop_photo_url'] as String?,
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'full_name': fullName,
+      'phone': phone,
+      'member_id': memberId,
+      'kyc_status': kycStatus.name,
+      'active_loans': activeLoans,
+      'total_savings': totalSavings,
+      'created_at': createdAt.toIso8601String(),
+      'shop_name': shopName,
+      'business_type': businessType,
+      'latitude': latitude,
+      'longitude': longitude,
+      'shop_photo_url': shopPhotoUrl,
+    };
   }
 }
 

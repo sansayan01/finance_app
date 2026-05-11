@@ -9,6 +9,8 @@ class AuthRepository {
 
   AuthRepository(this._client, [this._logRepo]);
 
+  SupabaseClient get client => _client;
+
   Future<UserModel> signInWithEmail({
     required String email,
     required String password,

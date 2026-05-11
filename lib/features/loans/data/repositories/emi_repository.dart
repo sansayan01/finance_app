@@ -28,6 +28,7 @@ class EMIRepository {
     required double amount,
     required String paymentMode,
     String? notes,
+    String? agentId,
   }) async {
     try {
       // 1. Update EMI Schedule
@@ -44,6 +45,7 @@ class EMIRepository {
         'amount': amount,
         'payment_mode': paymentMode,
         'notes': notes,
+        'agent_id': agentId,
         'entered_at': DateTime.now().toIso8601String(),
       });
 

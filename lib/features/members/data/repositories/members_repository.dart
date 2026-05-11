@@ -42,4 +42,13 @@ class MembersRepository {
       return MemberSummary(totalMembers: 0, activeMembers: 0, pendingKYC: 0);
     }
   }
+
+  Future<MemberModel> createMember(MemberModel member) async {
+    final response = await _client
+        .from('members')
+        .insert(member.toJson())
+        .select()
+        .single();
+    return MemberModel.fromJson(response);
+  }
 }

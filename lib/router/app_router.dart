@@ -26,6 +26,7 @@ import '../features/analytics/presentation/pages/analytics_page.dart';
 import '../features/home/presentation/pages/search_page.dart';
 import '../features/home/presentation/pages/notifications_page.dart';
 import '../features/transactions/presentation/pages/transactions_page.dart';
+import '../features/members/presentation/pages/member_onboarding_page.dart';
 
 class AuthRedirectListener extends ChangeNotifier {
   final Ref ref;
@@ -153,6 +154,10 @@ final routerProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/transactions',
             builder: (context, state) => const TransactionsPage(),
+          ),
+          GoRoute(
+            path: '/members/onboarding',
+            builder: (context, state) => const MemberOnboardingPage(),
           ),
         ],
       ),

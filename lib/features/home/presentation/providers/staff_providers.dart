@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../core/constants/enums.dart';
 
 import '../../../loans/data/models/emi_schedule_model.dart';
 import '../../../loans/data/models/loan_model.dart';
@@ -150,4 +151,52 @@ final staffRecentActivityProvider =
 final offlineQueueCountProvider = FutureProvider<int>((ref) async {
   final queue = OfflineQueueService();
   return queue.pendingCount;
+});
+
+class StaffWallet {
+  final double cashInHand;
+  final double totalCashCollected;
+  final double totalDigitalCollected;
+  final double lastDepositAmount;
+  final DateTime? lastDepositDate;
+
+  StaffWallet({
+    required this.cashInHand,
+    required this.totalCashCollected,
+    required this.totalDigitalCollected,
+    required this.lastDepositAmount,
+    this.lastDepositDate,
+  });
+}
+
+final staffWalletProvider = FutureProvider<StaffWallet>((ref) async {
+  final repository = ref.watch(transactionsRepositoryProvider);
+  final transactions = await repository.getTransactionsByDate(DateTime.now());
+  
+  double cashInHand = 0;
+  double totalCash = 0;
+  double totalDigital = 0;
+  double lastDeposit = 0;
+  DateTime? lastDate;
+
+  for (final t in transactions) {
+    if (t.type == TransactionType.staffCashDeposit) {
+      cashInHand -= t.amount;
+      lastDeposit = t.amount;
+      lastDate = t.createdAt;
+    } else if (t.paymentMode == PaymentMode.cash) {
+      cashInHand += t.amount;
+      totalCash += t.amount;
+    } else {
+      totalDigital += t.amount;
+    }
+  }
+
+  return StaffWallet(
+    cashInHand: cashInHand,
+    totalCashCollected: totalCash,
+    totalDigitalCollected: totalDigital,
+    lastDepositAmount: lastDeposit,
+    lastDepositDate: lastDate,
+  );
 });

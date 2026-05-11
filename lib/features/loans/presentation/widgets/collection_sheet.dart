@@ -5,6 +5,7 @@ import '../../../../core/constants/enums.dart';
 import '../providers/loan_providers.dart';
 import '../../data/models/emi_schedule_model.dart';
 import '../../data/models/loan_model.dart';
+import '../../../auth/presentation/providers/auth_provider.dart';
 
 class CollectionSheet extends ConsumerStatefulWidget {
   final LoanModel loan;
@@ -43,12 +44,14 @@ class _CollectionSheetState extends ConsumerState<CollectionSheet> {
     setState(() => _isSubmitting = true);
     try {
       final repository = ref.read(emiRepositoryProvider);
+      final user = ref.read(currentUserProvider);
       await repository.recordPayment(
         emiId: widget.emi.id,
         loanId: widget.loan.id,
         amount: double.parse(_amountController.text),
         paymentMode: _selectedMode.name,
         notes: _notesController.text,
+        agentId: user?.id,
       );
 
       // Invalidate providers to refresh UI

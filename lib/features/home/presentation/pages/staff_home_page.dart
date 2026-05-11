@@ -34,6 +34,7 @@ class StaffHomePage extends ConsumerWidget {
           ref.invalidate(staffTodayStatsProvider);
           ref.invalidate(staffRecentActivityProvider);
           ref.invalidate(offlineQueueCountProvider);
+          ref.invalidate(staffWalletProvider);
         },
         displacement: 20,
         color: theme.colorScheme.primary,
@@ -47,6 +48,8 @@ class StaffHomePage extends ConsumerWidget {
             children: [
               _buildHeader(context, ref),
               const SizedBox(height: 24),
+              _buildWalletCard(context, ref),
+              const SizedBox(height: 24),
               _buildMissionCard(context, ref),
               const SizedBox(height: 24),
               _buildDueList(context, ref),
@@ -58,6 +61,84 @@ class StaffHomePage extends ConsumerWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildWalletCard(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final walletAsync = ref.watch(staffWalletProvider);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return walletAsync.when(
+      data: (wallet) => GlassCard(
+        padding: const EdgeInsets.all(20),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: const Icon(Icons.account_balance_wallet_rounded,
+                  color: AppColors.primary),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Cash in Hand',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: theme.textTheme.bodySmall?.color
+                          ?.withValues(alpha: 0.6),
+                    ),
+                  ),
+                  Text(
+                    AppFormatters.formatCurrency(wallet.cashInHand),
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                      color: isDark ? Colors.white : AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppColors.success.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    'SAFE',
+                    style: TextStyle(
+                      color: AppColors.success,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Branch limit: ₹50k',
+                  style: theme.textTheme.labelSmall?.copyWith(fontSize: 9),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+      loading: () => const ShimmerCard(height: 90),
+      error: (_, __) => const SizedBox.shrink(),
     );
   }
 
@@ -134,7 +215,46 @@ class StaffHomePage extends ConsumerWidget {
               ),
             ),
           ),
+        const SizedBox(width: 12),
+        _buildGPSStatusChip(context),
       ],
+    );
+  }
+
+  Widget _buildGPSStatusChip(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: AppColors.success.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: const BoxDecoration(
+              color: AppColors.success,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 6),
+          const Text(
+            'GPS ACTIVE',
+            style: TextStyle(
+              color: AppColors.success,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -788,32 +908,98 @@ class StaffHomePage extends ConsumerWidget {
           children: [
             Expanded(
               child: _QuickActionCard(
-                icon: Icons.payments_rounded,
-                label: 'Record EMI',
+                icon: Icons.person_add_rounded,
+                label: 'Onboard',
                 color: AppColors.success,
+                onTap: () => context.push('/members/onboarding'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickActionCard(
+                icon: Icons.payments_rounded,
+                label: 'Collection',
+                color: AppColors.primary,
                 onTap: () => context.push('/loans'),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionCard(
-                icon: Icons.account_balance_wallet_rounded,
-                label: 'Record Deposit',
-                color: AppColors.primary,
-                onTap: () => context.push('/savings'),
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _QuickActionCard(
-                icon: Icons.people_alt_outlined,
-                label: 'Members',
-                color: AppColors.accentLight,
-                onTap: () {}, // Members page not in router yet
+                icon: Icons.account_balance_rounded,
+                label: 'My Vault',
+                color: AppColors.orange,
+                onTap: () => _showVaultDetails(context, ref),
               ),
             ),
           ],
         ),
+      ],
+    );
+  }
+
+  void _showVaultDetails(BuildContext context, WidgetRef ref) {
+    // Show a bottom sheet with cash denomination tracking or deposit QR
+    final theme = Theme.of(context);
+    final wallet = ref.read(staffWalletProvider).valueOrNull;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (ctx) => Container(
+        padding: const EdgeInsets.all(24),
+        decoration: BoxDecoration(
+          color: theme.scaffoldBackgroundColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: theme.dividerColor.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 24),
+            const Text('Cash Vault', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 32),
+            _buildVaultInfoRow('Cash in Hand', AppFormatters.formatCurrency(wallet?.cashInHand ?? 0), AppColors.success, theme),
+            const SizedBox(height: 16),
+            _buildVaultInfoRow('Digital Today', AppFormatters.formatCurrency(wallet?.totalDigitalCollected ?? 0), AppColors.primary, theme),
+            const SizedBox(height: 32),
+            const Divider(),
+            const SizedBox(height: 24),
+            const Text('Handover to Branch', style: TextStyle(fontWeight: FontWeight.w700)),
+            const SizedBox(height: 12),
+            Text('Generate this QR for the Branch Manager to scan and confirm your cash deposit.', 
+              textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6))),
+            const SizedBox(height: 24),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(24),
+              ),
+              child: Icon(Icons.qr_code_2_rounded, size: 200, color: Colors.black.withValues(alpha: 0.8)),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('DONE'),
+              ),
+            ),
+            SizedBox(height: MediaQuery.of(context).padding.bottom),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildVaultInfoRow(String label, String value, Color color, ThemeData theme) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(label, style: theme.textTheme.bodyMedium),
+        Text(value, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900, color: color)),
       ],
     );
   }
