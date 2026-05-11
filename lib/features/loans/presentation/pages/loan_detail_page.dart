@@ -56,9 +56,18 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
           return Stack(
             children: [
               _buildAmbientBackground(loan),
-              CustomScrollView(
-                controller: _scrollController,
-                physics: const BouncingScrollPhysics(),
+              RefreshIndicator(
+                onRefresh: () async {
+                  ref.invalidate(loanDetailProvider(widget.loanId));
+                  ref.invalidate(emiScheduleProvider(widget.loanId));
+                },
+                displacement: 20,
+                color: theme.colorScheme.primary,
+                backgroundColor: theme.cardColor,
+                child: CustomScrollView(
+                  controller: _scrollController,
+                  physics: const BouncingScrollPhysics(
+                      parent: AlwaysScrollableScrollPhysics()),
                 slivers: [
                   SliverToBoxAdapter(
                       child: SizedBox(
@@ -132,8 +141,9 @@ class _LoanDetailPageState extends ConsumerState<LoanDetailPage> {
                   ),
                 ],
               ),
-            ],
-          );
+            ),
+          ],
+        );
         },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),

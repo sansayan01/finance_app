@@ -11,6 +11,7 @@ import '../../../../core/widgets/shimmer_loading.dart';
 import '../../../../core/utils/formatters.dart';
 import '../../data/models/savings_model.dart';
 import '../../data/providers/savings_providers.dart';
+import '../../../home/data/providers/dashboard_providers.dart' hide savingsSummaryProvider;
 
 class SavingsPage extends ConsumerStatefulWidget {
   const SavingsPage({super.key});
@@ -34,16 +35,27 @@ class _SavingsPageState extends ConsumerState<SavingsPage>
       backgroundColor:
           isDark ? const Color(0xFF0A0A0C) : const Color(0xFFF2F2F7),
       body: AuroraBackground(
-        child: CustomScrollView(
-          physics: const BouncingScrollPhysics(),
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(savingsProvider);
+            ref.invalidate(savingsSummaryProvider);
+            ref.invalidate(pendingDepositsProvider);
+          },
+          displacement: 20,
+          color: theme.colorScheme.primary,
+          backgroundColor: theme.cardColor,
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(
+                parent: AlwaysScrollableScrollPhysics()),
           slivers: [
             _buildAppBar(context, theme, isDark),
             SliverToBoxAdapter(
                 child: _buildWealthSummary(savingsAsync, theme, isDark)),
             _buildFilters(theme, isDark),
             _buildSavingsList(savingsAsync, theme, isDark),
-            const SliverToBoxAdapter(child: SizedBox(height: 100)),
-          ],
+              const SliverToBoxAdapter(child: SizedBox(height: 100)),
+            ],
+          ),
         ),
       ),
     );

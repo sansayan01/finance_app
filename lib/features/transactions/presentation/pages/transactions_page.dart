@@ -24,41 +24,59 @@ class TransactionsPage extends ConsumerWidget {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
-      body: transactionsAsync.when(
-        data: (transactions) {
-          if (transactions.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.history_rounded,
-                      size: 64,
-                      color:
-                          AppColors.textTertiaryLight.withValues(alpha: 0.2)),
-                  const SizedBox(height: 16),
-                  Text('No transactions found',
-                      style: theme.textTheme.bodyLarge),
-                ],
-              ),
-            );
-          }
-          return ListView.builder(
-            padding: const EdgeInsets.all(20),
-            itemCount: transactions.length,
-            itemBuilder: (context, index) {
-              final tx = transactions[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: _TransactionTimelineTile(transaction: tx),
-              )
-                  .animate()
-                  .fadeIn(delay: (index * 50).ms)
-                  .slideY(begin: 0.05, end: 0);
-            },
-          );
+      body: RefreshIndicator(
+        onRefresh: () async {
+          ref.invalidate(recentTransactionsProvider);
         },
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, _) => Center(child: Text('Error: $err')),
+        displacement: 20,
+        color: theme.colorScheme.primary,
+        backgroundColor: theme.cardColor,
+        child: transactionsAsync.when(
+          data: (transactions) {
+            if (transactions.isEmpty) {
+              return CustomScrollView(
+                physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics()),
+                slivers: [
+                  SliverFillRemaining(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.history_rounded,
+                              size: 64,
+                              color: AppColors.textTertiaryLight
+                                  .withValues(alpha: 0.2)),
+                          const SizedBox(height: 16),
+                          Text('No transactions found',
+                              style: theme.textTheme.bodyLarge),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+            return ListView.builder(
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
+              padding: const EdgeInsets.all(20),
+              itemCount: transactions.length,
+              itemBuilder: (context, index) {
+                final tx = transactions[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: _TransactionTimelineTile(transaction: tx),
+                )
+                    .animate()
+                    .fadeIn(delay: (index * 50).ms)
+                    .slideY(begin: 0.05, end: 0);
+              },
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (err, _) => Center(child: Text('Error: $err')),
+        ),
       ),
     );
   }

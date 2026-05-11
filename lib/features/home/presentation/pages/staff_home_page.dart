@@ -37,8 +37,10 @@ class StaffHomePage extends ConsumerWidget {
         },
         displacement: 20,
         color: theme.colorScheme.primary,
+        backgroundColor: theme.cardColor,
         child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
+          physics: const BouncingScrollPhysics(
+              parent: AlwaysScrollableScrollPhysics()),
           padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,

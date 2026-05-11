@@ -57,9 +57,18 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
             return const Center(child: Text('Savings Plan Not Found'));
           }
           return AuroraBackground(
-            child: CustomScrollView(
-              controller: _scrollController,
-              physics: const BouncingScrollPhysics(),
+            child: RefreshIndicator(
+              onRefresh: () async {
+                ref.invalidate(savingDetailProvider(widget.savingId));
+                ref.invalidate(savingTransactionsProvider(widget.savingId));
+              },
+              displacement: 20,
+              color: theme.colorScheme.primary,
+              backgroundColor: theme.cardColor,
+              child: CustomScrollView(
+                controller: _scrollController,
+                physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics()),
               slivers: [
                 SliverToBoxAdapter(
                     child: SizedBox(
@@ -128,8 +137,9 @@ class _SavingDetailPageState extends ConsumerState<SavingDetailPage> {
                 ),
               ],
             ),
-          );
-        },
+          ),
+        );
+      },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (e, _) => Center(child: Text('Error: $e')),
       ),

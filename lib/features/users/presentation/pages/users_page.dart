@@ -72,6 +72,9 @@ class _UsersPageState extends ConsumerState<UsersPage> {
                 ref.invalidate(userListProvider);
                 ref.invalidate(userStatsProvider);
               },
+              displacement: 20,
+              color: primary,
+              backgroundColor: theme.cardColor,
               child: CustomScrollView(
                 physics: const BouncingScrollPhysics(
                     parent: AlwaysScrollableScrollPhysics()),

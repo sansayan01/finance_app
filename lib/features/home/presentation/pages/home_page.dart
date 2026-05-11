@@ -45,8 +45,10 @@ class HomePage extends ConsumerWidget {
             },
             displacement: 20,
             color: Theme.of(context).colorScheme.primary,
+            backgroundColor: Theme.of(context).cardColor,
             child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
+              physics: const BouncingScrollPhysics(
+                  parent: AlwaysScrollableScrollPhysics()),
               padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,

@@ -19,9 +19,18 @@ class AnalyticsPage extends ConsumerWidget {
     final selectedPeriod = ref.watch(analyticsPeriodProvider);
     final theme = Theme.of(context);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
-      child: Column(
+    return RefreshIndicator(
+      onRefresh: () async {
+        ref.invalidate(analyticsProvider);
+      },
+      displacement: 20,
+      color: theme.colorScheme.primary,
+      backgroundColor: theme.cardColor,
+      child: SingleChildScrollView(
+        physics: const BouncingScrollPhysics(
+            parent: AlwaysScrollableScrollPhysics()),
+        padding: const EdgeInsets.fromLTRB(24, 20, 24, 100),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildHeader(theme),
@@ -61,7 +70,8 @@ class AnalyticsPage extends ConsumerWidget {
             ),
             error: (err, _) => _buildErrorState(err, theme),
           ),
-        ],
+          ],
+        ),
       ),
     );
   }
